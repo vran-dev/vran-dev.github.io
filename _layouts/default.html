@@ -14,9 +14,12 @@
             </a>
             </h2>
             {% for tag in article.tags %}
-            <span style="width:auto; border-radius:10px;border:1px solid #ddd; color: #000; margin:4px;font-weight: 100;">
+            <!-- <span style="width:auto; border-radius:10px;border:1px solid #ddd; color: #000; margin:4px;font-weight: 100;">
+                
+            </span> -->
+            <div class="tag">
                 {{ tag }}
-            </span>
+            </div>
             {% endfor %}
             <br>
             <div style="margin-top:6px;">

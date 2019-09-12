@@ -35,12 +35,12 @@ h3, h4, h5, h6 {
 }
 
 a {
-  color:#39c;
+  color:#000;
   text-decoration:none;
 }
 
 a:hover {
-  color:#069;
+  color:#39c;
 }
 
 a small {
@@ -185,7 +185,16 @@ hr {
   height:1px;
   margin:0 0 20px;
 }
-
+.tag {
+  border: 1px solid #e1e4e8!important;
+  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace!important;
+  font-size:0.1em;
+  display: inline-block!important;
+  box-sizing: border-box;
+  white-space: nowrap!important;
+  border-radius: 30px;
+  padding: 2px 8px;
+}
 footer {
   width:270px;
   float:left;
