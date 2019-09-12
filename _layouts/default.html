@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+{% include html-head.html %}
+<body>
+<div class="wrapper">
+    {% include header.html %}
+    <section>
+
+        {% for post in site.posts%}
+        <a href="{{ post.url }}"><h1>{{ post.title }}</h1></a>
+        {% endfor %}
+
+        {% assign ordered_articles = site.articles | sort:"date" | reverse %}
+        {% for article in ordered_articles %}
+        <div>
+            <a href="{{ article.url }}">
+                <h2>{{ article.title }}</h2>
+            </a>
+            {% for tag in article.tags %}
+            <span style="width:auto; border-radius:10px;border:1px solid #ddd; color: #000; margin:4px;font-weight: 100;">
+                {{ tag }}
+            </span>
+            {% endfor %}
+            <br>
+            <div style="margin-top:6px;">
+            <small>{{ article.date | date:"%Y-%m-%d" }}</small>
+        </div>
+            <div style="margin-bottom:18px;margin-top:10px;height:1px;background:#ddd;overflow: hidden;"></div>
+
+        </div>
+        {% endfor %}
+
+
+    </section>
+    {% include footer.html %}
+</div>
+<script src="{{ site.url }}/javascripts/scale.fix.js"></script>
+</body>
+</html>
+
