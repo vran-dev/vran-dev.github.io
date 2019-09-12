@@ -199,7 +199,7 @@ PS: 上面的代码并不规范，可能会产生僵尸进程和孤儿进程，�
 ## Show me the code
 
 > talk is cheap , show me the code
-> 			by *Linus* Benedict Torvalds
+>				by  *Linus* Benedict Torvalds
 
 真相的最后一步就是迈进源码里面去了，我们通过Linux内核的源码来验证我们的总结是不是正确的
 
