@@ -5,17 +5,14 @@
 <div class="wrapper">
     {% include header.html %}
     <section>
-
-        {% for post in site.posts%}
-        <a href="{{ post.url }}"><h1>{{ post.title }}</h1></a>
-        {% endfor %}
-
         {% assign ordered_articles = site.articles | sort:"date" | reverse %}
         {% for article in ordered_articles %}
         <div>
+            <h2>
             <a href="{{ article.url }}">
-                <h2>{{ article.title }}</h2>
+                {{ article.title }}
             </a>
+            </h2>
             {% for tag in article.tags %}
             <span style="width:auto; border-radius:10px;border:1px solid #ddd; color: #000; margin:4px;font-weight: 100;">
                 {{ tag }}
