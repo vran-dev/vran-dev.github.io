@@ -11,5 +11,16 @@
     <p>
         久处一方，则习染而不自觉。
     </p>
-   
+    
+    <div>
+        <h3>标签</h3>
+        
+        {% for tag in uniq_tags %}
+            <div class="tag">
+                {{ tag }}
+            </div>
+        {% endfor %}
+
+        <p>{{ collections.tags.TCP }}<p>
+    </div>
 </header>

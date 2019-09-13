@@ -1,7 +1,6 @@
 ---
 title:  "简单聊聊TCP的可靠性"
 date:   2019-08-30 13:58:06 +0800
-layout: post
 tag: [TCP, 网络]
 ---
 

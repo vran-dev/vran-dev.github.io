@@ -1,7 +1,6 @@
 ---
 title:  "Spring的循环依赖"
 date:   2019-08-22 13:30:06 +0800
-layout: post
 tag: [Java, Spring]
 ---
 
