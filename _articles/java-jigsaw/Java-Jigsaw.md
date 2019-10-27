@@ -10,9 +10,9 @@ tag: [Java]
 
 ## 历史
 
-Java9 在 2017年9月21日 发布，其中最大的变化就是引入了模块化系统 **Jigsaw** （Java Platform Module System，简称 JPMS）。
+Java9 在 2017年9月21日 发布，其中最大的变化就是引入了模块化系统（Java Platform Module System，简称 JPMS）， 该项目代号为 Jigsaw。
 
-实际上 Java 的模块化在 2005年 (Java7) 的提案 [JSR 277](https://jcp.org/en/jsr/detail?id=277) 就已经提出来了，该提案因为种种原因，在一年多后被取消掉了，Java 的模块化进程自然也被搁置了。
+实际上 Java 的模块化在 2005年 (Java7) 的提案 [JSR277](https://jcp.org/en/jsr/detail?id=277) 就已经提出来了，该提案因为种种原因，在一年多后被取消掉了，Java 的模块化进程自然也就被搁置了。
 
 ![image-20191017092549901](img/image-20191017092549901.png)
 
@@ -26,7 +26,7 @@ Java9 在 2017年9月21日 发布，其中最大的变化就是引入了模块�
 
 ## 目标
 
-在 [JSR376](https://www.jcp.org/en/jsr/detail?id=376) 中，对模块化系统的目标是有非常明确的描述的，如下：
+在 [JSR376](https://www.jcp.org/en/jsr/detail?id=376) 中，对模块化系统的目标是有非常明确的描述的：
 
 - 使用更可靠的配置来描述程序组件之间的依赖关系，并以此来替代经常出问题的 class-path 
 - 程序组件可以控制其 API 被其他组件的访问性，提供一个更强的封装能力
@@ -40,7 +40,7 @@ Java9 在 2017年9月21日 发布，其中最大的变化就是引入了模块�
 
 在使用 Java9 的模块化系统时，会不自觉的和 Maven、Gradle 等构建工具进行对比，但是实际上两者关注的核心点是不一样的。
 
-模块化系统更注重模块之间的封装性，而构建工具更注重的是依赖管理。
+模块化系统更注重模块之间的封装性，而构建工具更注重的是依赖管理和项目构建。
 
 也就是说构建工具可以决定依赖某个第三方库，而模块系统则决定你能使用该第三方库的哪些包或类。
 
@@ -50,12 +50,13 @@ Java9 在 2017年9月21日 发布，其中最大的变化就是引入了模块�
 
 ## 语法
 
-Java 的模块是在 package 之上提供的一层抽象，也就是说一个模块实则是有多个 package 聚合而成的。
+Java 的模块是在 package 之上提供的一层抽象，所以通常一个模块是由多个 package 聚合而成的。
 
 那么如何定义一个模块呢？
-答案是通过 **module-info.java** 文件，该文件定义在某个 package 下，那么该包及其子包就是一个模块。
 
-开发者可以在 **module-info.java** 文件中定义模块的元数据信息，包括以下信息：
+只需要在项目下创建一个 module-info.java 的文件就可以描述一个模块了，module-info.java 文件所在包及其子包就组成了一个模块。
+
+module-info.java 用来描述模块的基本信息，包括：
 
 - 模块名称
 
@@ -67,11 +68,9 @@ Java 的模块是在 package 之上提供的一层抽象，也就是说一个模
 
 - 该模块下的服务提供者和服务消费者信息
 
-- 该模块消费的 service
-
   
 
-**module-info.java** 使用新的语法来描述这些信息，在新的 《 Java 语言规范 》中对此有详细的描述：
+具体的语法规则在 《 Java 语言规范 》中有详细的描述：
 
 ```java
 {Annotation} [open] module Identifier {. Identifier} { 
@@ -98,25 +97,22 @@ RequiresModifier:
 >
 > -  module, requires, exports, opens, provides..with, transitive, static 等都是关键字
 
-下面再来单独过一下各个语法的作用和使用方式
-
 
 
 ### Module
 
-在 **module-info.java** 中可以通过 `module` 关键字来定义一个模块的名称。
-
-名称的规则可 package 一样，可以通过 `.` 进行分割。
+ `module` 用来来定义一个模块，与 `class` ，`interface` 类似。
 
 ```java
 // 定义一个名称为 MyModule 的模块
 module MyModule {
+  
 }
 ```
 
 注意，一个 module-info.java 文件中只能出现一次 module 的定义， 它并不能像 Java 类一样做嵌套的定义。
 
-Java9 为 ElementType 引入了一个新的值 **MODULE** , 这样使得注解可以定义在 `module` 上。 
+`ElementType` 在 Java9 时新增了一个新的 **MODULE** 类型，从而使得注解也可以定义在 `module` 之上。  
 
 ```java
 public enum ElementType {
@@ -130,7 +126,7 @@ public enum ElementType {
 }
 ```
 
-除了注解之外， `module` 还可以被 `open` 关键字修饰，也就是如下所示
+除了注解之外， `module` 还可以被 `open` 关键字修饰：
 
 ```java
 open module MyModule {
@@ -138,19 +134,19 @@ open module MyModule {
 }
 ```
 
-《 Java 语言规范 》将被 open 修饰的模块定义为 **开放模块**，反之则为 **标准模块**。
+在《Java 语言规范》中，将被 open 修饰的模块定义为 **开放模块**，反之则为 **标准模块**。
 
-**开放模块**内的 public / protected 代码在运行时都是可以访问的， 并且该模块下的类都可以通过反射进行访问。
+正常情况下，**标准模块**的代码是不能直接被访问的（包括 public / protected 的类），反射也不行。
+
+>  开发者可以通过 exports 或者 opens 来控制这些访问权限。
+
+而**开放模块**内的 public类型（包括其 public/protected 成员）在运行时都是可以访问的， 并且该模块下的类都可以通过反射进行访问。
 
 
 
-### Exports
+### **Exports**
 
-默认情况下，模块下的代码是不可以直接被访问的（包括 public 和 protected）。
-
-`exports ` 后可以跟包名（ package ），这样其他模块就可以访问该包下的 public 类型 （以及其嵌套的 public 类型和 protected 类型）。
-
-> 但是要注解同一个 package 不能重复 exports
+前面提到在默认情况下，模块下的代码是不可以直接被访问的（即使是 public），而 `exports` 就可以开放某个包下的 public 类的访问权限。
 
 ```java
 module MyExportsModule {
@@ -158,7 +154,9 @@ module MyExportsModule {
 }
 ```
 
- `exports` 还可以通过 `to` 关键字指定具体的可访问模块，如下：
+ `exports` 还可以通过 `to` 关键字来将访问权限限定到某一个具体的模块。
+
+如下面这一段代码， **com.sample** 下的类只能被**模块B**访问。
 
 ```java
 module A {
@@ -166,13 +164,11 @@ module A {
 }
 ```
 
-这样的话 **com.sample** 包就只能被 模块B 访问。
-
 
 
 ### Opens
 
-`opens` 的语法和作用与 `exports` 很相似，与之不同在于 opens 更侧重于对**运行时**的访问权限控制。
+`opens` 的语法和作用与 `exports` 类似，不同点在于 opens 更侧重于对**运行时**的访问权限控制。
 
 在 Java9 以前，我们可以通过反射获取类的所有信息（包括 private 成员），这就导致了没有真正意义的封装。
 
