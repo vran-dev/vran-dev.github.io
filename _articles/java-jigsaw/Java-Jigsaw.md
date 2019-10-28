@@ -154,7 +154,7 @@ module MyExportsModule {
 }
 ```
 
- `exports` 还可以通过 `to` 关键字来将访问权限限定到某一个具体的模块。
+ `exports` 还可以通过 `to` 关键字来将访问权限限定到某一个具体的外部模块。
 
 如下面这一段代码， **com.sample** 下的类只能被**模块B**访问。
 
@@ -170,9 +170,9 @@ module A {
 
 `opens` 的语法和作用与 `exports` 类似，不同点在于 opens 更侧重于对**运行时**的访问权限控制。
 
-在 Java9 以前，我们可以通过反射获取类的所有信息（包括 private 成员），这就导致了没有真正意义的封装。
+在 Java9 以前，我们可以通过反射获取类的所有信息（包括 private 成员），这样的操作就破坏了封装。
 
-在 Java9 的模块化系统中，只有 `opens` 的包下的类才可以通过反射访问，除此之外还提供了**运行时**的访问权限
+而在新的模块化系统中，只有 `opens` 的包下的类才允许进行反射操作。
 
 > 如果整个 module 是 open 的话， 就不需要在每个 package 前指定 opens 了
 
@@ -182,7 +182,7 @@ module MyOpensModule {
 }
 ```
 
-与 `exports` 一样， `opens` 也可以通过 `to`  关键字指定具体的模块粒度：
+与 `exports` 一样， `opens` 也可以通过 `to`  关键字指定具体的模块：
 
 ```java
 module A {
@@ -190,7 +190,7 @@ module A {
 }
 ```
 
- `exports` 和 `opens` 都是在指定模块内 package 的封装性。
+除了反射权限，`opens` 还提供了对类的运行时访问权限。
 
 
 
@@ -198,7 +198,7 @@ module A {
 
 `requires` 用于指定依赖的第三方模块，类似于 maven 的 <dependency> 标签。
 
-`requires` 后面可以跟 **transitive** 或 **static** 关键字
+`requires` 还可以跟 **transitive** 或 **static** 关键字
 
 - transitive  代表依赖可以被传递（默认依赖是不传递的， 官方也不推荐使用 transitive）
 - static 代表依赖的模块在编译期是必须的，在运行时是可选的 （ 比如 [lombok](https://projectlombok.org/) ）
@@ -225,7 +225,7 @@ mobule C {
 }
 ```
 
-JDK 本身已经模块化了，为了使用方便， 用户定义的模块都会会默认 `requires java.base`，当然你也可以显示的覆盖它。
+为了使用方便， 用户定义的模块都会默认 `requires java.base`，当然你也可以显示的覆盖它。
 
 
 
@@ -233,9 +233,9 @@ JDK 本身已经模块化了，为了使用方便， 用户定义的模块都会
 
 `uses` 和 `provides..with` 主要是和 Java 的 [SPI](https://docs.oracle.com/javase/9/docs/api/java/util/ServiceLoader.html) 机制有关 ， SPI 可以解耦**服务消费者**和**服务提供者**。
 
-在 Java9 的模块化系统中定义一个服务提供者需要使用 `uses` 关键字。
+使用 `uses` 关键字可以定义一个服务提供者，如下：
 
-如下，`com.sample.Serializer` 是一个接口，是对序列化的一个抽象，具体实现可以是 Hessian，Java 等。
+`com.sample.Serializer` 是一个接口，是对序列化的一个抽象，具体实现可以是 Hessian，Java 等。
 
 ```java
 public interface Serializer {
@@ -262,7 +262,7 @@ public class SerializerFactory {
 java.util.ServiceConfigurationError: com.sample.SerializerFactory: module A does not declare `uses`
 ```
 
- `uses` 的使用也很简单，记住 `uses` 后面跟的是 **interface** :
+ `uses` 直接跟接口的全限定名：
 
 ```java
 module MySPIModule {
@@ -271,9 +271,9 @@ module MySPIModule {
 }
 ```
 
-在 Java9 以前服务的实现是定义在 class-path 下的  `META-INF/services` 下， 在该目录创建一个文件（名称为接口的全限定名），在文件写入实现类名即可。
+以前服务实现是定义在 class-path 下的  `META-INF/services` 下， 在该目录创建一个文件（名称为接口的全限定名），在文件中写入实现类名即可。
 
-在 Java9  的模块化系统中，可以不再需要创建该约定的目录和文件了，直接在 **module-info.java** 中通过 `provides...with`  就可以指定服务的实现（一般称之为**服务消费者**）。
+在 Java9 的模块化系统中，可以不再需要创建目录和文件了，直接在 **module-info.java** 中通过 `provides...with`  就可以指定服务的实现（一般称之为**服务消费者**）。
 
 
 
@@ -404,7 +404,7 @@ java --module-path mods -m B/com.b.MyTest
 
 ## 兼容性
 
-为了实现向后兼容，当 module-path 下同时存在有 module-info.java 定义的模块 jar 和没有该文件定义的非模块 jar 时，Java 会将非模块 jar自动转换成模块， 即 automatic-module。
+为了实现向后兼容，当 module-path 下存在没有定义 module-info.java 文件的依赖时，会将该依赖转换成 automatic-module：
 
 - Automatic-module 默认 exports 所有包
 - Automatic-module 默认 opens 所有包
