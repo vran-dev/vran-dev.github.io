@@ -112,19 +112,17 @@ module MyModule {
 
 注意，一个 module-info.java 文件中只能出现一次 module 的定义， 它并不能像 Java 类一样做嵌套的定义。
 
-`ElementType` 在 Java9 时新增了一个新的 **MODULE** 类型，从而使得注解也可以定义在 `module` 之上。  
+为了让 `Annotation` 能够作用与模块之上，Java 9 特地为 `ElementType` 扩展了一个 **MODULE** 类型，下面是一个简单的示例
 
-```java
-public enum ElementType {
-  
-    /**
-     * Module declaration.
-     *
-     * @since 9
-     */
-    MODULE
+ ```java
+@Target({ElementType.MODULE})
+@Retention(RetentionPolicy.RUNTIME)
+@interface ModuleAnnotation {
+
 }
-```
+ ```
+
+
 
 除了注解之外， `module` 还可以被 `open` 关键字修饰：
 
@@ -138,7 +136,7 @@ open module MyModule {
 
 正常情况下，**标准模块**的代码是不能直接被访问的（包括 public / protected 的类），反射也不行。
 
->  开发者可以通过 exports 或者 opens 来控制这些访问权限。
+>  后面会提到 export 和 opens，开发者可以通过这些关键字标识 来控制访问权限。
 
 而**开放模块**内的 public类型（包括其 public/protected 成员）在运行时都是可以访问的， 并且该模块下的类都可以通过反射进行访问。
 
@@ -147,6 +145,8 @@ open module MyModule {
 ### **Exports**
 
 前面提到在默认情况下，模块下的代码是不可以直接被访问的（即使是 public），而 `exports` 就可以开放某个包下的 public 类的访问权限。
+
+比如下面的代码就是开放 MyExportModule 下 com.sample 包下所有的类的访问权限
 
 ```java
 module MyExportsModule {
@@ -170,11 +170,11 @@ module A {
 
 `opens` 的语法和作用与 `exports` 类似，不同点在于 opens 更侧重于对**运行时**的访问权限控制。
 
-在 Java9 以前，我们可以通过反射获取类的所有信息（包括 private 成员），这样的操作就破坏了封装。
+在 Java9 以前，我们可以通过反射获取类的所有信息（包括 private 成员），而这样的操作是违背了封装的原则的。
 
-而在新的模块化系统中，只有 `opens` 的包下的类才允许进行反射操作。
+模块化系统为了增强封装性，规定只有 `opens` 的包下的类才允许被反射。
 
-> 如果整个 module 是 open 的话， 就不需要在每个 package 前指定 opens 了
+> 当然，如果整个 module 是 open 的话， 就不需要在每个 package 前指定 opens 了
 
 ```java
 module MyOpensModule {
@@ -196,9 +196,11 @@ module A {
 
 ### Requires
 
-`requires` 用于指定依赖的第三方模块，类似于 maven 的 <dependency> 标签。
+`requires` 用于指定依赖的第三方模块，类似于 maven 的 <dependency> 标签，不过两者的含义可不同。
 
-`requires` 还可以跟 **transitive** 或 **static** 关键字
+maven 和 gradle 这样的构建工具会从网络或本地将依赖下载下来，并导入到 class-path 中，而模块化系统并不会从远程下载依赖，它的作用在于控制你可以访问指定模块的类相关权限。
+
+`requires` 后面可以跟 **transitive** 或 **static** 关键字
 
 - transitive  代表依赖可以被传递（默认依赖是不传递的， 官方也不推荐使用 transitive）
 - static 代表依赖的模块在编译期是必须的，在运行时是可选的 （ 比如 [lombok](https://projectlombok.org/) ）
@@ -225,7 +227,18 @@ mobule C {
 }
 ```
 
-为了使用方便， 用户定义的模块都会默认 `requires java.base`，当然你也可以显示的覆盖它。
+如果没有使用 transitive，但是模块 A 又需要 模块 C 的话，就必须要再模块 A 中显示的指定依赖关系，否则的话会有编译错误
+
+```java
+module A {
+  requires B;
+  required C;
+}
+```
+
+
+
+为了使用方便， 用户定义的模块都会默认 `requires java.base`，我们自己也可以显示的去覆盖它。
 
 
 
@@ -233,7 +246,11 @@ mobule C {
 
 `uses` 和 `provides..with` 主要是和 Java 的 [SPI](https://docs.oracle.com/javase/9/docs/api/java/util/ServiceLoader.html) 机制有关 ， SPI 可以解耦**服务消费者**和**服务提供者**。
 
-使用 `uses` 关键字可以定义一个服务提供者，如下：
+> SPI 本质上就是运行时动态的在 class-path 路径下加载对应的实现类
+
+在模块化系统中，使用 `uses` 关键字可以定义一个服务提供者，而 `provides...with` 可以指定服务的实现
+
+下面来看一个简单的例子：
 
 `com.sample.Serializer` 是一个接口，是对序列化的一个抽象，具体实现可以是 Hessian，Java 等。
 
@@ -243,7 +260,7 @@ public interface Serializer {
 }
 ```
 
-通过 Java 的 SPI 加载实现类
+通过 Java 的 SPI 加载 `Serializer` 的具体实现
 
 ```java
 public class SerializerFactory {
@@ -256,13 +273,13 @@ public class SerializerFactory {
 }
 ```
 
-在 Java9 中，` ServiceLoader` 会检查模块的权限，如果在 **module-info.java** 中没有使用 `uses` 定义服务提供者的话，调用 **load** 时会抛出异常:
+在 Java9 中，` ServiceLoader` 会检查模块的权限，如果在 **module-info.java** 中没有使用 `uses` 定义服务提供者的话， **load**  方法会抛出异常:
 
 ```shell
 java.util.ServiceConfigurationError: com.sample.SerializerFactory: module A does not declare `uses`
 ```
 
- `uses` 直接跟接口的全限定名：
+ `uses` 后直接跟接口的全限定名：
 
 ```java
 module MySPIModule {
@@ -285,7 +302,7 @@ module MySPIImplModule {
 
 ```
 
-
+`provides A with B` 可以这样去理解， 为接口 A 提供实现类 B。
 
 ## 类加载器
 
@@ -327,8 +344,8 @@ pakcage com.sample;
 
 public class Test {
 	public void say(String word) {
-    System.out.println(word);
-  }  
+    	System.out.println(word);
+    }  
 }
 
 ```
@@ -412,19 +429,21 @@ java --module-path mods -m B/com.b.MyTest
 
 当然，Automatic-module 是不可靠的，因为依赖的库迁移到模块化系统后，它的模块名和封装性都可能会改变。
 
->  Jlink 不支持 automatic-module。
-
 
 
 ## 其他
 
 Jigsaw 项目中还有 [jlink](https://docs.oracle.com/javase/10/tools/jlink.htm)， [jmod](https://docs.oracle.com/javase/10/tools/jmod.htm)，[jdeps](https://docs.oracle.com/javase/10/tools/jdeps.htm#GUID-A543FEBE-908A-49BF-996C-39499367ADB4) 等工具。
 
+> Jlink 不支持 automatic-module。
+
 尤其是 Jlink， 通过该工具你可以对 JRE 或 JDK 进行 “ 裁剪 ”，从而构建出拥有最小依赖的运行时环境。
 
 我在 [PrettyZoo](https://github.com/vran-dev/PrettyZoo) 项目中使用 Jlink 构建了一个最小运行镜像，总共 44M 左右，效果还是非常不错的（项目本身依赖就占了10M+）。
 
 > PrettyZoo 是一个 zookeeper  的 GUI，基于 JavaFx11 实现的，欢迎 start 或 issue。
+
+该项目最开始时基于 Java8 开发的，后面才迁移到了 Java11，也算是完整的踩了一遍迁移的各种坑，迁移相关的内容会在后续单独再写一篇文章。
 
 
 
@@ -439,3 +458,5 @@ Jigsaw 项目中还有 [jlink](https://docs.oracle.com/javase/10/tools/jlink.htm
 7. [ClassLoader](https://docs.oracle.com/javase/9/docs/api/java/lang/ClassLoader.html#getPlatformClassLoader--)
 8. [Module System Quick-Start Guide](https://openjdk.java.net/projects/jigsaw/quick-start)
 9. [Java Platform, Standard Edition Tools Reference](https://docs.oracle.com/javase/10/tools/toc.htm)
+10. [PrettyZoo](https://github.com/vran-dev/PrettyZoo)
+
