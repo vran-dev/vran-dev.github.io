@@ -1,7 +1,7 @@
 ---
 title: "一次用 Java 写 GUI 的历程回顾"
 date: 2020-04-12 12:30:37 +0800
-tag: [Java, JavaFX]
+tags: [Java, JavaFX]
 ---
 
 
