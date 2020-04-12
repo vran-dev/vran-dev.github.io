@@ -110,7 +110,7 @@ tag: [Java，JavaFX]
 
 ## **总结**
 
-该软件最终的成品我开源在了 Github上，详情点击 https://github.com/vran-dev/PrettyZoo，欢迎 star 和 issue。
+该软件最终的成品我开源在了 Github上，详情点击 [ https://github.com/vran-dev/PrettyZoo]( https://github.com/vran-dev/PrettyZoo)，欢迎 star 和 issue。
 
 
 
