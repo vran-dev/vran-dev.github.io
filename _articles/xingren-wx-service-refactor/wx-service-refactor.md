@@ -107,8 +107,8 @@ PS：虽然你看它不顺眼，但是它就是能运行
 
 而在该服务中，Service 组件内由于继承关系而隐式的带来了不少的循环依赖，先来看看原先的设计
 
-- BaseService 是一个抽象类，封装了处理微信官方接口响应异常的一些处理方法
-- TokenService 是主要用于获取微信官方认证 token 的类
+- BaseService 是一个抽象类，封装了处理微信官方接口响应异常的一些方法
+- TokenService 是主要封装了微信官方认证功能的类
 - ThirdService  主要封装了微信第三方平台的业务能力
 
 再来看看它们之间的关系
@@ -122,7 +122,7 @@ PS：虽然你看它不顺眼，但是它就是能运行
 
 oh ！No ！明显的循环依赖，为什么要这样设计？
 
-在 BaseService 中有这样一段代码，这是造成循环依赖的罪魁祸首
+因为在 BaseService 中有这样一段代码，这是造成循环依赖的罪魁祸首
 
 ```java
 /**
@@ -140,7 +140,7 @@ public <T> T  handleResult(ApiResponse response) {
 
 ```
 
-如何在满足前面定义的分层依赖原则的同时，又避免循环依赖，还要不破坏其业务功能呢？读者可以先想一想（这是一个基于 SpringBoot 的 Java 项目）
+如何在满足前面定义的分层依赖原则的同时，又避免循环依赖，还要不破坏其业务功能呢？（这是一个基于 SpringBoot 的 Java 项目）
 
 从业务实际情况出发，让 TokenService 不去依赖 ThirdService 是有一定的改动成本的，那么就只有让 BaseService 不去依赖 TokenService 了。
 
@@ -161,7 +161,7 @@ public class WeChatTokenInvalidException {
 }
 ```
 
-再将 BaseService 对 TokenService 的依赖去除
+再将 BaseService 对 TokenService 的依赖去除，以前调用 `tokenService.refreshToken()` 的地方直接抛出新定义的异常
 
 ```java
 public <T> T  handleResult(ApiResponse response) {
@@ -178,8 +178,8 @@ public <T> T  handleResult(ApiResponse response) {
 @ControllerAdvice
 public class ApiExceptionHandler {
   
-  @Autowired
-  private TokenService tokenService;
+  	@Autowired
+  	private TokenService tokenService;
   
   
     @ExceptionHandler(Throwable.class)
@@ -205,6 +205,9 @@ public class ApiExceptionHandler {
 
 以下是我摘自服务中的一段方法定义，你觉得有什么问题吗？
 
+- sendMessage 是接入的微信客服消息发送接口
+- sendTemplate 是接入的微信模板消息发送接口
+
 ```java
 @POST(WxServiceConfig.URL_SEND)
 Call<ApiResult> sendMessage(@Query("access_token") String token,
@@ -215,9 +218,6 @@ Call<ApiResult> sendTemplateMessage(@Query("access_token") String token,
                                     @Body JSONObject object);
 
 ```
-
-- sendMessage 是接入的微信客服消息发送接口
-- sendTemplate 是接入的微信模板消息发送接口
 
 两个方法的参数都用到了一个 JSONObject 对象，在这里，它绝对不是一个合适的参数类型
 
