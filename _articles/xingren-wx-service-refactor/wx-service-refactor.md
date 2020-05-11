@@ -242,5 +242,7 @@ Call<ApiResponse> sendTemplateMessage(@Query("access_token") String token,
 
 但是该项目的**架构价值**却有了质的提升，让渐渐流失的设计重新得以维持。
 
+![](img/last.jpg)
+
 当然，这离我想象中的设计还有一定的距离，所以重构没有完成时，始终都是进行时。
 
