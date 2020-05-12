@@ -131,11 +131,11 @@ oh ！No ！明显的循环依赖，为什么要这样设计？
 * （TOKEN_ERROR_CODES 是一个 List<Integer>）
 */
 public <T> T  handleResult(ApiResponse response) {
-    if (TOKEN_ERROR_CODES.contains(response.getCode())) {
-  		tokenServices.refreshToken(appId);
-  		throw new DomainException();
-	}
-    // .... ignore
+  if (TOKEN_ERROR_CODES.contains(response.getCode())) {
+    tokenServices.refreshToken(appId);
+    throw new DomainException();
+  }
+  // .... ignore
 }
 
 ```
@@ -155,7 +155,7 @@ public <T> T  handleResult(ApiResponse response) {
 @NoArgsConstructor
 @AllArgsConstructor
 public class WeChatTokenInvalidException {
-  
+
   private WeixinAppId auth;
   // ...
 }
@@ -165,10 +165,10 @@ public class WeChatTokenInvalidException {
 
 ```java
 public <T> T  handleResult(ApiResponse response) {
-    if (TOKEN_ERROR_CODES.contains(response.getCode())) {
-  		throw new WeChatTokenInvalidException(response.getAppId())
-	}
-    // .... ignore
+  if (TOKEN_ERROR_CODES.contains(response.getCode())) {
+    throw new WeChatTokenInvalidException(response.getAppId())
+  }
+  // .... ignore
 }
 ```
 
@@ -178,22 +178,22 @@ public <T> T  handleResult(ApiResponse response) {
 @ControllerAdvice
 public class ApiExceptionHandler {
   
-  	@Autowired
-  	private TokenService tokenService;
+  @Autowired
+	private TokenService tokenService;
   
   
-    @ExceptionHandler(Throwable.class)
-    @ResponseBody
-    public JsonResult handleAllException(HttpServletRequest request,
-                                         HttpServletResponse response,
-                                         Throwable error) {
-        if (error instanceof WeChatTokenErrorException) {
-            tokenServices.refreshToken(exception.getWeixinAppId());
-        	return JsonResult.error();
-        }
-
-        // 忽略其他代码
+  @ExceptionHandler(Throwable.class)
+  @ResponseBody
+  public JsonResult handleAllException(HttpServletRequest request,
+                                       HttpServletResponse response,
+                                       Throwable error) {
+    if (error instanceof WeChatTokenErrorException) {
+    	tokenServices.refreshToken(exception.getWeixinAppId());
+    	return JsonResult.error();
     }
+
+    // 忽略其他代码
+  }
 }
 ```
 
@@ -212,7 +212,7 @@ public class ApiExceptionHandler {
 @POST(WxServiceConfig.URL_SEND)
 Call<ApiResult> sendMessage(@Query("access_token") String token,
                             @Body JSONObject object);
-                                
+
 @POST(WxServiceConfig.URL_SEND_TEMPLATE)
 Call<ApiResult> sendTemplateMessage(@Query("access_token") String token,
                                     @Body JSONObject object);
