@@ -177,19 +177,19 @@ public <T> T  handleResult(ApiResponse response) {
 ```java
 @ControllerAdvice
 public class ApiExceptionHandler {
-  
+
   @Autowired
-	private TokenService tokenService;
-  
-  
+  private TokenService tokenService;
+
+
   @ExceptionHandler(Throwable.class)
   @ResponseBody
   public JsonResult handleAllException(HttpServletRequest request,
                                        HttpServletResponse response,
                                        Throwable error) {
     if (error instanceof WeChatTokenErrorException) {
-    	tokenServices.refreshToken(exception.getWeixinAppId());
-    	return JsonResult.error();
+      tokenServices.refreshToken(exception.getWeixinAppId());
+      return JsonResult.error();
     }
 
     // 忽略其他代码
@@ -228,13 +228,16 @@ Call<ApiResult> sendTemplateMessage(@Query("access_token") String token,
 
 ```java
 @POST(WxServiceConfig.URL_SEND)
-Call<ApiResponse> sendMessage(@Query("access_token") String token, @Body VoiceMessage message);
+Call<ApiResponse> sendMessage(@Query("access_token") String token,
+                              @Body VoiceMessage message);
 
 @POST(WxServiceConfig.URL_SEND)
-Call<ApiResponse> sendMessage(@Query("access_token") String token, @Body ImageMessage message);
+Call<ApiResponse> sendMessage(@Query("access_token") String token,
+                              @Body ImageMessage message);
 
 @POST(WxServiceConfig.URL_SEND)
-Call<ApiResponse> sendMessage(@Query("access_token") String token, @Body ArticleMessage message);
+Call<ApiResponse> sendMessage(@Query("access_token") String token,
+                              @Body ArticleMessage message);
 
 @POST(WxServiceConfig.URL_SEND_TEMPLATE)
 Call<ApiResponse> sendTemplateMessage(@Query("access_token") String token,
