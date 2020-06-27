@@ -80,10 +80,10 @@ Java 对操作符的重载是有一定限制的（只有内建的操作符重载
 
 以 Java 的集合库 `List<T>` 为例，List 就是类型构造器， T 就是参数，通过指定不同的参数类型就实现了多态
 
-- List<String>
-- List<Integer>
+- `List<String>`
+-  `List<Integer>`
 
-如果不考虑类型擦除，List<String> 和 List<Integer> 就是两个不同的类型，从这儿我们也可以看出，参数化多态可以适用于无穷多的类型。
+如果不考虑类型擦除，`List<String>` 和 `List<Integer>` 就是两个不同的类型，从这儿我们也可以看出，参数化多态可以适用于无穷多的类型。
 
 wiki 上有一段描述参数化多态与特定多态的区别我觉得非常形象
 
