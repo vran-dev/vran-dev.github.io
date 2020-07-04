@@ -25,8 +25,8 @@ tags: [Java, JavaFX]
 
 **功能**：
 
-	1. 节点 CRUD
- 	2. 节点实时同步
+- 节点 CRUD
+- 节点实时同步
 
 **交互与原型**：
 
@@ -36,10 +36,12 @@ tags: [Java, JavaFX]
 
 **技术方案**：
 
-	- 语言采用 Java
-	- UI 框架采用 Swing
-	- 采用传统的分层架构
-	- Zookeeper Client 采用 Apache Curator
+- 语言采用 Java
+- UI 框架采用 Swing
+- 采用传统的分层架构
+- Zookeeper Client 采用 Apache Curator
+
+
 
 **最终实现**：
 
@@ -49,10 +51,12 @@ tags: [Java, JavaFX]
 
 **不足**：
 
-	- 受限于交互流程，一次只能管理一个 zookeeper server
-	- 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面
-	- 颜值不足
-	- 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom
+- 受限于交互流程，一次只能管理一个 zookeeper server
+- 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面
+- 颜值不足
+- 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom
+
+
 
 ## 界面与架构的重构规划
 
@@ -93,6 +97,11 @@ tags: [Java, JavaFX]
   
 
   这样就将传统的自上而下的依赖关系改成了一个插件式的架构。
+
+模块的依赖入下图
+
+
+![](imgs/prettyzoo-arch2.png)
 
 
 
