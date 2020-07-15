@@ -32,7 +32,7 @@ public void test() {
 }
 ```
 
-熟悉  Java 的同学都知道对于非基础类型  `==` 操作实际比较的是对象的 hashCode，而 `equals` 方法的默认实现其实就是调用的  `==`  操作符
+熟悉  Java 的同学都知道对于非基础类型，  `==` 操作实际比较的是对象的 hashCode，而 `equals` 方法的默认实现其实就是调用的  `==`  操作符
 
 ```java
 public class Object {
@@ -111,9 +111,11 @@ class Eq a where
 
 > /= 其实就是 !=
 
+
+
 haskell 的 Type class 与 Java 的 Interface 类似，上面的 Eq 类型类就定义了 `==` 和 `/=` 两个抽象函数，其中的 a 就是类型变量，与 Java 中的泛型类似。
 
-由此看来，Type classes 只是抽象了一些共同的行为，而这些行为的具体实现会根据类型的不同而不同，具体的行为实现会再类型类实例中实现。
+由此看来，Type classes 只是抽象了一些共同的行为，而这些行为的具体实现会根据类型的不同而不同，具体的实现会由**类型类实例**来定义。
 
 通过 `instance` 关键字可以创建类型类实例，下面展示了针对于于 Float  和 Int 的 Eq 类型类实例
 
@@ -130,11 +132,16 @@ instance Eq Float where
 
 > 我们假设 eqInt、neInt、eqFloat、neFloat 都已经由标准库实现了
 
-这样就可以直接用 `==` 和`/=` 对 Int 和 Float 进行判等了
+
+
+这样就可以直接用 `==` 和`/=` 函数对 Int 和 Float 进行判等了
 
 ```haskell
+-- 判断 Int 的相等性
 == 1 2
 /= 2 4
+
+-- 判断 Float 的相等性
 == 1.2 1.2
 /= 2.4 2.1
 ```
@@ -157,11 +164,13 @@ instance Eq Float where
 
 ![](img/linear-structure.png)
 
+如果仅仅从结构上来看的话，它们之间的差别就像 `Comparable` 和 `Comparator` 一样。
+
 
 
 ## Scala 与 Type classes Pattern 
 
-目前的 Java 是无法实现 Type classes 的，但同为 JVM 的语言， Scala 却可以实现。
+目前的 Java 是无法实现 Type classes 的，但同为 JVM 的语言，多范式的 Scala 却可以实现。
 
 与 Haskell 不一样， Type classes 在 Scala 中并不是一等公民，也就是没有直接的语法支持，但借助于强大的**隐式系统**我们也能实现 Type classes，由于实现的步骤比较公式化，也就被称之为 Type classes Pattern (类型类模式)。
 
@@ -178,6 +187,8 @@ instance Eq Float where
 第一步定义 Type class，实际就是定义一个带泛型参数的 `trait`
 
 > trait 也类似于 Java 的 interface，不过更加强大
+
+
 
 ```scala
 trait Eq[T] {
@@ -242,6 +253,8 @@ Same.same(1.0F, 2.4F)
 
 > 关于 Scala 隐式查找的更多规则可以查看  https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html
 
+
+
 到这儿其实就差不多了，但是这样的写法在 Scala 里其实不是很优雅，我们可以再通过一些小技巧优化一下
 
 - 将 `same` 函数改为 `apply` 函数，可以简化调用
@@ -299,6 +312,8 @@ list.sort()
 
 > 上面的 Type classes 是基于 Scala 语法的伪代码
 
+
+
 相信你也看出来了，与 Type classes 方案相比，最大的差别就是 Java 需要手动传入 Comparator 实例，也许你会疑惑：就这？
 
 不要小看这两者的区别，这两者的区别就像用 var 定义类型一样
@@ -314,6 +329,14 @@ var map = new HashMap<String, String>();
 
 
 如果类型系统能帮你完成的事情，就让它帮你做吧！
+
+
+
+## 总结一下
+
+看了 Haskell 和 Scala 的例子，最后还是得总结一下：
+
+Type classes 就是抽象了某一些类型的共同行为，当某个类型需要用到这些行为时，由类型系统去找到这些行为的具体实现。
 
 
 
