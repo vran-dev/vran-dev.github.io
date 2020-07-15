@@ -18,17 +18,17 @@ tag: [Java, Scala, Haskell, 编程语言]
 
 > 我这里统一使用  “值” 来代替对象、基本类型等等概念，以便于简化沟通
 
-在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
+在 Java 中，我们可以用 `==` ，也可以用 `equals` 来判断值是否相等
 
 ```java
 public void test() {
-  	boolean res = "hello" == "world";
-  
-	boolean res2 = "hello".equals("hello");
+    boolean res = "hello" == "world";
 
-	boolean res3 = 3 == 3;
+    boolean res2 = "hello".equals("hello");
 
-	boolean res4 = 5 == 9;
+    boolean res3 = 3 == 3;
+
+    boolean res4 = 5 == 9;
 }
 ```
 
