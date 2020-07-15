@@ -1,22 +1,64 @@
----
-title:  "真的学不动了：除了 class，你该了解 type classes 了"
-date:   2020-07-14 22:49:07 +0800
-tag: [Scala, Haskell, Java, 编程语言]
----
 
-# 真的学不动了：除了 class，你该了解 type classes 了
 
 ## 前言
 
-作为一个 Java 开发者， `class` 的概念肯定是耳熟能详了，可是在山的另一边还有 `type classes`，有着别样的风情，但不翻过 Java 这座山，它就始终隔着一层纱。
+作为一个 Java 开发者， `class` 的概念肯定是耳熟能详了，可是在山的另一边还有拥有别样风情的 `type classes`，但不翻过 Java 这座山，它就始终隔着一层纱。
+
+
+
+## 一个经典的问题
+
+在编程中，经常需要判断两个值是否相等，而在很长的一段时间内这个问题都没有一个标准的解决方案，这就是经典的**判等**问题。
+
+> 我这里统一使用 "值" 来代替对象、基本类型等，以便于统一语言
+
+在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
+
+```java
+public void test() {
+  boolean res = "hello" == "world";
+  
+	boolean res2 = "hello".equals("hello");
+
+	boolean res3 = 3 == 3;
+
+	boolean res4 = 5 == 9;
+}
+```
+
+熟悉  Java 的同学都知道对于非基础类型  `==` 操作实际比较的是对象的 hashCode，而 equals` 方法的默认实现其实就是调用的  `==`  操作符
+
+```java
+public class Object {
+  // ......
+  
+  public boolean equals(Object obj) {
+  	return (this == obj);
+	}
+  
+  // ......
+}
+```
+
+所有类都会有 `equals` 方法，这是因为在 Java 中默认所有类型都是 Object 的子类，而 `equals` 方法的默认实现就被定义在了 Object 类中。
+
+其实这也是 Java 语言处理**判等问题**的解决方案，即统一从 Object 中继承判等方法。
+
+![image-20200715144724027](img/java-object-structure.png)
+
+可是对于纯函数式的语言，比如 Haskell 来说，它没有 OOP 中的继承、类等概念，它又该如何优雅的解决判等的问题呢？
+
+如果你觉得 Haskell 比较陌生，我们就换一种提问的方式：**还有其它通用的设计方案可以解决这类判等问题吗**？
+
+而本文的主角 Type classes 就是一个可以处理这类问题的一个通用解决方案，要了解 Type classes， 得先从多态开始。
 
 
 
 ## Type classes 与多态
 
-Type classes 一般译作**类型类**，最开始由 Haskell 实现，它结合了 ad-hoc polymorphism（特设多态）和 Parametric polymorphism （参数化多态），实现了一种更通用的重载。
+Type classes 结合了 ad-hoc polymorphism（特设多态）和 Parametric polymorphism （参数化多态），实现了一种更通用的重载。
 
-那么特设多台和参数化多态是什么呢？简单了解一下
+问题来了，什么是特设多态、参数化多态呢？
 
 > 关于多态的更多内容 ，还可以参考我的前一篇文章《多态都不知道，谈什么对象》
 
@@ -35,101 +77,95 @@ Type classes 一般译作**类型类**，最开始由 Haskell 实现，它结合
 - `Parametric polymorphism` （参数化多态） 指的是函数被定义在**某些类型**之上，对于这些类型来说函数的实现都是一样的。
 
   比如 List[T] 的 `size()` 函数，无论 T 的类型是 String、还是 Int,  `size()` 的实现都一样
-  
+
   ```scala
   List[String].size()
   List[Int].size()
   ```
-  
 
-虽然 Type classes 结合了两种多态类型，但它本身却被归到特设多态这一分类下。
+虽然 Type classes 结合了两种多态类型，但它本身却被归到特设多态（ad-hoc polymorphism）这一分类下。
 
-如果你想了解更多关于 Type classes 的内容，我非常推荐阅读 [《How to make ad-hoc polymorphism less ad hoc》](https://www.cse.iitk.ac.in/users/karkare/oldcourses/2010/cs653/Papers/ad-hoc-polymorphism.pdf) 这篇论文
-
-![How to make ad-hoc polymorphism less ad hoc](img/How to make ad-hoc polymorphism less ad hoc.png)
-
-
-
-## Type classes 与 Subtyping
-
-Subtyping（子类型） 描述的是一种类型之间的关系，最典型的就是 OOP 中的继承。
-
-在 Subtyping 中，类型之间的关系有着明显的层次结构
-
-![image-20200714211758027](img/subtyping-structure.png)
-
-
-
-而在 Type classes 中，类型之间的关系则更像是一个线性结构
-
-![image-20200714212617420](img/linear-structure.png)
-
-下面将分别从 Haskell 和 Scala 来看看 Type classes 的具体实例。
-
-
+如果你想了解更多 type classes 的思想，非常推荐阅读 [《How to make ad-hoc polymorphism less ad hoc》](https://www.cse.iitk.ac.in/users/karkare/oldcourses/2010/cs653/Papers/ad-hoc-polymorphism.pdf) 这篇论文。
 
 ## Haskell 与 Type classes
 
-为了更好的理解 Type  classes， 我们先来看看 Type classes 在 Haskell 中是怎么体现的吧。
+Type classes 一般译作类型类，最开始是由 haskell 引入并实现，所以我们很有必要先了解一下 haskell 中的 Type classes。
 
-> 该实例来自于《How to make ad-hoc polymorphism less and hoc》 
+下面我们尝试用 Type classes 来解决前面提到的判等问题，首先我们得用关键字 `class` 定义一个 Type class，千万不要和 Java 的 class 混为一谈。
 
-```haskell
-class Num a where
-	(+) :: a -> a -> a
-	(*) :: a -> a -> a
-	negate :: a -> a
-
-instance Num Int where
-	(+) = addInt
-	(*) = mulInt
-	negate = negInt
-
-instance Num Float where
-	(+) = addFloat
-	(*) = mulFloat
-	negate = negFloat
-```
-
-我们通过 `class` 关键字定义一个**类型类** Num，并定义了 +、*、negate 三个函数，这和 Java 中的接口很像。
-
-后续通过  `instance` 关键字定义了**类型类实例**，其实就是实现了针对于 Int 和 Float 的 +、*、negate 函数， 我们假设 addInt， mulInt，negInt 等都是标准库已经实现的函数。
-
-调用就很简单了
+> /= 其实就是 !=
 
 ```haskell
-+ 1 2 -- 输出 3
-
-+ 1.5 2.5 -- 输出 4
-
-negate 1
-
-negate 1.2
+class Eq a where
+	(==) :: a -> a -> Bool
+	(/=) :: a -> a -> Bool
 ```
 
-在调用 `+ 1 2` 时编译器会根据参数类型，自动找到 `instance Num Int` 对应的 + 函数。
+haskell 的 Type class 与 Java 的 Interface 类似，比如 Eq 类型类就定义了 `==` 和 `/=` 两个抽象函数，其中的 a 就是类型变量，可以理解为 Java 中的泛型。
+
+再通过 `instance` 关键字创建类型类实例，下面展示了针对于于 Float  和 Int 的类型类实例
+
+> 我们假设 eqInt、neInt、eqFloat、neFloat 都已经由标准库实现了
+
+``` haskell
+instance Eq Int where
+	(==) = eqInt
+	(/=) = neInt
+	
+instance Eq Float where
+	(==) = eqFloat
+	(/=) = neFloat
+
+```
+
+这样就可以直接用 `==` 和`/=` 对 Int 和 Float 进行判等了
+
+```haskell
+== 1 2
+/= 2 4
+== 1.2 1.2
+/= 2.4 2.1
+```
+
+在调用 `==` 或 `/=` 函数时，编译期会根据参数类型自动找到类型类实例，然后调用类型类实例的函数执行调用。
+
+实际上，Haskell 也是这样解决判等问题的，如果用户需要自定义判等函数，只需要实现自己的类型类实例即可。
+
+此时你可能会不自觉的和最开始提到的继承方案做一个对比，我画了两个图，可以参考一下
+
+- 继承方案的类型结构是一个层次型的
+
+![](img/subtyping-structure.png)
 
 
 
-## Scala 与 Type classes Pattern
+- Type classes 方案的类型结构是线性的
 
-与 Haskell 不一样， Type classes 在 Scala 并不是一等公民，也就是说没有语法关键字来直接支持，但借助于隐式参数我们也能实现 Type classes，由于实现的步骤比较公式化，所以就被称之为 Type classes Pattern (类型类模式)。
+![](img/linear-structure.png)
 
-步骤一般分为 3 步
+## Scala 与 Type classes Pattern 
+
+目前的 Java 是无法实现 Type classes 的，但同为 JVM 的语言 Scala 却可以实现。
+
+与 Haskell 不一样， Type classes 在 Scala 中并不是一等公民，也就是没有直接的语法支持，但借助于强大的**隐式参数**我们也能实现 Type classes，由于实现的步骤比较公式化，也就被称之为 Type classes Pattern (类型类模式)。
+
+在 Scala 中实现 Type classes Pattern 大致分为 3 个步骤
 
 1. 定义 Type class
 2. 实现 Type class 实例
 3. 定义包含**隐式参数**的函数
 
-我们以大家熟悉的  `Comparator[T]` 接口来实现一个 Type class Pattern。
 
-按照模式的步骤，我们先定义 Type class，实际就是一个参数化 trait，接口的语义我就不再解释了
 
-> trait 类似于 Java 的 interface，不过更加强大
+还是以前面提到的判等问题为需求，按照前面总结的模式步骤来实现一个 Scala 版的 Type classes 解决方案。
+
+第一步定义 Type class，实际就是定义一个带泛型参数的 `trait`
+
+> trait 也类似于 Java 的 interface，不过更加强大
 
 ```scala
-trait Comparator[T] {
-    def compare(o1: T, o2: T): Int
+trait Eq[T] {
+  def eq(a: T, b: T): Boolean
 }
 ```
 
@@ -138,125 +174,150 @@ trait Comparator[T] {
 接着我们针对 String、Int 来实现两个类型类实例
 
 ```scala
-object ComparatorInstance {
-  implicit val stringComparator = new Comparator[String] {
-    override def compare(o1: String, o2: String): Int = o1.compareTo(o2)
+object EqInstances {
+
+  implicit val intEq = new Eq[Int] {
+    override def eq(a: Int, b: Int) = a == b
   }
 
-  implicit val intComparator = instance[Int]((o1, o2) => o1.compareTo(o2))
+  implicit val stringEq = instance[String]((a, b) => a.equals(b))
 
-  def instance[T](func: (T, T) => Int): Comparator[T] = new Comparator[T] {
-    override def compare(o1: T, o2: T): Int = func(o1, o2)
+  def instance[T](func: (T, T) => Boolean): Eq[T] = new Eq[T] {
+    override def eq(a: T, b: T): Boolean = func(a, b)
   }
 }
 ```
 
-- `stringComparator` 实例我采用的是和 Java 一样的匿名类写法
-- `intComparator`  则采用了高阶函数来实现，不过最终都是得到的 `Comparator[T]` 实例
+stringEq 和 intEq 采用了不同的构造方式
 
-两个实例都被 `implicit` 关键字修饰，一般称之为隐式值，作用会在后面讲到。
+- stringEq 实例我采用的是类似于 Java 的匿名类进行构造
+- intEq  则采用了高阶函数来实现
 
-最后一步，来实现一个带隐式参数的 `max` 函数：比较两个元素，并返回较大的元素。
+两个实例都被 `implicit` 关键字修饰，一般称之为**隐式值**，作用会在后面讲到。
+
+最后一步，来实现一个带隐式参数的 `same` 函数， 其实就判断两个值是否相等
 
 ```scala
-object Max {
-  def max[T](a: T, b: T)(implicit cmp: Comparator[T]): T = {
-    cmp.compare(a, b) match {
-      case -1 => b
-      case _ => a
-    }
-  }
+object Same {
+  def same[T](a: T, b: T)(implicit eq: Eq[T]): Boolean = eq.eq(a, b)
 }
+
 ```
 
-- `implicit cmp: Comparator[T]` 就是隐式参数， 调用方可以不用主动传入，编译器会在**作用域**内查找匹配的隐式值传入（可以查看最后的参考资料了解更多）
+- `implicit eq: Eq[T]`  就是隐式参数， **调用方可以不用主动传入，编译器会在作用域内查找匹配的隐式值传入**（这就是为什么前面的实例需要被 implicit 修饰）
+
+
+
+最后来进行调用验证一下，在调用时我们需要先在当前作用域内通过 `import` 关键字导入**类型类实例**（主要是为了让编译器能找到这些实例）
+
+```scala
+
+import EqInstances._
+
+Same.same(1, 2)
+
+Same.same("ok", "ok")
+
+// 编译错误：no implicits found for parameter eq: Eq[Float]
+Same.same(1.0F, 2.4F)
+```
+
+可以看见，针对 Int 和 String 类型的 `same` 函数调用能通过编译， 而当参数是 Float 时调用就会提示编译错误，这就是因为编译器在作用域内没有找到可以处理 Float 类型的 Comparator 实例。
+
+> 关于 Scala 隐式查找的更多规则可以查看  https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html
+
+到这儿其实就差不多了，但是这样的写法在 Scala 里其实不是很优雅，我们可以再通过一些小技巧优化一下
+
+- 将 `same` 函数改为 `apply` 函数，可以简化调用
+
+- 使用 context bound 优化隐式参数，别慌，context bound 实际就是个语法糖而已
 
   
 
-最后来进行调用，在调用时我们需要先在当前作用域内导入**类型类实例**
-
 ```scala
-import ComparatorInstance._
-
-Max.max(1, 2)
-
-Max.max("hello", " world")
-
-// 编译错误，找不到  Comparator[Float] 实例
-Max.max(1.0F, 2.4F)
-```
-
-可以看见，针对 Int 和 String 类型的 `max` 函数调用能通过编译， 而对 Float 调用就会提示编译错误，这就是因为编译器没有找到可以处理 Float 类型的 Comparator 实例。
-
-有没有发现，就这样我们就实现了 Haskell 中的类型类？
-
-对了，上面的 Max 还可以通过 `apply` 和  **context bound** 再优化一下。
-
-- 将 max 函数改名为 apply 以后，我们就可以直接通过 `Max(1, 2)` 进行调用了
-- context bound 则是针对于隐式参数的一个语法糖，提供了直接的关键字 `implicitly`
-
-```scala
-object Max {
-   
-  /**
-   *  implicitly[Comprator[T]] 就是让编译器在作用域内找到一个 Comprator[T] 的隐式值
-   */
-  def apply[T: Comparator](a: T, b: T): T =
-    implicitly[Comparator[T]].compare(a, b) match {
-      case -1 => b
-      case _ => a
-    }
- 
+object Same {
+  def apply[T: Eq](a: T, b: T): Boolean = implicitly[Eq[T]].eq(a, b)
 }
 
-// 测试
-Max(1, 2)
-
-Max("hello", "world")
+// 使用 apply 作为函数， 调用时可以不用写函数名
+Same(1, 1)
+Same("hello", "world")
 ```
 
+简单说一下  context bund，首先泛型的定义 由 `T` 变成了 `[T: Eq]`，这样就可以用 `implicitly`[Eq[T]] 让编译期在作用域内找到一个 Eq[T]  的隐式实例，context bound 可以让函数的签名更加简洁。
 
-
-
+在 Scala 中，类型类的设计其实随处可见，典型的就有 `Ordered` 。
 
 ## 回望 Java
 
-作为 Java 开发者，肯定会不自觉的去比对 Java 版的 Comparator 实现，最后看到的唯一差别就是一个需要手动传参，一个不需要。
+以判等问题引出 Type classes 有一些不足，我们只意识到了与 OOP 的继承是一个不一样的判等解决方案，不妨再回到 Java 做一些比较。
 
-心里默念：就这？
-
-不要小看这两者的区别，传参和不传参的区别就像下面用 var 和不用 var 一样
+以 `Comparator[T]` 接口为例，在 Java 中我们经常在集合框架中这样使用
 
 ```java
-var map = new HashMap<String, String>();
-
-Map<String, String> map2 = new HashMap<>();
+List<Integer> list = new ArrayList<>();
+list.sort(Comparator.naturalOrder())
 ```
 
-换句话说，能自动化的，就别手动。
+如果将其改造成为 Type classes 的话
 
-再从 haskell 等纯函数式编程语言的的角度来看， Type classes 甚至是不可或缺的，就以判断两个值相等为例：
+```scala
+trait Comparator[T] {
+  def compare(o1: T, o2: T): Int
+}
 
-Java 默认所有类都是 Object 的子类，所以都有默认的 equals 方法用于判断。而Haskell 则没有 OOP 中继承的概念，这样一来类型类反而是最佳的解决方案了，
+object Instances { 
+  // ...
+}
+```
+
+List 的 sort 方法也需要改为带隐式参数的方法前面，这样我们就不需要显示的传 Compartor 实例了
+
+```scala
+// 编译期会自动找到 Comparator[Integer] 实例
+List[Integer] list = new ArrayList<>();
+list.sort()
+```
+
+> 上面的 Type classes 是基于 Scala 语法的伪代码
+
+相信你也看出来了，与 Type classes 方案相比，最大的差别就是 Java 需要手动传入 Comparator 实例。
+
+就这？不要小看这两者的区别，这两者的区别就像用 var 定义类型一样
+
+```java
+// Java8
+Map<String, String> map2 = new HashMap<>();
+
+// Java10
+var map = new HashMap<String, String>();
+```
 
 
+
+如果类型系统能帮你完成的事情，就让它帮你做吧！
 
 ## 未完待续
 
-Scala 的开发者们也关注到了 Type classes Pattern 的重要性，所以再 Scala3 中它也得到了足够的重视，提供了语法层面的支持，避免再写一大堆的模板代码。
+最后还是得再安利一下 Scala，在 Scala3 中， Type classes 得到了最够的重视，开发者们直接提供了语法层面的支持，再也不用写一大堆的模板代码， 在 Scala3 中可以叫做 **Type classes without Pattern**。
 
-当然，为了避免“长篇”大论，这些内容就留在下一篇文章了（欲知后事如何，【关注】下回分解）
+不过为了避免“长篇大论”，相关的内容就留给下一篇文章了（点赞点赞点赞）。
 
-还学的动吗？
-
-
+弱弱的皮一下，还学得动吗？
 
 ## 参考
 
-1. [Of Scala Type Classes](https://medium.com/se-notes-by-alexey-novakov/of-scala-type-classes-6647c48e39d9)
-2. [Where does Scala look for implicits?](https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html) 
-3. [Scala 隐式参数](https://docs.scala-lang.org/tour/implicit-parameters.html)
-4. [Type classes for the Java Engineer](https://engineering.sharethrough.com/blog/2015/05/18/type-classes-for-the-java-engineer/)
-5. [OOP vs type classes](https://wiki.haskell.org/OOP_vs_type_classes)
-6. [Cats: Type classes](https://typelevel.org/cats/typeclasses.html)
+1. [《How to make ad-hoc polymorphism less ad hoc》](https://www.cse.iitk.ac.in/users/karkare/oldcourses/2010/cs653/Papers/ad-hoc-polymorphism.pdf)
+2. [Of Scala Type Classes](https://medium.com/se-notes-by-alexey-novakov/of-scala-type-classes-6647c48e39d9)
+3. [Where does Scala look for implicits?](https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html) 
+4. [Scala 隐式参数](https://docs.scala-lang.org/tour/implicit-parameters.html)
+5. [Type classes for the Java Engineer](https://engineering.sharethrough.com/blog/2015/05/18/type-classes-for-the-java-engineer/)
+6. [OOP vs type classes](https://wiki.haskell.org/OOP_vs_type_classes)
+7. [Cats: Type classes](https://typelevel.org/cats/typeclasses.html)
+
+
+
+
+
+
 
