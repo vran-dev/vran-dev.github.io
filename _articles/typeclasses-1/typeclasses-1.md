@@ -16,13 +16,13 @@ tag: [Java, Scala, Haskell, 编程语言]
 
 在编程中，经常需要判断两个值是否相等，而在很长的一段时间内这个问题都没有一个标准的解决方案，这就是经典的**判等**问题。
 
-> 我这里统一使用 "值" 来代替对象、基本类型等，以便于统一语言
+> 我这里统一使用  “值” 来代替对象、基本类型等等概念，以便于简化沟通
 
 在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
 
 ```java
 public void test() {
-  boolean res = "hello" == "world";
+  	boolean res = "hello" == "world";
   
 	boolean res2 = "hello".equals("hello");
 
@@ -32,7 +32,7 @@ public void test() {
 }
 ```
 
-熟悉  Java 的同学都知道对于非基础类型  `==` 操作实际比较的是对象的 hashCode，而 equals` 方法的默认实现其实就是调用的  `==`  操作符
+熟悉  Java 的同学都知道对于非基础类型  `==` 操作实际比较的是对象的 hashCode，而 `equals` 方法的默认实现其实就是调用的  `==`  操作符
 
 ```java
 public class Object {
@@ -40,7 +40,7 @@ public class Object {
   
   public boolean equals(Object obj) {
   	return (this == obj);
-	}
+  }
   
   // ......
 }
@@ -56,7 +56,7 @@ public class Object {
 
 如果你觉得 Haskell 比较陌生，我们就换一种提问的方式：**还有其它通用的设计方案可以解决这类判等问题吗**？
 
-而本文的主角 Type classes 就是一个可以处理这类问题的一个通用解决方案，要了解 Type classes， 得先从多态开始。
+当然有，而 Type classes 就是这个领域内最靓的那个仔，要了解 Type classes， 还得先从多态开始。
 
 
 
@@ -80,7 +80,7 @@ Type classes 结合了 ad-hoc polymorphism（特设多态）和 Parametric polym
 
   
 
-- `Parametric polymorphism` （参数化多态） 指的是函数被定义在**某些类型**之上，对于这些类型来说函数的实现都是一样的。
+- `Parametric polymorphism` （参数化多态） 指的是函数被定义在**某一些类型**之上，对于这些类型来说函数的实现都是一样的。
 
   比如 List[T] 的 `size()` 函数，无论 T 的类型是 String、还是 Int,  `size()` 的实现都一样
 
@@ -91,15 +91,17 @@ Type classes 结合了 ad-hoc polymorphism（特设多态）和 Parametric polym
 
 虽然 Type classes 结合了两种多态类型，但它本身却被归到特设多态（ad-hoc polymorphism）这一分类下。
 
-如果你想了解更多 type classes 的思想，非常推荐阅读 [《How to make ad-hoc polymorphism less ad hoc》](https://www.cse.iitk.ac.in/users/karkare/oldcourses/2010/cs653/Papers/ad-hoc-polymorphism.pdf) 这篇论文。
+如果你想了解更多 type classes 的思想，非常推荐阅读 [《How to make ad-hoc polymorphism less ad hoc》](https://www.cse.iitk.ac.in/users/karkare/oldcourses/2010/cs653/Papers/ad-hoc-polymorphism.pdf) 这篇论文，它也算是 Type classes 的开篇作。
+
+
 
 ## Haskell 与 Type classes
 
 Type classes 一般译作类型类，最开始是由 haskell 引入并实现，所以我们很有必要先了解一下 haskell 中的 Type classes。
 
-下面我们尝试用 Type classes 来解决前面提到的判等问题，首先我们得用关键字 `class` 定义一个 Type class，千万不要和 Java 的 class 混为一谈。
+以最开始提到的判等问题为例，来看看在 Haskell 中怎么用 Type classes 去解决。
 
-> /= 其实就是 !=
+首先我们得用关键字 `class` 定义一个 Type class，千万不要和 Java 的 class 混为一谈。
 
 ```haskell
 class Eq a where
@@ -107,11 +109,13 @@ class Eq a where
 	(/=) :: a -> a -> Bool
 ```
 
-haskell 的 Type class 与 Java 的 Interface 类似，比如 Eq 类型类就定义了 `==` 和 `/=` 两个抽象函数，其中的 a 就是类型变量，可以理解为 Java 中的泛型。
+> /= 其实就是 !=
 
-再通过 `instance` 关键字创建类型类实例，下面展示了针对于于 Float  和 Int 的类型类实例
+haskell 的 Type class 与 Java 的 Interface 类似，上面的 Eq 类型类就定义了 `==` 和 `/=` 两个抽象函数，其中的 a 就是类型变量，与 Java 中的泛型类似。
 
-> 我们假设 eqInt、neInt、eqFloat、neFloat 都已经由标准库实现了
+由此看来，Type classes 只是抽象了一些共同的行为，而这些行为的具体实现会根据类型的不同而不同，具体的行为实现会再类型类实例中实现。
+
+通过 `instance` 关键字可以创建类型类实例，下面展示了针对于于 Float  和 Int 的 Eq 类型类实例
 
 ``` haskell
 instance Eq Int where
@@ -124,6 +128,8 @@ instance Eq Float where
 
 ```
 
+> 我们假设 eqInt、neInt、eqFloat、neFloat 都已经由标准库实现了
+
 这样就可以直接用 `==` 和`/=` 对 Int 和 Float 进行判等了
 
 ```haskell
@@ -133,9 +139,11 @@ instance Eq Float where
 /= 2.4 2.1
 ```
 
-在调用 `==` 或 `/=` 函数时，编译期会根据参数类型自动找到类型类实例，然后调用类型类实例的函数执行调用。
+在调用 `==` 或 `/=` 函数时，编译器会根据参数类型自动找到类型类实例，然后调用类型类实例的函数执行调用。
 
-实际上，Haskell 也是这样解决判等问题的，如果用户需要自定义判等函数，只需要实现自己的类型类实例即可。
+如果用户需要自定义判等函数，只需要实现自己的类型类实例即可。
+
+
 
 此时你可能会不自觉的和最开始提到的继承方案做一个对比，我画了两个图，可以参考一下
 
@@ -149,11 +157,13 @@ instance Eq Float where
 
 ![](img/linear-structure.png)
 
+
+
 ## Scala 与 Type classes Pattern 
 
-目前的 Java 是无法实现 Type classes 的，但同为 JVM 的语言 Scala 却可以实现。
+目前的 Java 是无法实现 Type classes 的，但同为 JVM 的语言， Scala 却可以实现。
 
-与 Haskell 不一样， Type classes 在 Scala 中并不是一等公民，也就是没有直接的语法支持，但借助于强大的**隐式参数**我们也能实现 Type classes，由于实现的步骤比较公式化，也就被称之为 Type classes Pattern (类型类模式)。
+与 Haskell 不一样， Type classes 在 Scala 中并不是一等公民，也就是没有直接的语法支持，但借助于强大的**隐式系统**我们也能实现 Type classes，由于实现的步骤比较公式化，也就被称之为 Type classes Pattern (类型类模式)。
 
 在 Scala 中实现 Type classes Pattern 大致分为 3 个步骤
 
@@ -197,11 +207,11 @@ object EqInstances {
 stringEq 和 intEq 采用了不同的构造方式
 
 - stringEq 实例我采用的是类似于 Java 的匿名类进行构造
-- intEq  则采用了高阶函数来实现
+- intEq 实例则采用了高阶函数来实现
 
 两个实例都被 `implicit` 关键字修饰，一般称之为**隐式值**，作用会在后面讲到。
 
-最后一步，来实现一个带隐式参数的 `same` 函数， 其实就判断两个值是否相等
+最后一步，来实现一个带隐式参数的 `same` 函数， 其实调用类型类实例来判断两个值是否相等
 
 ```scala
 object Same {
@@ -228,7 +238,7 @@ Same.same("ok", "ok")
 Same.same(1.0F, 2.4F)
 ```
 
-可以看见，针对 Int 和 String 类型的 `same` 函数调用能通过编译， 而当参数是 Float 时调用就会提示编译错误，这就是因为编译器在作用域内没有找到可以处理 Float 类型的 Comparator 实例。
+可以看见，针对 Int 和 String 类型的 `same` 函数调用能通过编译， 而当参数是 Float 时调用就会提示编译错误，这就是因为编译器在作用域内没有找到可以处理 Float 类型的 Eq 实例。
 
 > 关于 Scala 隐式查找的更多规则可以查看  https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html
 
@@ -250,13 +260,15 @@ Same(1, 1)
 Same("hello", "world")
 ```
 
-简单说一下  context bund，首先泛型的定义 由 `T` 变成了 `[T: Eq]`，这样就可以用 `implicitly`[Eq[T]] 让编译期在作用域内找到一个 Eq[T]  的隐式实例，context bound 可以让函数的签名更加简洁。
+简单说一下  context bund，首先泛型的定义 由 `T` 变成了 `[T: Eq]`，这样就可以用 `implicitly`[Eq[T]] 让编译器在作用域内找到一个 Eq[T]  的隐式实例，context bound 可以让函数的签名更加简洁。
 
 在 Scala 中，类型类的设计其实随处可见，典型的就有 `Ordered` 。
 
+
+
 ## 回望 Java
 
-以判等问题引出 Type classes 有一些不足，我们只意识到了与 OOP 的继承是一个不一样的判等解决方案，不妨再回到 Java 做一些比较。
+以判等问题引出 Type classes 有一些不足，我们只意识到了与 OOP 的继承是一个不一样的判等解决方案，不妨再回到 Java 做一些其他的比较。
 
 以 `Comparator[T]` 接口为例，在 Java 中我们经常在集合框架中这样使用
 
@@ -287,9 +299,9 @@ list.sort()
 
 > 上面的 Type classes 是基于 Scala 语法的伪代码
 
-相信你也看出来了，与 Type classes 方案相比，最大的差别就是 Java 需要手动传入 Comparator 实例。
+相信你也看出来了，与 Type classes 方案相比，最大的差别就是 Java 需要手动传入 Comparator 实例，也许你会疑惑：就这？
 
-就这？不要小看这两者的区别，这两者的区别就像用 var 定义类型一样
+不要小看这两者的区别，这两者的区别就像用 var 定义类型一样
 
 ```java
 // Java8
@@ -303,13 +315,17 @@ var map = new HashMap<String, String>();
 
 如果类型系统能帮你完成的事情，就让它帮你做吧！
 
+
+
 ## 未完待续
 
-最后还是得再安利一下 Scala，在 Scala3 中， Type classes 得到了最够的重视，开发者们直接提供了语法层面的支持，再也不用写一大堆的模板代码， 在 Scala3 中可以叫做 **Type classes without Pattern**。
+最后还是得再安利一下 Scala3，在 Scala3 中， Type classes 得到了足够的重视，直接提供了语法层面的支持，再也不用写一大堆的模板代码， 从此可以叫做 **Type classes without Pattern**。
 
 不过为了避免“长篇大论”，相关的内容就留给下一篇文章了（点赞点赞点赞）。
 
 弱弱的皮一下，还学得动吗？
+
+
 
 ## 参考
 
