@@ -298,7 +298,11 @@ trait Comparator[T] {
 }
 
 object Instances { 
-  // ...
+  implicit val intComprator = new Comparator[T] {
+    def compare(o1: Int, o2: Int) = o1.compareTo(o2)
+	}
+  
+  //... other instances
 }
 ```
 
@@ -310,7 +314,7 @@ List[Integer] list = new ArrayList<>();
 list.sort()
 ```
 
-> 上面的 Type classes 是基于 Scala 语法的伪代码
+> 可以认为上面的 Type classes 是基于 Scala 语法的伪代码
 
 
 
