@@ -341,15 +341,17 @@ object ComparatorInstances {
 
 如果你已经跨过了隐式系统那道门槛，这样的语法改变可能并不会给你带来多大的惊喜，感觉就像酒瓶装新酒一样，似乎没多大的新意？
 
-在我看来这样的「旧瓶装新酒」却是 Scala 亲和力的提升，这样的方向起码能改善一部分 Scala 叫好不叫座的情况。
+而在我看来这样的「旧瓶装新酒」却是 Scala 提升亲和力的体现，当然 Scala3 也不止这些改变，更多特性可以参考 https://dotty.epfl.ch/docs/reference/overview.html。
 
 
 
 ## 比较 Scala2 与 Scala3
 
-其实在 Scala3 中 `given`、`using`、`extension method` 这些被统一称之为**抽象上下文**（Contextual Abstractions），而这些概念我们都可以和 Scala2 做一个对比，形成概念迁移。
+ `given`、`using`、`extension method`  等特性在 Scala3 被统一称之为**抽象上下文**（Contextual Abstractions），前面已经或多或少拿它们与  Scala2 的隐式系统做过参照了。
 
-1. `given` 可以当做无参的 `implicit object`
+不过这里还是打算单独拿出来对比一下，就相当于一个简单的总结吧。
+
+1. `given` 可以当做无参的 `implicit object` 或 `implicit val`
 
 ```scala
 given intComparator as Comparator[INT] { ... }
@@ -357,6 +359,8 @@ given intComparator as Comparator[INT] { ... }
 
 ```scala
 implicit object intComparator Comparator Ord[Int] { ... }
+
+implicit val intComparator = new Comparator[Int] { ... }
 ```
 
 
@@ -398,12 +402,16 @@ implicit class ComparatorOps[T](a: T)(implicit cmp: Comparator[T]) {
 
 ## 一些期待
 
-开发者们一直喜欢拿 Scala 和 Haskell、Java 作比较，甚至在社区都形成了这样的印象
+开发者们一直喜欢拿 Scala 和 Haskell、Java 作比较，甚至在对应社区一直有这样的声音
 
 - A worse Haskell for the JVM
 - A better Java
 
-而对于 Scala 来说，它就想做自己，这样的愿景在 Scala3 中似乎也已经触手可及了。
+造成这些印象的原因是 Scala 融合了 OOP 和 FP 两种编程范式，但这也恰好是 Scala 一直坚持的方向。
+
+随着 Scala3 的发布，是不是会带来不一样的惊喜呢？有点期待
+
+
 
 
 
