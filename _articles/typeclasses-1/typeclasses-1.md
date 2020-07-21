@@ -1,10 +1,10 @@
 ---
-title: "真的学不动了: 除了 class , 也该了解 Type classes 了"
+title: "真的学不动了：除了 class , 也该了解 Type classes 了"
 date: 2020-07-15 18:45:00 +0800
 tag: [Java, Scala, Haskell, 编程语言]
 ---
 
-# 真的学不动了: 除了 class , 也该了解 Type classes 了
+# 真的学不动了： 除了 class , 也该了解 Type classes 了
 
 ## 前言
 

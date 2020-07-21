@@ -1,10 +1,10 @@
 ---
-title: "真的学不动了：刚学会 Type classes Pattern,  就过时了？"
+title: "真的学不动了：Scala3 与 Type classes"
 date: 2020-07-19 10:45:00 +0800
 tag: [Scala, 编程语言]
 ---
 
-# 真的学不动了：刚学会 Type classes Pattern,  就过时了？
+# 真的学不动了：Scala3 与 Type classes
 
 
 
@@ -155,6 +155,8 @@ List(1, 2) isSameTo List(2, 3)
 而在  Scala3 中，将再也不用为 纠结 implicit 该怎么用了， 它被全新的 `Given`、`Using` 、`Extension Method` 等特性所替代。
 
 > 要使用 Scala3 的语法的话，需要到 https://dotty.epfl.ch/ 下载 Dotty 编译器
+
+![dotty](img/dotty.jpg)
 
 Talk is Cheap，我们用 Scala3 的语法再次改造一遍 Comparator 。
 
@@ -351,7 +353,7 @@ object ComparatorInstances {
 
 不过这里还是打算单独拿出来对比一下，就相当于一个简单的总结吧。
 
-1. `given` 可以当做无参的 `implicit object` 或 `implicit val`
+1、 `given` 可以当做无参的 `implicit object` 或 `implicit val`
 
 ```scala
 given intComparator as Comparator[INT] { ... }
@@ -365,7 +367,7 @@ implicit val intComparator = new Comparator[Int] { ... }
 
 
 
-2. using 可以当做以前的**隐式参数**
+2、using 可以当做以前的**隐式参数**
 
 ```scala
 def same[T](a: T, b: T)(using cmp: Comparator[T]) {...}
@@ -377,7 +379,7 @@ def same[T](a: T, b: T)(implicit cmp: Comparator[T]) {...}
 
 
 
-3. extension method 可以当做以前的**隐式类**
+3、extension method 可以当做以前的**隐式类**
 
 ```scala
 trait Comparator[T] {
