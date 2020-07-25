@@ -15,8 +15,8 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color:#222;
-  margin:0 0 20px;
+  /* color:#222; */
+  margin:20px 0 20px;
 }
 
 p, ul, ol, table, pre, dl {
@@ -25,11 +25,14 @@ p, ul, ol, table, pre, dl {
 
 h1, h2, h3 {
   line-height:1.1;
+  margin-bottom: 40px;
+  margin-top:30px;
 }
 
 h1 {
   font-size:28px;
   font-weight: 500;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 h2 {
@@ -63,7 +66,7 @@ a:hover small {
 }
 
 .wrapper {
-  width:1020px;
+  width:1220px;
   margin:0 auto;
 }
 
@@ -112,7 +115,7 @@ img {
 }
 
 header {
-  width:270px;
+  width:250px;
   float:left;
   position:fixed;
   -webkit-font-smoothing:subpixel-antialiased;
@@ -126,7 +129,7 @@ strong {
 
 
 section {
-  width:600px;
+  width:800px;
   float:right;
   padding-bottom:50px;
 }
@@ -141,6 +144,7 @@ hr {
   height:1px;
   margin:0 0 20px;
 }
+
 .tag {
   border: 1px solid #e1e4e8!important;
   font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace!important;
@@ -151,6 +155,12 @@ hr {
   border-radius: 30px;
   padding: 2px 8px;
 }
+
+.index-title {
+  font-size: 20px;
+  font-family: monospace;
+}
+
 footer {
   width:270px;
   float:left;

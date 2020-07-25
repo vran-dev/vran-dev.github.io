@@ -15,20 +15,20 @@
         {% assign ordered_articles = site.articles | sort:"date" | reverse %}
         {% for article in ordered_articles %}
         <div>
-            <h2>
-            <a href="{{ article.url }}">
+            <a href="{{ article.url }}" class="index-title">
                 {{ article.title }} 
             </a>
-            </h2>
-            {% for tag in article.tags %}
-            <div class="tag">
-                {{ tag }}
+            
+            <div style="margin-top: 10px;">
+                {% for tag in article.tags %}
+                <div class="tag">
+                    {{ tag }}
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-            <br>
             <div style="margin-top:6px;">
-            <small> {{ article.date | date:"%Y-%m-%d" }} </small>
-        </div>
+                <small> {{ article.date | date:"%Y-%m-%d" }} </small>
+            </div>
             <div style="margin-bottom:18px;margin-top:10px;height:1px;background:#ddd;overflow: hidden;"></div>
 
         </div>
