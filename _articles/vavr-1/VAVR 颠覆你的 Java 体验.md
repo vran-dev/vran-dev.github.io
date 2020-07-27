@@ -59,7 +59,7 @@ tag: [Java, VAVR]
 java.util.List.of(1, 2, 3, 4, 5)
                 .stream()
                 .filter(i -> i > 3)
-  							.map(i -> i * 2)
+                .map(i -> i * 2)
                 .collect(Collectors.toList());
 ```
 
@@ -553,7 +553,7 @@ Future.fromCompletableFuture(CompletableFuture.runAsync(() -> {}));
 - Lazy 也是一个容器，他可以延迟某个计算，直到该计算被首次调用，初次调用之后该结果会被缓存，后续调用就可以直接拿到结果。
 
   ```java
-Lazy<Double> lazy = Lazy.of(Math::random);
+  Lazy<Double> lazy = Lazy.of(Math::random);
   lazy.isEvaluated(); // = false
   lazy.get();         // = 0.123 (random generated)
   lazy.isEvaluated(); // = true
