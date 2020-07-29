@@ -43,11 +43,12 @@ object ComparatorInstances {
       (a, b) match {
         // 连个都为空
         case (Nil, Nil) => 0
-				// 某一个为空
+        // 某一个为空
         case (Nil, _) => 1
         case (_, Nil) => -1
-        // 两个都不为空，就比较头结点
+        // 两个都不为空，
         case (l, r) =>
+        	// 比较头结点
           cmp.compare(l.head, r.head) match {
             // List.tail 表示除了头结点以外的结点
             case 0 => compare(l.tail, r.tail)
@@ -63,9 +64,11 @@ object Same {
 }
 ```
 
-稍微要说一下的就是  `listComparator`  这个函数了，一般称之为「隐式转换方法」。
+稍微要说一下的就是  `listComparator`  这个函数了，这种用 `implicit def` 定义的方法一般称之为「隐式转换方法」。
 
-它的作用就是当你需要 Comparator[List[T]] 的实例时，编译器会在作用域内找到 Comparator[T] 的实例，然后将其转换为 Comparator[List[T]] 的实例。
+隐式转换方法就是由编译器把参数的类型转换为返回值的类型（不需要显示的调用该方法）。
+
+而   `listComparator`   函数的作用就是当你需要 Comparator[List[T]] 的实例时，编译器会在作用域内找到 Comparator[T] 的实例，然后将其转换为 Comparator[List[T]] 的实例。
 
 如果没有这个方法
 
