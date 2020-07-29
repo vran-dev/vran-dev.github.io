@@ -14,7 +14,7 @@ tag: [Java, Scala, Haskell, 编程语言]
 
 ## 一个经典的问题
 
-在编程中，经常需要判断两个值是否相等，而在很长的一段时间内这个问题都没有一个标准的解决方案，这就是经典的**判等**问题。
+在编程中，经常需要判断两个值是否相等，这就是**判等问题**， 然而在很长的一段时间内这个问题都没有一个标准的解决方案。
 
 > 我这里统一使用  “值” 来代替对象、基本类型等等概念，以便于简化沟通
 
@@ -48,15 +48,15 @@ public class Object {
 
 所有类都会有 `equals` 方法，这是因为在 Java 中默认所有类型都是 Object 的子类，而 `equals` 方法的默认实现就被定义在了 Object 类中。
 
-其实这也是 Java 语言处理**判等问题**的解决方案，即统一从 Object 中继承判等方法。
+其实这也是 Java 语言处理**判等问题**的解决方案，即**统一从 Object 中继承判等方法**。
 
 ![image-20200715144724027](img/java-object-structure.png)
 
 可是对于纯函数式的语言，比如 Haskell 来说，它没有 OOP 中的继承、类等概念，它又该如何优雅的解决判等的问题呢？
 
-如果你觉得 Haskell 比较陌生，我们就换一种提问的方式：**还有其它通用的设计方案可以解决这类判等问题吗**？
+如果你对 Haskell 比较陌生，我们就换一种提问的方式：**还有其它通用的设计方案可以解决这类判等问题吗**？
 
-当然有，而 Type classes 就是这个领域内最靓的那个仔，要了解 Type classes， 还得先从多态开始。
+当然有，**Type classes** 就是一种方案，不过要了解 Type classes， 还得先从多态开始。
 
 
 
@@ -97,7 +97,7 @@ Type classes 结合了 ad-hoc polymorphism（特设多态）和 Parametric polym
 
 ## Haskell 与 Type classes
 
-Type classes 一般译作类型类，最开始是由 haskell 引入并实现，所以我们很有必要先了解一下 haskell 中的 Type classes。
+**Type classes** 一般译作类型类，最开始是由 haskell 引入并实现，所以我们很有必要先了解一下 haskell 中的 Type classes。
 
 以最开始提到的判等问题为例，来看看在 Haskell 中怎么用 Type classes 去解决。
 
@@ -109,11 +109,11 @@ class Eq a where
 	(/=) :: a -> a -> Bool
 ```
 
-> /= 其实就是 !=
+注：/= 其实就是 !=
 
 
 
-haskell 的 Type class 与 Java 的 Interface 类似，上面的 Eq 类型类就定义了 `==` 和 `/=` 两个抽象函数，其中的 a 就是类型变量，与 Java 中的泛型类似。
+haskell 的 Type class 与 Java 的 Interface 类似，上面的 Eq 类型类就定义了 `==` 和 `/=` 两个抽象函数，其中的 a 是类型变量，类似于 Java 中的 List<T> 中的 T。
 
 由此看来，Type classes 只是抽象了一些共同的行为，而这些行为的具体实现会根据类型的不同而不同，具体的实现会由**类型类实例**来定义。
 
@@ -130,7 +130,7 @@ instance Eq Float where
 
 ```
 
-> 我们假设 eqInt、neInt、eqFloat、neFloat 都已经由标准库实现了
+注：我们假设 eqInt、neInt、eqFloat、neFloat 都已经由标准库实现了
 
 
 
@@ -154,25 +154,25 @@ instance Eq Float where
 
 此时你可能会不自觉的和最开始提到的继承方案做一个对比，我画了两个图，可以参考一下
 
-- 继承方案的类型结构是一个层次型的
+- 继承方案中，结构是一个层次型的
 
 ![](img/subtyping-structure.png)
 
 
 
-- Type classes 方案的类型结构是线性的
+- Type classes 方案，结构是线性的
 
 ![](img/linear-structure.png)
 
-如果仅仅从结构上来看的话，它们之间的差别就像 `Comparable` 和 `Comparator` 一样。
+这样的差别就像是 Java 中 `Comparable` 和 `Comparator` 的区别一样。
 
 
 
 ## Scala 与 Type classes Pattern 
 
-目前的 Java 是无法实现 Type classes 的，但同为 JVM 的语言，多范式的 Scala 却可以实现。
+目前在 Java 中是无法实现 Type classes 的，但同为 JVM 的语言，多范式的 Scala 却可以实现。
 
-与 Haskell 不一样， Type classes 在 Scala 中并不是一等公民，也就是没有直接的语法支持，但借助于强大的**隐式系统**我们也能实现 Type classes，由于实现的步骤比较公式化，也就被称之为 Type classes Pattern (类型类模式)。
+但 Type classes 在 Scala 中其实也不是一等公民，也就是没有直接的语法支持，但借助于强大的**隐式系统**我们也能实现 Type classes，由于实现的步骤比较公式化，也就被称之为 Type classes Pattern (类型类模式)。
 
 在 Scala 中实现 Type classes Pattern 大致分为 3 个步骤
 
@@ -202,11 +202,12 @@ trait Eq[T] {
 
 ```scala
 object EqInstances {
-
+  // 处理 Int 类型的类型类实例
   implicit val intEq = new Eq[Int] {
     override def eq(a: Int, b: Int) = a == b
   }
-
+  
+  // 处理 String 类型的类型类实例
   implicit val stringEq = instance[String]((a, b) => a.equals(b))
 
   def instance[T](func: (T, T) => Boolean): Eq[T] = new Eq[T] {
@@ -222,7 +223,9 @@ stringEq 和 intEq 采用了不同的构造方式
 
 两个实例都被 `implicit` 关键字修饰，一般称之为**隐式值**，作用会在后面讲到。
 
-最后一步，来实现一个带隐式参数的 `same` 函数， 其实调用类型类实例来判断两个值是否相等
+
+
+最后一步，来实现一个带隐式参数的 `same` 函数，就是调用类型类实例来判断两个值是否相等
 
 ```scala
 object Same {
@@ -235,7 +238,7 @@ object Same {
 
 
 
-最后来进行调用验证一下，在调用时我们需要先在当前作用域内通过 `import` 关键字导入**类型类实例**（主要是为了让编译器能找到这些实例）
+通过实际的调用来验证一下，在调用时我们需要先在当前作用域内通过 `import` 关键字导入**类型类实例**（主要是为了让编译器能找到这些实例）
 
 ```scala
 
@@ -306,6 +309,8 @@ object Instances {
 }
 ```
 
+
+
 List 的 sort 方法也需要改为带隐式参数的方法前面，这样我们就不需要显示的传 Compartor 实例了
 
 ```scala
@@ -338,19 +343,11 @@ var map = new HashMap<String, String>();
 
 ## 总结一下
 
-看了 Haskell 和 Scala 的例子，最后还是得总结一下：
+看了 Haskell 和 Scala 的例子，还是得总结一下：**Type classes 就是抽象了某一些类型的共同行为，当某个类型需要用到这些行为时，由类型系统去找到这些行为的具体实现**。
 
-Type classes 就是抽象了某一些类型的共同行为，当某个类型需要用到这些行为时，由类型系统去找到这些行为的具体实现。
+在 Scala 中基于隐式系统实现 Type classes Pattern 并不是很直观，好在 Scala3 中， Type classes 得到了足够的重视，直接提供了语法层面的支持，再也不用写一大堆的模板代码， 从此可以叫做 **Type classes without Pattern**。
 
-
-
-## 未完待续
-
-最后还是得再安利一下 Scala3，在 Scala3 中， Type classes 得到了足够的重视，直接提供了语法层面的支持，再也不用写一大堆的模板代码， 从此可以叫做 **Type classes without Pattern**。
-
-不过为了避免“长篇大论”，相关的内容就留给下一篇文章了（点赞点赞点赞）。
-
-弱弱的皮一下，还学得动吗？
+不过为了避免“长篇大论”，相关的内容就留给下一篇文章了（学不动了 ing，但还得学）。
 
 
 

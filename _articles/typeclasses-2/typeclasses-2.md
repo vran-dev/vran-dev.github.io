@@ -48,7 +48,7 @@ object ComparatorInstances {
         case (_, Nil) => -1
         // 两个都不为空，
         case (l, r) =>
-        	// 比较头结点
+          // 比较头结点
           cmp.compare(l.head, r.head) match {
             // List.tail 表示除了头结点以外的结点
             case 0 => compare(l.tail, r.tail)
@@ -72,8 +72,8 @@ object Same {
 
 如果没有这个方法
 
-- 处理 List[Int] 时需要定义一个 Comparator[List[Int]] 实例
-- 处理 List[String] 时需要定义一个 Comparator[List[String]]  的实例
+- 处理 List[Int] 时需要定义一个 Comparator[List[Int]] 类型类实例
+- 处理 List[String] 时需要定义一个 Comparator[List[String]]  类型类实例
 - ......
 
 有了该隐式方法以后
