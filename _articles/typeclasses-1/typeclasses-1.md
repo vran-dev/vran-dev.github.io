@@ -32,7 +32,7 @@ public void test() {
 }
 ```
 
-熟悉  Java 的同学都知道对于非基础类型，  `==` 操作实际比较的是对象的 hashCode，而 `equals` 方法的默认实现其实就是调用的  `==`  操作符
+熟悉  Java 的同学都知道对于非基础类型， `equals` 方法的默认实现其实就是调用  `==`  操作符，而 `==` 操作比较的是对象的引用地址
 
 ```java
 public class Object {
@@ -46,7 +46,7 @@ public class Object {
 }
 ```
 
-所有类都会有 `equals` 方法，这是因为在 Java 中默认所有类型都是 Object 的子类，而 `equals` 方法的默认实现就被定义在了 Object 类中。
+所有类都会有 `equals` 方法，这是因为在 Java 中默认所有类型都是 Object 的子类。
 
 其实这也是 Java 语言处理**判等问题**的解决方案，即**统一从 Object 中继承判等方法**。
 
