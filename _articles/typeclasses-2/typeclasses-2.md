@@ -282,7 +282,7 @@ Same("ok", "ok")
 
 ### Extension Method
 
-在 Scala2 中药实现**函数扩展**得基于 `implicit class`，但是光看名字很难将这两者关联起来。
+在 Scala2 中要实现**函数扩展**得基于 `implicit class`，但是光看名字很难将这两者关联起来。
 
 好在 Scala3 也注意到了这个问题，索性就之间新增了一个`extension method` 的特性，实际就是**函数扩展**。
 
@@ -316,7 +316,7 @@ trait Comparator[T] {
 
 除了为类型扩展函数外，该语法也可以实现 Scala2 的隐式方法的功能。
 
-我们将 Scala2 中 `implicit def listComparator` 实例用 `extension method` 的语法在实现一遍（还需要借助 using）
+我们将 Scala2 中 `implicit def listComparator` 实例用 `extension method` 的语法再实现一遍（还需要借助 using）
 
 ```scala
 object ComparatorInstances {
@@ -344,7 +344,7 @@ object ComparatorInstances {
 
 ### 旧瓶装新酒？
 
-如果你已经跨过了隐式系统那道门槛，这样的语法改变可能并不会给你带来多大的惊喜，感觉就像酒瓶装新酒一样，似乎没多大的新意？
+如果你已经跨过了隐式系统那道门槛，这样的语法改变可能并不会给你带来多大的惊喜，感觉就像旧瓶装新酒一样，似乎没多大的新意？
 
 而在我看来这样的「旧瓶装新酒」却是 Scala 提升亲和力的体现，当然 Scala3 也不止这些改变，更多特性可以参考 https://dotty.epfl.ch/docs/reference/overview.html。
 
