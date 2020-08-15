@@ -162,7 +162,7 @@ trait Generic[T] {
 
 
 
-通过 Generic 的伴生对象可以很轻松的构建一个 Generic 实例
+通过 Generic 的伴生对象可以很轻松的构建一个 Generic 实例，Generic 的实现使用了一个称之为 [Aux Pattern](http://gigiigig.github.io/posts/2015/09/13/aux-pattern.html) 的手段，主要是为了绕过编译器的限制，这里可以不用深究。
 
 ```scala
 object Generic {
@@ -341,6 +341,6 @@ Show.show(jack) // 编译通过：['jack', 18, 55.0d]
 
 1. [Shapeless 入门指南（一）：自动派生 typeclass 实例](https://scala.cool/2017/09/shapeless-1/)，By Jilen
 2. [Simple Generic Derivation with Shapeless](http://www.dreadedsoftware.com/blog/2017/1/4/simple-generic-derivation-with-shapeless)，By Marcus Henry
-3. [http://gigiigig.github.io/posts/2015/09/13/aux-pattern.html]
+3. [aux pattern](http://gigiigig.github.io/posts/2015/09/13/aux-pattern.html)，By Luigi
 4. [Dotty: Type Class Derivation](https://dotty.epfl.ch/docs/reference/contextual/derivation.html)
 5. [Shapeless](https://github.com/milessabin/shapeless)
