@@ -10,9 +10,7 @@ tag: [Scala, 编程语言]
 
 ## 前言
 
-本文主要是讨论在 Scala 中自动为 case class 派生 Type class，如果你不知道什么是 Type class 的话，建议先阅读我的上一篇文章。
-
-> *[《真的学不动了： 除了 class , 也该了解 Type classes 了》](https://blog.cc1234.cc/articles/typeclasses-1/typeclasses-1.html)*
+本文主要是讨论在 Scala 中自动为 case class 派生 Type class，如果你不知道什么是 Type class 的话，建议先阅读我的上一篇文章 *[《真的学不动了： 除了 class , 也该了解 Type classes 了》](https://blog.cc1234.cc/articles/typeclasses-1/typeclasses-1.html)*。
 
 
 
