@@ -10,7 +10,7 @@ tag: [Scala, 编程语言]
 
 ## 前言
 
-本文主要是讨论在 Scala 中自动为 case class 派生 Type class，如果你不知道什么是 Type class 的话，建议先阅读我的上一篇文章
+本文主要是讨论在 Scala 中自动为 case class 派生 Type class，如果你不知道什么是 Type class 的话，建议先阅读我的上一篇文章。
 
 > *[《真的学不动了： 除了 class , 也该了解 Type classes 了》](https://blog.cc1234.cc/articles/typeclasses-1/typeclasses-1.html)*
 
@@ -98,18 +98,17 @@ sealed trait HList
 sealed trait HNil extends HList 
 case object HNil extends HNil
 
-// 基于递归定义的 HList
+
+// 第二个参数 tail 也是 `HList` 类型的，也就是递归定义的。
 final case class ::[+H, +T <: HList](head : H, tail : T) extends HList
 ```
 
 
 
-`::` 类的第二个参数 tail 也是 `HList` 类型的，也就是递归定义的。
-
-下面展示了 `::` 类的构造
+下面展示了一个简单的 `::` 类的构造
 
 ```scala
-::("String", ::(1, ::(2.2F, HNil)))
+val hListObject = ::("String", ::(1, ::(2.2F, HNil)))
 ```
 
 
@@ -128,7 +127,7 @@ val tom = "Tom" :: 18 :: 50.5d :: HNil
 
 
 
-HList 与 case class 的结构很相似
+对比一下 HList 和 case class，会发现它们的结构非常相似。
 
 ```scala
 case class User(name: String, age: Int, weight: Double)
@@ -147,7 +146,7 @@ val tom = "Tom" :: 18 :: 50.5d :: HNil  // HList
 
 Shapeless 提供的 Generic 可以实现 HList 和 case class 之间的转换。
 
-Generic 的接口定义并不限于 HList 和 case class，只是定义了 **T** 和 **Repr** 两个泛型，所以理论上是可以基于 Generic 去实现任意两种类型的转换的。
+其实 Generic 的接口定义并不限于 HList 和 case class 的转换，只是定义了 **T** 和 **Repr** 两个泛型，所以理论上是可以基于 Generic 去实现任意两种类型的转换的。
 
 ```scala
 trait Generic[T] {
@@ -188,17 +187,20 @@ val userClass: User = generic.from(userHList)
 
 
 
-Shapeless 已经在隐式作用域内提供了能转换 case class 和 HList 的 Generic 实例，可以直接使用
+Shapeless 已经在隐式作用域内提供了能转换 case class 和 HList 的 Generic 实例，可以向下面这样直接使用
 
 ```scala
 import shapeless._
+
+// 定义 case class
 case class Demo()
 
+// 接受一个 case class，返回一个 HList。
+// Generic.Aux[C, HL] 的实例在 Shapeless 库中已经有了
 def genericTest[C, HL <: HList](t: C)(implicit gen: Generic.Aux[C, HL]): HList = {
   gen.to(t)
 }
 
-case class Demo()
 genericTest(Demo())  // 转为了 HNil
 ```
 
@@ -208,19 +210,24 @@ genericTest(Demo())  // 转为了 HNil
 
 那么如何借助 Shapeless 来为 case class 自动派生 Type class 实例呢？
 
-其实思路很简单，就是将 case class 转为 HList 类型，然后复用 HList 的 Type class 实例即可。
+其实思路很简单，既然 case class 都可以转为 HList，那么只需要定义 HList 的 Type class 实例，然后复用该实例就可以了，这样问题就变成了如何实现 HList 的 Type class 实例了。
 
-HList 可以被递归的分解为 「头节点 + 尾列表」，如下图所示
+如下图所示，HList 可以被递归的分解为 「头节点 + 尾列表」
 
 ![image-20200814143334403](img/hlist.png)
 
-所以理论上只要有能处理 HList 和某个元素类型（指 T1、T2、T3、T4 等）的 Type class 实例，就相当于有了能处理任意 case class 的 Type class 实例了。
+这样实现 HList 的 Type class 实例又被分解成了
+
+- 实现单个元素类型（如 T1、T2、T3、T4等）的 Type class 实例
+- 实现 HNil 的 Type class 实例
+
+整个分解的步骤如下图
 
 
 
 ![image-20200813185729660](img/type-class-deriving-thinking.png)
 
-Talk is Cheap，Show me the code。
+好了，Talk is Cheap，Show me the code
 
 ## 实现
 
@@ -238,9 +245,11 @@ object Show {
 
 
 
-先提供一个隐式转换方法，该方法返回一个可以处理 case class 类型的 Show 实例。
+先提供一个隐式转换方法，该方法**返回一个可以处理 case class 类型的 Show 实例**。
 
-该方法逻辑很简单，其实就是将 case class 转为 HList， 然后调用 HList 的 Show 实例将 HList 转为字符串
+方法逻辑很简单，其实就是将 case class 转为 HList， 然后调用 HList 的 Show 实例将 HList 转为字符串。
+
+其实就是组合 Generic.Aux[C, HL] 和 Show[HList] 两个 Type class 实例
 
 注：Generic.Aux 实例由 Shapless 提供
 
@@ -271,9 +280,9 @@ implicit val hNilShow = new Show[HNil] {
 
 
 
-`::` 的 Show 实例需要组合两个类型的实例，所以又需要用到隐式方法了。
+`::` 的 Show 实例也需要组合两个类型的实例，所以又需要用到隐式方法了。
 
-前面已经分析过了，`::` 可以拆分为 「头节点 +尾列表」，所以 `::` 的 Show 实例就是组合头节点类型的实例和尾列表 HList  的实例。
+前面已经分析过了，`::` 可以拆分为 「头节点 +尾列表」，所以 `::` 的 Show 实例就是**组合头节点类型的实例和尾列表 HList  的实例**。
 
 ```scala
 /**
@@ -288,7 +297,7 @@ implicit def hListShow[T, HL <: HList](implicit head: Show[T], hListShowInstance
 
 
 
-HList 的实例已经有了，只需要在定义几个基本类型的 Show 实例就可以了
+HList 的实例已经有了，再定义几个基本类型的 Show 实例就可以了
 
 ```scala
 implicit val intShow = new Show[Int] {
@@ -316,12 +325,12 @@ import shapeless._
 case class User(name: String, age: Int, weight: Double)
 
 val jack = User("jack", 18, 55.0)
-Show.show(jack) // 编译通过：['jack', 18, 55.0d]
+Show.show(jack) // 编译通过，输出：['jack', 18, 55.0d]
 ```
 
 
 
-下图展示了编译器的整个推导过程（自顶向下）。
+为了更清晰的展示整派生过程，我画了一个简单的推导图
 
 ![image-20200814154245138](img/deriving-infer.png) 
 
@@ -331,11 +340,9 @@ Show.show(jack) // 编译通过：['jack', 18, 55.0d]
 
 整个派生的过程利用了编译器的推导，相较于利用反射等其他运行时的技术手段来实现，这样的方式更加的巧妙，并且天然就拥有了类型的静态检查。
 
-但是这样的推导其实也有一个不足，就是无法拿到 case class 的属性名称（根据反射可以拿到）。
+但是这样的推导其实也有一个不足，就是无法拿到 case class 的属性名称。
 
-其实在 Scala3 中也提供了相关的语法来支持 Type class 派生了，相较于 Shapeless 方案，系统级的支持肯定更加完备，感兴的可以到[官网文档](https://dotty.epfl.ch/docs/reference/contextual/derivation.html)查看
-
-
+再多说一句，在 Scala3 中已经提供了原生的 Type class 派生语法了，相较于 Shapeless 方案，语言原生的支持肯定更加完备，感兴的可以到[官网文档](https://dotty.epfl.ch/docs/reference/contextual/derivation.html)查看。
 
 ## 参考
 
