@@ -72,7 +72,7 @@ java.util.List.of(1, 2, 3, 4, 5)
 ```java
 io.vavr.collection.List.of(1, 2, 3, 4, 5)
     .filter(i -> i > 3)
-  	.map(i -> i * 2);
+    .map(i -> i * 2);
 ```
 
 
@@ -276,7 +276,7 @@ public void testOption() {
     Assert.assertTrue(Option.of(1) instanceof Option.Some);
     
   	// 通过 none 或 some 构造
-  	Assert.assertTrue(Option.none() instanceof Option.Some);
+    Assert.assertTrue(Option.none() instanceof Option.Some);
     Assert.assertTrue(Option.some(1) instanceof Option.Some);
 }
 
@@ -399,7 +399,7 @@ try {
 ```java
 /**
 * 输出
-*	 failure: / by zero
+*  failure: / by zero
 *  finally
 */
 Try.of(() -> 1 / 0)
