@@ -233,11 +233,11 @@ genericTest(Demo())  // 转为了 HNil
 
 ```scala
 trait Show[T] {
-  def show[T](t: T): String
+  def show(t: T): String
 }
 
 object Show {
-	def apply[T](t: T)(implicit showInstance: Show[T]): String = showInstance.show(t)
+  def apply[T](t: T)(implicit showInstance: Show[T]): String = showInstance.show(t)
 }
 ```
 
@@ -323,7 +323,7 @@ import shapeless._
 case class User(name: String, age: Int, weight: Double)
 
 val jack = User("jack", 18, 55.0)
-Show.show(jack) // 编译通过，输出：['jack', 18, 55.0d]
+Show(jack) // 编译通过，输出：['jack', 18, 55.0d]
 ```
 
 
