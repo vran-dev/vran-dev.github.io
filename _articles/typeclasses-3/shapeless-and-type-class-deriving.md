@@ -142,9 +142,7 @@ val tom = "Tom" :: 18 :: 50.5d :: HNil  // HList
 
 ### Generic
 
-Shapeless 提供的 Generic 可以实现 HList 和 case class 之间的转换。
-
-其实 Generic 的接口定义并不限于 HList 和 case class 的转换，只是定义了 **T** 和 **Repr** 两个泛型，所以理论上是可以基于 Generic 去实现任意两种类型的转换的。
+其实 Generic 的接口定义并不限于 HList 和 case class 的转换，它只是定义了 **T** 和 **Repr** 两个泛型，所以理论上是可以基于 Generic 去实现任意两种类型的转换的。
 
 ```scala
 trait Generic[T] {
@@ -185,7 +183,7 @@ val userClass: User = generic.from(userHList)
 
 
 
-Shapeless 已经在隐式作用域内提供了能转换 case class 和 HList 的 Generic 实例，可以向下面这样直接使用
+而且 Shapeless 已经在隐式作用域内提供了能转换 case class 和 HList 的 Generic.Aux 实例，所以我们也可以通过下面的方式来进行转换
 
 ```scala
 import shapeless._
@@ -199,7 +197,7 @@ def genericTest[C, HL <: HList](t: C)(implicit gen: Generic.Aux[C, HL]): HList =
   gen.to(t)
 }
 
-genericTest(Demo())  // 转为了 HNil
+genericTest(Demo())  // Demo 转为了 HNil
 ```
 
 
@@ -208,20 +206,36 @@ genericTest(Demo())  // 转为了 HNil
 
 那么如何借助 Shapeless 来为 case class 自动派生 Type class 实例呢？
 
-其实思路很简单，既然 case class 都可以转为 HList，那么只需要定义 HList 的 Type class 实例，然后复用该实例就可以了，这样问题就变成了如何实现 HList 的 Type class 实例了。
+其实思路很简单：就是让所有的 case class 都能够复用 HList 的 type class 实例。
 
-如下图所示，HList 可以被递归的分解为 「头节点 + 尾列表」
+这样问题就变成了
+
+- 自动将 case class 转为 HList 
+- 实现 HList 的 type class 实例
+
+第一个问题 Shapless 框架已经提供了解决方案，我们来分析一下第二点的可行性。
+
+先来看看 HList 的结构，如下图所示，HList 的结构可以被递归的分解为 「头节点 + 尾列表」（递归结构），递归的终止条件就是尾列表为 HNil 时：
 
 ![image-20200814143334403](img/hlist.png)
 
-这样实现 HList 的 Type class 实例又被分解成了
+用代码展示就是这样
 
-- 实现单个元素类型（如 T1、T2、T3、T4等）的 Type class 实例
-- 实现 HNil 的 Type class 实例
+```scala
+HList(T1, HList(T2, HList(T3, HList(T4, HNil))))
+```
 
-整个分解的步骤如下图
 
 
+那么 HList 的 Type class实例也应该是递归定义的了，组合**头节点类型的 Type class 实例**和**尾列表类型的 Type class 实例**，大致需要实现的实例如下
+
+- 单个元素类型（如 T1、T2、T3、T4等）的 Type class 实例
+- HNil 的 Type class 实例
+- HList 的 Type class 实例
+
+
+
+最后再来画一下我们期望编译器能做到的推导过程
 
 ![image-20200813185729660](img/type-class-deriving-thinking.png)
 
@@ -229,7 +243,7 @@ genericTest(Demo())  // 转为了 HNil
 
 ## 实现
 
-下面就基于 Shapeless 将 Show 扩展成为一个可以支持 case class 的 Type class。
+Type class 的仍然使用最开始定义的 Show，这里重复列一下代码：
 
 ```scala
 trait Show[T] {
@@ -243,11 +257,9 @@ object Show {
 
 
 
-先提供一个隐式转换方法，该方法**返回一个可以处理 case class 类型的 Show 实例**。
+第一步自然是**实现一个可以处理 case class 类型的 Show 实例**，这里需要用到隐式方法（implicit def）。
 
-方法逻辑很简单，其实就是将 case class 转为 HList， 然后调用 HList 的 Show 实例将 HList 转为字符串。
-
-其实就是组合 Generic.Aux[C, HL] 和 Show[HList] 两个 Type class 实例
+方法思路很简单，让编译器在隐式作用域找到  Generic.Aux 实例将 case class 转为 HList， 然后调用 HList 类型的 Show 实例将 HList 对象转为字符串。
 
 注：Generic.Aux 实例由 Shapless 提供
 
@@ -263,7 +275,9 @@ implicit def caseClassShow[C, HL <: HList](implicit generic: Generic.Aux[C, HL],
 
 
 
-那么 HList 的 Show 实例哪来呢？当然得我们自己提供了。
+其实就是组合 Generic.Aux[C, HL] 和 Show[HList] 两个 Type class 实例，Generic.Aux 由框架提供了，那么 HList 的 Show 实例哪来呢？
+
+当然得我们自己实现了。
 
 HList 有两个子类：`HNil` 和 `::` ，所以要实现两个 Type class 实例。
 
@@ -280,7 +294,7 @@ implicit val hNilShow = new Show[HNil] {
 
 `::` 的 Show 实例也需要组合两个类型的实例，所以又需要用到隐式方法了。
 
-前面已经分析过了，`::` 可以拆分为 「头节点 +尾列表」，所以 `::` 的 Show 实例就是**组合头节点类型的实例和尾列表 HList  的实例**。
+前面已经分析过了，`::` 可以拆分为 「头节点 +尾列表」，所以 `::` 的 Show 实例就是**组合头节点类型的实例和尾列表 HList  的实例**，相当于是在做递归的处理。
 
 ```scala
 /**
@@ -288,7 +302,8 @@ implicit val hNilShow = new Show[HNil] {
  * @tparam T  任意类型
  * @tparam HL 任意 HList 类型
  */
-implicit def hListShow[T, HL <: HList](implicit head: Show[T], hListShowInstance: Show[HL]) = new Show[::[T, HL]] {
+implicit def hListShow[T, HL <: HList](implicit head: Show[T], 
+                                       hListShowInstance: Show[HL]) = new Show[::[T, HL]] {
   override def show(a: ::[T, HL]): String = s"[${head.show(a.head)}, ${hListShowInstance.show(a.tail)}]"
 }
 ```
@@ -315,7 +330,7 @@ implicit val stringShow = new Show[String] {
 
 
 
-最后再来验证一下
+最后再来验证一下，下面代码并没有专门为 User 定义 Type class 实例
 
 ```scala
 import shapeless._
@@ -328,7 +343,7 @@ Show(jack) // 编译通过，输出：['jack', 18, 55.0d]
 
 
 
-为了更清晰的展示整派生过程，我画了一个简单的推导图
+通过下面的图再来看一下编译器的推导过程，其实很简单
 
 ![image-20200814154245138](img/deriving-infer.png) 
 
@@ -336,11 +351,11 @@ Show(jack) // 编译通过，输出：['jack', 18, 55.0d]
 
 ## 总结
 
-整个派生的过程利用了编译器的推导，相较于利用反射等其他运行时的技术手段来实现，这样的方式更加的巧妙，并且天然就拥有了类型的静态检查。
+整个派生的过程利用了编译器的自动推导，相较于利用反射等其他运行时的技术手段来实现，这样的方式更加的巧妙，并且天然就拥有了类型的静态检查。
 
 但是这样的推导其实也有一个不足，就是无法拿到 case class 的属性名称。
 
-再多说一句，在 Scala3 中已经提供了原生的 Type class 派生语法了，相较于 Shapeless 方案，语言原生的支持肯定更加完备，感兴的可以到[官网文档](https://dotty.epfl.ch/docs/reference/contextual/derivation.html)查看。
+再多说一句，在 Scala3 中已经提供了原生的 Type class 派生语法了，对比 Shapeless，语言原生的支持肯定更加完备，感兴的可以到[官网文档](https://dotty.epfl.ch/docs/reference/contextual/derivation.html)查看。
 
 ## 参考
 
