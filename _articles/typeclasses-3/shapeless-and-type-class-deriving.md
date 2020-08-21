@@ -56,7 +56,7 @@ implicit val productShow = new Show[Product] {
 
 
 
-当我们调用 Show 时，编译器就会为自动找到匹配的 Type class  实例传入
+当我们调用 Show 时，编译器就会自动找到匹配的 Type class  实例传入
 
 ```scala
 Show(User("Jack", 18, 50))
@@ -217,7 +217,7 @@ genericTest(Demo())  // Demo 转为了 HNil
 
 先来看看 HList 的结构，如下图所示，HList 的结构可以被递归的分解为 「头节点 + 尾列表」（递归结构），递归的终止条件就是尾列表为 HNil 时：
 
-![image-20200814143334403](img/hlist.png)
+![image-20200821085027952](img/hlist.png)
 
 用代码展示就是这样
 
@@ -235,7 +235,7 @@ HList(T1, HList(T2, HList(T3, HList(T4, HNil))))
 
 
 
-最后再来画一下我们期望编译器能做到的推导过程
+我们希望只要提供了以上 Type class 实例以后，编译器能按下图的方式自动推导（浅色的代表匹配到的 Type class 实例）
 
 ![image-20200813185729660](img/type-class-deriving-thinking.png)
 
@@ -243,7 +243,7 @@ HList(T1, HList(T2, HList(T3, HList(T4, HNil))))
 
 ## 实现
 
-Type class 的仍然使用最开始定义的 Show，这里重复列一下代码：
+我们以最开始提到的 Show 来进行实现
 
 ```scala
 trait Show[T] {
@@ -257,7 +257,7 @@ object Show {
 
 
 
-第一步自然是**实现一个可以处理 case class 类型的 Show 实例**，这里需要用到隐式方法（implicit def）。
+第一步自然是**生成一个可以处理 case class 类型的 Show 实例**，这里需要用到隐式方法（implicit def）。
 
 方法思路很简单，让编译器在隐式作用域找到  Generic.Aux 实例将 case class 转为 HList， 然后调用 HList 类型的 Show 实例将 HList 对象转为字符串。
 
@@ -275,9 +275,9 @@ implicit def caseClassShow[C, HL <: HList](implicit generic: Generic.Aux[C, HL],
 
 
 
-其实就是组合 Generic.Aux[C, HL] 和 Show[HList] 两个 Type class 实例，Generic.Aux 由框架提供了，那么 HList 的 Show 实例哪来呢？
+其实就是组合 Generic.Aux[C, HL] 和 Show[HList] 两个 Type class 实例。
 
-当然得我们自己实现了。
+Generic.Aux 由框架提供了，那么 HList 的 Show 实例哪来呢？当然得我们自己实现了。
 
 HList 有两个子类：`HNil` 和 `::` ，所以要实现两个 Type class 实例。
 
@@ -343,7 +343,7 @@ Show(jack) // 编译通过，输出：['jack', 18, 55.0d]
 
 
 
-通过下面的图再来看一下编译器的推导过程，其实很简单
+通过下面的图再来理解一下编译器的推导过程，其实很简单
 
 ![image-20200814154245138](img/deriving-infer.png) 
 
