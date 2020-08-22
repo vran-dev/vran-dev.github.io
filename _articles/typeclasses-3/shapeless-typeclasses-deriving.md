@@ -1,5 +1,5 @@
 ---
-title: " 使用 Shapeless 实现 Type class 派生"
+title: " Scala2 如何实现 Type class 派生"
 date: 2020-08-15 00:04:00 +0800
 tag: [Scala, 编程语言]
 
@@ -287,7 +287,7 @@ HList(T1, HList(T2, HList(T3, HList(T4, HNil))))
 
 
 
-我们希望只要提供了以上 Type class 实例以后，编译器能按下图的方式自动推导（浅色的代表匹配到的 Type class 实例）
+我们希望只要提供了以上 Type class 实例以后，编译器能按下图的方式自动推导（白色的代表匹配到的 Type class 实例）
 
 ![image-20200822131516132](img/caseClass-deriving.png)
 
