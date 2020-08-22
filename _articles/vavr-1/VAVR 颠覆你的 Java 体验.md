@@ -522,10 +522,9 @@ Future.fromCompletableFuture(CompletableFuture.runAsync(() -> {}));
 
 最后再来简单过一下  Either 和 Lazy 吧
 
-- Either 它表示某个值可能为两种类型中的一种，比如下面的 `compute()` 函数的 Either 返回值代表结构可能为 Exception 或 String。
+- Either 它表示某个值可能为两种类型中的一种，比如下面的 `compute()` 函数的 Either 返回值代表结构可能为 Exception 或 String。通常用 right 代表正确的值（英文 right 有正确的意思）
 
-  通常用 right 代表正确的值（英文 right 有正确的意思）
-
+  
   ```java
   public Either<Exception, String> compute() {
     //...

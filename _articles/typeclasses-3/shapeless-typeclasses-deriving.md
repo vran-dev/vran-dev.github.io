@@ -74,14 +74,14 @@ case class User(id: Int, name: String, isCertified: Boolean)
 
 
 
-如果要使用 Random 生成这样的数据就得实现 Random[User]、Random[Product] 实例
+如果要使用 Random 生成这样的数据就得实现 Random[User]、Random[Doctor] 实例
 
 ```scala
 implicit val userShow = new Random[User] {
   override def random(): User = User(scala.util.Random.nextInt(), UUID.randomUUID().toString, scala.util.Random.nextBoolean())
 }
 
-// ... 省略 Product 的实例
+// ... 省略 Doctor 的实例
 ```
 
 
@@ -115,7 +115,7 @@ val doctor = Random[Doctor]()
 
 
 
-如果按照上面的实现方式，每一个 case class 都得去实现一个 Random[T] 的实例，这样势必会写很多样板式的代码。
+上面的实现方式，每一个 case class 都得去实现一个 Random[T] 的实例，这样势必会写很多样板式的代码。
 
 有没有一种实例的实现能支持任意 case class ，只有在我需要自定义的时候才自己去实现呢？
 
@@ -321,7 +321,7 @@ implicit val hNilRandom =  new Random[HNil] {
 
 
 
-`::` 就是递归定义了，实际就是前一节分析的由 「头节点 +尾列表」 组成，所以 `::` 的 Random 实例就是**组合头节点类型的实例和尾列表 HList  的实例**，这就得用到隐式方法了
+`::` 是递归定义的，实际就是前一节分析的由 「头节点 +尾列表」 组成，所以 `::` 的 Random 实例就是**组合头节点类型的实例和尾列表 HList  的实例**，这就得用到隐式方法了
 
 ```scala
 /**
