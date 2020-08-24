@@ -13,15 +13,13 @@ tag: [Scala, 编程语言]
 
 本文主要是讨论在 Scala 中自动为 case class 派生 Type class 实例，如果你不知道什么是 Type class 的话，建议先阅读我的上一篇文章 *[《真的学不动了： 除了 class , 也该了解 Type classes 了》](https://blog.cc1234.cc/articles/typeclasses-1/typeclasses-1.html)*。
 
-> 本文使用 Scala 版本为 2.13.2
->
-> Shapless 版本为 2.3.3
+> 本文使用的 Scala 版本为 2.13.2，Shapless 版本为 2.3.3
 
-![image-20200822184653606](img/deriving-word.png)
+
 
 ## 提出问题
 
-假设我现在有一个用于生成随机测试数据的 Type class
+假设我现在有一个用于生成随机测试数据的 Type class，并且已经实现了 Int， Boolean 等基本类型的 Random 实例
 
 ```scala
 trait Random[T] {
@@ -29,36 +27,36 @@ trait Random[T] {
 }
 
 object Random {
+  
   def apply[T]()(implicit random: Random[T]) = random.random()
+  
+  implicit val intRandom = new Random[Int] {
+    override def random(): Int = Math.abs(scala.util.Random.nextInt(10000000))
+  }
+
+  implicit val stringRandom = new Random[String] {
+    override def random(): String = UUID.randomUUID().toString
+  }
+
+  implicit val booleanRandom = new Random[Boolean] {
+    override def random(): Boolean = scala.util.Random.nextBoolean()
+  }
+  
+  // ......
 }
 ```
 
 
 
-并且已经实现了 Int， Boolean 等基本类型的 Random 实例
-
-```scala
-implicit val intRandom = new Random[Int] {
-  override def random(): Int = Math.abs(scala.util.Random.nextInt(10000000))
-}
-
-implicit val stringRandom = new Random[String] {
-  override def random(): String = UUID.randomUUID().toString
-}
-
-implicit val booleanRandom = new Random[Boolean] {
-  override def random(): Boolean = scala.util.Random.nextBoolean()
-}
-
-// ......
-```
-
-
-
-这样就可以像下面这样生成基本类型的随机数据了
+这样就可以像下面这样生成基本类型的随机数据了，编译器会自动找到对应的实例进行注入
 
 ```java
+import Random._
+
+// 相当于 Random.apply[Int]()(intRandom), scala 可以省略 apply
 val id = Random[Int]()
+  
+// 相当于 Random.apply[String]()(stringRandom)
 val name = Random[String]()
 ```
 
@@ -86,40 +84,46 @@ implicit val userShow = new Random[User] {
 
 
 
-上面的实现没有复用已有的 Random[Int], Random[Boolean] 和 Random[String] 实例，为了做到复用，一般会使用隐式方法来实现
+上面的实现没有复用已有的 Random[Int], Random[Boolean] 和 Random[String] 实例，为了做到复用，一般会使用隐式方法来实现：
 
 ```scala
 implicit def userRandom(implicit intRandom: Random[Int],
                         stringRandom: Random[String],
                         booleanRandom: Random[Boolean]): Random[User] = {
-  instance(() => User(intRandom.random(), stringRandom.random(), booleanRandom.random()))
+  override def random(): User = User(intRandom.random(), stringRandom.random(), booleanRandom.random())
 }
-```
 
-
-
-这样我们就可以生成随机数据了
-
-```scala
+// 相当于 Random.apply[User]()(userRandom(intRandom, stringRandom, booleanRandom))
 val user = Random[User]()
-val doctor = Random[Doctor]()
 ```
 
 
 
 通过 Random\[User\]() 的调用简单说一下编译器的推导过程
 
-- 调用 Random[User] 实际是调用的 **Random\[User\](implicit random: Random[User] )**
-- 编译器没有找到 Random[User] 实例，但是发现方法 **implicit def userRandom** 会返回一个 Random[User], 于是调用该方法
-- **implicit def userRandom**  有需要 Random[Int]、Random[String] 和 Random[Boolean]，编译器在作用域内找到对应实例并注入
+1、调用 Random[User] 实际是调用的
+
+```scala
+Random.apply[User]()(implicit random: Random[User])
+```
+
+2、编译器没有找到 Random[User] 实例，但是发现方法 **implicit def userRandom** 会返回一个 Random[User]，于是调用该方法
+
+3、**implicit def userRandom**  又需要 Random[Int]、Random[String] 和 Random[Boolean] 等隐式实例，编译器在作用域内找到对应实例并注入
 
 
 
-上面的实现方式，每一个 case class 都得去实现一个 Random[T] 的实例，这样势必会写很多样板式的代码。
+userRandom 虽然复用了已有的 Random 实例，但还是没有解决每一个新的 case class 都需要实现一个对应的  Random 实例这个问题。
 
-有没有一种实例的实现能支持任意 case class ，只有在我需要自定义的时候才自己去实现呢？
+有没有一种办法可以自动为 case class 派生 Type class 实例呢？有，Shapeless 就是答案之一
 
-Shapeless 给了我们一个答案
+
+
+![image-20200822184653606](img/deriving-word.png)
+
+
+
+
 
 
 
