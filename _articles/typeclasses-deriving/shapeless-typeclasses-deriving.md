@@ -113,7 +113,7 @@ Random.apply[User]()(implicit random: Random[User])
 
 
 
-userRandom 虽然复用了已有的 Random 实例，但还是没有解决每一个新的 case class 都需要实现一个对应的  Random 实例这个问题。
+userRandom 函数虽然复用了已有的 Random 实例，但还是没有解决每一个新的 case class 都需要实现一个对应的  Random 实例这个问题。
 
 有没有一种办法可以自动为 case class 派生 Type class 实例呢？有，Shapeless 就是答案之一
 
@@ -299,7 +299,7 @@ HList(T1, HList(T2, HList(T3, HList(T4, HNil))))
 
 ## 实现
 
-我们基于最开始的 Random[T}] 来进行实现
+我们基于最开始的 Random[T] 来进行实现
 
 ```scala
 trait Random[T] {
