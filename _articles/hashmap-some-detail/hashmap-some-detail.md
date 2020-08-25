@@ -14,7 +14,7 @@ tags: [Java, HashMap]
 
 如果 hash 值相等，而且也没有实现Comparable 接口呢？此时会对 key 对象使用 `System.identityHashCode(key)` 进行再次 hash 运算，最后再根据新的 hash 值进行比较。
 
-那么 ``System.identityHashCode` 又是什么操作呢？
+那么 `System.identityHashCode` 又是什么操作呢？
 
 这是一个 native 的方法，实现的原理也很简单，就是不管你对象有没重写 hashCode 函数，它都只返回对象默认的 hashCode 值。
 
@@ -30,9 +30,7 @@ tags: [Java, HashMap]
 
 如果 key 的 hash 值分布的足够均匀，几乎不会转换成树形节点。
 
-假设使用随机的 hash 算法，理想情况下，一个桶位的节点数遵循泊松分布规律（按默认阈值 0.75）
-
-设 `λ = 0.75`, 带入以下公式
+假设使用随机的 hash 算法，理想情况下，通过泊松分布的概率函数可以计算某个桶位冲突节点达到 K 个的概率，设 `λ = 0.75`, 带入以下公式
 
 
 
