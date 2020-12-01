@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
 ```shell
 $ echo hello>>demo.txt
-$ gcc test.c -o -test
+$ gcc test.c -o test
 $ ./test
 $ demo.txt fd = 3
 ```
