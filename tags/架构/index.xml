@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>架构 on 且徐行</title>
+    <link>https://blog.cc1234.cc/tags/%E6%9E%B6%E6%9E%84/</link>
+    <description>Recent content in 架构 on 且徐行</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 07 Dec 2019 11:49:06 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/%E6%9E%B6%E6%9E%84/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>架构简谈：从分层到六边形</title>
+      <link>https://blog.cc1234.cc/posts/hexagonal-arch/</link>
+      <pubDate>Sat, 07 Dec 2019 11:49:06 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/hexagonal-arch/</guid>
+      <description>架构演化论：从分层到六边形 分层架构 分层架构模式被认为是所有架构的始祖，该架构将系统从上至下划分为不同的层级，层与层之间定义了明确的依赖限制，按照限制的强弱可以分为严格分层和松散分层两种风格。
+不管是严格分层还是松散分层，最基本的规则都一样：上层可以依赖下层，而下层不能依赖上层。
+严格分层相对于松散分层的不同点在于是否限制同层依赖和跨层依赖。
+分层架构强调层与层之间的边界，明确的边界可以降低耦合，使得职责更加清晰。
+在分层中，底层往往比上层稳定，自上而下的依赖就完全符合了稳定依赖原则，如果采用严格分层模式（禁止同层依赖）的话，还可以避免循环依赖。
+ David Wheeler: All problems in computer science can be solved by another level of indirection
+ 然而在现实系统开发中，随着业务的变化，分层架构也不是那么好把控的，主要在于以下几点
+  分层会增加，而新加的分层边界往往又不是很明确，这样就形成了一个模糊层
+  模糊层可能会形成隐藏的循环依赖
+  演进之路 下面以我们常见的三层架构来看看，分层是如何演进成为六边形架构的。
+我想 controller =&amp;gt; service =&amp;gt; dao 是每个后端同学都很熟悉的架构了，这是一个很典型的分层架构，并没有什么多说的
+当分层和 DIP (依赖倒置原则) 相遇时，会产生另外的化学反应。
+controller 和 service 都依赖于 interface，dao 和 service 也都依赖于 interface。
+这是一个非常典型的 DIP：抽象不应该依赖于细节，细节应该依赖于抽象
+当我们再将这个依赖关系平铺开，就成了这个样子了。多层次关系被拍平了，只剩下内外两层。
+这其实就是一个典型的六边形架构了，是不是感觉被糊弄了？
+然而这就是事实，当分层架构和 DIP 结合起来的时候，我们已经在使用六边形架构的风格了。
+那么难道 DIP + 分层 = 六边形架构 吗？，关于这个问题 Vaughn Vernon 在其著作《实现领域驱动设计》中有过解答：</description>
+    </item>
+    
+  </channel>
+</rss>

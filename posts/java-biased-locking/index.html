@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title> 你知道为什么 Java 会放弃偏向锁吗？  &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                         你知道为什么 Java 会放弃偏向锁吗？ 
+                    </h1>
+                    <h2 class="headline">
+                    Feb 1, 2021 23:45
+                    · 121 words
+                    · 1 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h2 id="前言">前言</h2>
+<p>随着 JDK15 的 Release，大量的新特性也和开发者们正式见面了（虽然不一定能用上&hellip;&hellip;），最引入注目的应该是 Text Block、Pattern Matching for instanceof (Second Preview) 等语法，因为这些特性是实实在在的影响了大家的开发体验。</p>
+<p>而本文要讨论的却不是这些特性，而是关于废弃偏向锁的特性</p>
+<ul>
+<li>Disable and Deprecate Biased Locking（禁用和废弃偏向锁）</li>
+</ul>
+<h2 id="什么是偏向锁">什么是偏向锁？</h2>
+<p>在 Java 中，<code>synchronized</code> 关键字可以确保同一时间内只有一个线程进入临界区</p>
+<blockquote>
+<p>临界区：可以是整个方法体，也可以是方法的局部块</p>
+</blockquote>
+<p>在 JDK1.6 以后，JVM 特地针对 <code>synchronized</code> 进行了优化，引入了锁升级的概念，锁状态只可升级不可降级。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">无锁 <span style="color:#f92672">-&gt;</span> 偏向锁 <span style="color:#f92672">-&gt;</span> 轻量级锁 <span style="color:#f92672">-&gt;</span> 重量级锁
+</code></pre></div><p>这里面我们主要关注<strong>偏向锁</strong>，它是 HotSpot VM 提供的一种用于减少锁开销的优化技术。</p>
+<p>它的原理其实很简单：当线程进入第一次同步块以后，锁持有的对象头的偏向锁标记会被置为 1 ，如果未来一段时间内都是同一个线程访问该同步快的话就不用执行加锁操作了。</p>
+<p>如果有另一个线程进入同步快的话，偏向锁就会升级到轻量级锁。</p>
+<p>由此可以看出来如果同步块只有一个线程访问的话，偏向锁是可以带来显著的性能提升的。</p>
+<p>既然如此，为何要废弃掉呢？</p>
+<h2 id="为什么要废弃">为什么要废弃？</h2>
+<h4 id="偏向锁带来的性能收益降低">偏向锁带来的性能收益降低</h4>
+<p>在现今，偏向锁带来的性能提升远不如过去那么明显了。</p>
+<p>在过去，旧的 Java 应用通常使用的都是比较老的集合库，比如 HashTable、Vector 等，这些集合库对应的方法都被 synchronized 修饰了。</p>
+<p>如果在单线程使用这些集合库就会造成不必要的加锁操作，导致性能下降。</p>
+<p>而新的无锁集合库，如 HashMap、ArrayList 等就没有这样的问题，如果是在多线程情况下，也有 ConcurrentHashMap、CopyOnWriteArrayList 等性能更好的线程安全的集合库。</p>
+<p>所以在使用了新的集合库的情况下，偏向锁带来的收益会降低。</p>
+<p>在多线程情况下，经常会使用到线程池，关闭偏向锁反而更好。</p>
+<p>在明显有竞争的场景下，偏向锁带来了昂贵的撤销操作的代价。</p>
+<p>因此，偏向锁其实只适用于那些无竞争的同步操作的应用程序</p>
+<h4 id="为-hotspot-引入了大量复杂度">为 HotSpot 引入了大量复杂度</h4>
+<p>在 HotSpot 虚拟机中，偏向锁为整个「同步子系统」引入了大量的复杂度，并且对 HotSpot 的其它组件也造成了侵入。</p>
+<p>这样的耦合性导致了「同步子系统」很难进行重大设计的变更。</p>
+<p>总下下来就是维护成本高、收益越来越低，所以决定废弃它了。</p>
+<h2 id="后续如何兼容">后续如何兼容？</h2>
+<p>默认禁用偏向锁可能会导致一些 Java 应用的性能下降，所以 HotSpot 提供了显示开启偏向锁的命令</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:+UseBiasedLocking
+</code></pre></div><p>以下和偏向锁相关的命令参数仍然可以使用，但是虚拟机会列出对应的警告信息标示其已被废弃掉</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:BiasedLockingStartupDelay<span style="color:#f92672">=</span>__
+-XX:BiasedLockingBulkRebiasThreshold<span style="color:#f92672">=</span>__
+-XX:BiasedLockingBulkRevokeThreshold<span style="color:#f92672">=</span>__
+-XX:BiasedLockingDecayTime<span style="color:#f92672">=</span>__
+// 必须在 C2 下才能使用
+-XX:+UseOptoBiasInlining
+
+// 必须配合参数-XX:+UnlockDiagnosticVMOptions使用
+// 并且只能加在其后才能生效
+-XX:+PrintBiasedLockingStatistics
+-XX:+PrintPreciseBiasedLockingStatistics
+</code></pre></div><p>在将来，HotSpot 会慢慢的禁用、废弃直到最终废移除偏向锁。</p>
+<h2 id="参考">参考</h2>
+<ol>
+<li><a href="https://openjdk.java.net/jeps/374">JEP 374: Disable and Deprecate Biased Locking</a></li>
+<li><a href="http://openjdk.java.net/projects/jdk/15/">open JDK15 Release</a></li>
+<li><a href="https://wiki.openjdk.java.net/display/HotSpot/Synchronization">Synchronization and Object Locking</a> By Christian Wimmer</li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/hashmap-some-detail/">HashMap 的细节笔记<aside class="dates">Apr 27 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

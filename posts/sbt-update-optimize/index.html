@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title>从30分钟到1分钟 - SBT的update耗时优化记录 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        从30分钟到1分钟 - SBT的update耗时优化记录
+                    </h1>
+                    <h2 class="headline">
+                    Sep 17, 2019 00:00
+                    · 553 words
+                    · 3 minute read
+                      <span class="tags">
+                      
+                      
+                          
+                              <a href="https://blog.cc1234.cc/tags/scala">Scala</a>
+                          
+                              <a href="https://blog.cc1234.cc/tags/sbt">SBT</a>
+                          
+                      
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="从30分钟到1分钟---sbt的update耗时优化记录">从30分钟到1分钟 - SBT的update耗时优化记录</h1>
+<h1 id="前言">前言</h1>
+<p>公司有项目是基于 Scala 编写的，与之配套的构建工具是 SBT , 它是 <strong>Simple Build Tool</strong> 的缩写，虽然我觉得它一点也不简单。</p>
+<p>这个项目有一个很大的痛点就是刷新依赖 （对应 SBT 的 update）非常之耗时，可以参见下图：</p>
+<p><img src="img/image-20190916164031838.png" alt="image-20190916164031838"></p>
+<p>注意图中红框部分，耗时1266秒，近半个小时。在刷新期间资源占用也很高，导致电脑很卡 （风扇还呼呼呼的转，温度蹭蹭蹭的长）。</p>
+<p>最关键的是由于依赖的很多服务升级很快 （几乎每天都有升级），所以这个操作每天也会持续很多次，难以想象耗费在这方面的时间是何其之多。</p>
+<p>人生苦短，在刷新了几次之后，我再也受不了这漫长的等待时间，于是开始了这漫漫的优化之路。</p>
+<blockquote>
+<p>正所谓工欲善其事必先利其器</p>
+</blockquote>
+<h2 id="round-1-十八般武艺齐上阵">Round 1: 十八般武艺齐上阵</h2>
+<p>不知道大家碰见这种问题会怎么做，我反正是二话不说打开 Google 直接搜： <strong>SBT 依赖下载慢</strong>。</p>
+<p>还别说，有共鸣的人还不少， 总结了下几乎都是以下的解决方案</p>
+<blockquote>
+<ol>
+<li>添加代理</li>
+<li>添加国内镜像源</li>
+</ol>
+</blockquote>
+<p>我这肯定不是源的问题啊，我司用的私有仓库，既然私有jar都下载下来了，肯定是走的私有仓库啊。</p>
+<p>翻了几页，没有满意的答案，也试了几个方案，也没啥用。</p>
+<p>看来还是得自己从问题的根源开始找起啊&hellip;&hellip;</p>
+<p>为了保险起见， 我还是先排查一下是不是镜像问题， 项目的 <code>build.sbt</code> 配置文件中是有私有仓库的相关配置项的：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
+lazy val commonSettings <span style="color:#f92672">=</span> Seq<span style="color:#f92672">(</span>
+	<span style="color:#75715e">//....
+</span><span style="color:#75715e"></span>
+  <span style="color:#75715e">// ... 私有仓库
+</span><span style="color:#75715e"></span>  resolvers <span style="color:#f92672">:=</span> <span style="color:#f92672">{</span>Resolver<span style="color:#f92672">.</span><span style="color:#a6e22e">url</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;xr-ivy-releasez&#34;</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> URL<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;http://nexus.xxxx.com/repository/ivy-releases/&#34;</span><span style="color:#f92672">))(</span>Resolver<span style="color:#f92672">.</span><span style="color:#a6e22e">ivyStylePatterns</span><span style="color:#f92672">)</span> <span style="color:#f92672">+:</span> resolvers<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">},</span>
+  resolvers <span style="color:#f92672">:=</span> <span style="color:#f92672">{</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;xr-maven-public&#34;</span> at <span style="color:#e6db74">&#34;http://nexus.xxxx.com/repository/public/&#34;</span><span style="color:#f92672">}</span> <span style="color:#f92672">+:</span> resolvers<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">},</span>
+  <span style="color:#75715e">// ....
+</span><span style="color:#75715e"></span><span style="color:#f92672">)</span>
+
+</code></pre></div><p>此时我忽然想到一种情况：难道是默认走的公共库，在公共库找不到依赖才会走私有库 ？</p>
+<p>为了验证猜想，我使用 wireshark 抓包进行分析，过滤器指定协议 http (因为仓库是走的http)</p>
+<blockquote>
+<p>还可以指定 ip.src 和 ip.dst 从而使得数据包更加符合我们的要求</p>
+</blockquote>
+<p><img src="img/image-20190916201433355.png" alt="image-20190916201433355"></p>
+<p>然后打开 sbt shell 进行 update 操作</p>
+<p><img src="img/image-20190916201505347.png" alt="image-20190916201505347"></p>
+<p>观察抓包结果</p>
+<p><img src="img/image-20190916204017434.png" alt="image-20190916204017434"></p>
+<p>发现访问的都是 <code>/repository/public/***</code> 的请求，对应的 Host 也是我司的私有库，这说明配置是生效了的，而且都是从私有仓库进行下载。</p>
+<p>但是我也发现了一些404的请求</p>
+<p><img src="img/image-20190916204123537.png" alt="image-20190916204123537"></p>
+<p>好吧，是我司的私有库没有 <code>/repository/ivy-release</code> ，果断将对应的仓库配置去掉，省去没必要的请求。</p>
+<p>虽然走了私有库，但是我每次刷新都会请求仓库，这就不符合道理了，难道 SBT 连基本的依赖缓存都没有 ？</p>
+<h2 id="round-2-从半小时到五分钟">Round 2: 从半小时到五分钟</h2>
+<p>对抓到的数据包进行再次过滤，只看 <code>Http Request</code>，发现请求的都是 <code>SNAPSHOT</code> 版本的依赖库, 参见下图</p>
+<p><img src="img/image-20190916204940489.png" alt="image-20190916204940489"></p>
+<p>这说明 SBT 是有缓存的，因为正式版都没有请求仓库，可是为什么 <code>SNAPSHOT</code> 每次都去请求远程仓库呢？ 难道是 <code>SNAPSHOT</code> 被区别对待，不会被缓存？</p>
+<p>既然 SBT 是基于 Ivy 的，那就从 Ivy下手。</p>
+<p>我在Ivy 的官网（http://ant.apache.org/ivy/history/2.0.0/settings/caches.html）找到了下面的一个关于<strong>缓存</strong>的表格：</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td>the name of the default cache to use on all resolvers not defining the cache instance to use</td>
+<td>No, defaults to a default cache manager instance named &lsquo;default-cache&rsquo;</td>
+</tr>
+<tr>
+<td><strong>defaultCacheDir</strong></td>
+<td>a path to a directory to use as default basedir for both resolution and repository cache(s)</td>
+<td>No, defaults to <strong>.ivy2/cache</strong> in the user&rsquo;s home directory</td>
+</tr>
+<tr>
+<td>resolutionCacheDir</td>
+<td>the path of the directory to use for all resolution cache data</td>
+<td>No, defaults to defaultCacheDir</td>
+</tr>
+<tr>
+<td>repositoryCacheDir</td>
+<td>the path of the default directory to use for repository cache data. <strong>This should not point to a directory used as a repository!</strong></td>
+<td>No, defaults to defaultCacheDir</td>
+</tr>
+</tbody>
+</table>
+<p>注意关键字 <code>defaultCacheDir</code>， 这个就是 Ivy 的缓存目录，对应路径为用户目录下的 <code>.ivy2/cache</code>。</p>
+<p>我的是 mac， 对应目录就是 <code>~/.ivy/cache</code> , 果不其然，进入该目录查看一下：</p>
+<p><img src="img/image-20190916203654004.png" alt="image-20190916203654004"></p>
+<p>在 <code>~/.ivy/cache</code> 下发现了很多依赖库的目录， 下面就需要验证一下有没有缓存 <code>SNAPSHOT</code> 的版本了， 以我司的 <code>user-client 4.1.2-SNAPSHOT</code> 为目标进行查找：</p>
+<p><img src="img/image-20190916204726415.png" alt="image-20190916204726415"></p>
+<p>从图中显示，目录中明明有缓存 <code>SNAPSHOT</code> 的啊，可为什么不走本地缓存呢 ？</p>
+<p>这没办法了，只能去 SBT 官网找答案了，在官网文档找到了 <a href="https://www.scala-sbt.org/1.x/docs/Dependency-Management-Index.html">Dependency Management</a> ，看名字似乎和依赖管理有关，</p>
+<p>其中的 <a href="https://www.scala-sbt.org/1.x/docs/Cached-Resolution.html">Cached-Resolution</a> 似乎和缓存相关， 而且开头就是下面这段话</p>
+<blockquote>
+<p>To set up Cached Resolution include the following setting in your project’s build:</p>
+<p>updateOptions := updateOptions.value.withCachedResolution(true)</p>
+</blockquote>
+<p>说的是要配置缓存解析，那就得加上 <code>updateOptions := updateOptions.value.withCachedResolution(true)</code> 的配置， 这也太简单了吧？</p>
+<p>不管啦，先加上试试。</p>
+<p>加配置，刷新，抓包一气呵成, 然而结果惨不忍睹</p>
+<p><img src="img/image-20190916205702243.png" alt="image-20190916205702243"></p>
+<p>看着一页页的请求发出去，此刻我是奔溃的！贼子安敢欺我！</p>
+<p>正在我想静静之际，SBT 刷新完成，我一不小心瞄了一眼，耗时居然只有以前的1/4 了？</p>
+<p><img src="img/image-20190917203644629.png" alt="image-20190917203644629"></p>
+<p>我靠，怎么肥四（回事）？不是没生效吗，怎么时间缩短了这么多？</p>
+<p>为了确保不是眼花，我又<strong>重启刷新</strong>了几次，发现耗时相差无几，而且我发现如果不重启直接update，一般耗时都只有几秒，我的天啦。</p>
+<p><img src="img/image-20190917201806135.png" alt="image-20190917201806135"></p>
+<p>不死心的我又去看了下文档，原来是我对这个配置理解错了，这个配置的意思并不是说 <code>SNAPSHOT</code> 就不请求远程仓库了。</p>
+<p>这里的缓存指的是sbt启动后第一次执行update后，会缓存所有的依赖解析信息， 也就是说缓存是和进程相关的。</p>
+<p>而我的项目是有4个子项目，每个子项目都共同依赖了 <code>service </code>模块， 该模块维护着几乎所有的依赖。</p>
+<p>当第一个项目 update 后，其他三个项目 update 时都会直接走缓存了，这也是为什么耗时只有最开始1/4。</p>
+<p>真实无心插柳柳成荫啊&hellip;&hellip;</p>
+<h2 id="round-3从五分钟到一分钟">Round 3：从五分钟到一分钟</h2>
+<p>虽然现在时间只要以前的1/4了，可还是要5分钟啊，这绝对不是一个可以将就的数字！</p>
+<p>而且还有另外一个非常重要的原因，因为穷！</p>
+<p>此话怎讲？因为 SBT 一直启动着太耗内存了，我这可怜的 8G 可得省着点儿。可是停掉 SBT，缓存就得重新构建了，所以是穷激发了我的进一步探索&hellip;&hellip;</p>
+<p>再次思考一下：为什么 <code>SNAPSHOT</code> 依赖每次启动都要去远程仓库拉取呢 ？ 能不能只在依赖的版本有更新的时候再去拉取呢 ？</p>
+<p>在文档 <a href="https://www.scala-sbt.org/1.x/docs/Cached-Resolution.html">Cached-Resolution</a>中,  发现了关键词 <strong>SNAPSHOT and dynamic dependencies</strong>，其中对 <code>SNAPSHOTR</code> 和缓存做了一些描述：</p>
+<blockquote>
+<p>When a minigraph contains either a SNAPSHOT or dynamic dependency, the graph is considered dynamic, and it will be invalidated after a single task execution. Therefore, if you have any SNAPSHOT in your graph, your experience may degrade.</p>
+</blockquote>
+<p>说的是依赖关系中如果有 <code>SNAPSHOT</code> 版本，会导致某个子依赖关系缓存失效， 而这个子依赖就是动态的，反正就是不会走缓存的意思。</p>
+<p>既然得知问题的根源是因为使用了 <code>SNAPSHOT</code>,  如果不使用 <code>SNAPSHO</code> 不就没这个问题了嘛。</p>
+<p>然而现实是骨感的，公司内部几十个服务大多数都用的 <code>SNAPSHOT</code> 作为版本号，而且各种互相依赖，短时间内是不可能直接过渡的了，所以直接PASS该方案了。</p>
+<p>只能继续在文档中摸索，发现一个相关配置</p>
+<blockquote>
+<p>​	<strong>updateOptions := updateOptions.value.withLatestSnapshots(false)</strong></p>
+</blockquote>
+<p>这个配置的作用是什么呢？</p>
+<p>因为 SBT 可以配置多个远程仓库源（通过 Resolver），默认情况下 SBT 会从所有的远程仓库去拉取指定版本的 <code>SNAPSHOT</code> 依赖， 然后比对它们的发布时间，取最新的那一个。</p>
+<p>通过配置 <code>withLatestSnapshots(false)</code> 可以禁用该策略， 这样 SBT 就直接使用从远程仓库拉取到的第一个 <code>SNAPSHOT</code> 依赖。</p>
+<p>加上配置然后测试，发现网络请求数确实少了，整体update耗时减少了一分钟左右，但是这个会导致无法拉取到同版本的最新<code>SNAPSHOT</code></p>
+<blockquote>
+<p>因为快照在不改变版本的情况下是可以重复发布的，区分同版本不同快照就只能按照时间戳来了。</p>
+<p>SBT 无法确定本地的快照是最新的，所以每次启动都会去仓库拉取最新快照。</p>
+<p>使用 withLatestSnapshots(false) 后就不会取最新的，而是直接取第一个。</p>
+</blockquote>
+<p><img src="img/image-20190916212240522.png" alt="image-20190916212240522"></p>
+<p>不取最新的 <code>SNAPSHOT</code> 对我们影响不大， 因为我们内部的服务如果有改动，基本就会升级版本号（就算是 <code>SNAPSHOT</code>）, 很少有一直重复发同版本的<code>SNAPSHOT</code>的情况。</p>
+<blockquote>
+<p>这么一说，似乎我们连用 <code>SNAPSHOT</code> 的意义都不大了，然而历史原因&hellip;&hellip;</p>
+</blockquote>
+<p>虽然有所提升，但是最关键的问题，<code>SNAPSHOT</code> 每次 update 都会走网络请求的问题还是没解决。</p>
+<p>只能继续在文档中挣扎，还好黄天不负有心人啊， 在官方文档 <a href="https://www.scala-sbt.org/1.x/docs/Dependency-Management-Flow.html#Caching+and+Configuration">Cache And Configuration</a> 一节找到了相关内容</p>
+<blockquote>
+<p>When <code>offline := true</code>, remote SNAPSHOTs will not be updated by a resolution, even an explicitly requested update. This should effectively support working without a connection to remote repositories. Reproducible examples demonstrating otherwise are appreciated. Obviously, update must have successfully run before going offline.</p>
+</blockquote>
+<p>文档说如果配置了<code>offline :=  true</code>,  是不会从远程仓库更新 <code>SNAPSHOT</code> 的依赖了，这不正是我们要的东西吗？</p>
+<p>但是后面又说了，更新必须在进入离线模式之前就完成，这句话的意思是不是离线模式下我连版本升级也做不到呢？</p>
+<p>只有自己动手了才知道，在不升级版本的情况下，加上配置再次进行 update 并抓包， 没有任何的请求到达仓库了</p>
+<p><img src="img/image-20190916213212002.png" alt="image-20190916213212002">再来看看最终的更新时间</p>
+<p><img src="img/image-20190916213133659.png" alt="image-20190916213133659"></p>
+<p>只需要一分钟不到，此刻我得先压制内心的狂喜，再验证一下在 <code>offline := true </code>的情况下，升级版本是否会从远程仓库请求？</p>
+<p>随意修改了一个库的版本，然后重启 sbt 执行 update， 发现是成功从远程仓库拉取到了的，哈哈，一切都不是问题！</p>
+<h2 id="新的问题">新的问题</h2>
+<p>意外总是伴随着惊喜同时到来，在我随后的使用中却又发现了另外的问题：如果 SBT 的第一次update完成以后， 我随后修改依赖的版本，在不重启SBT的情况下再次执行update，是读不到最新的依赖版本的。</p>
+<p>初步猜测是和缓存有关系的，但是问题也不大了，就算更新依赖版本然后重启 SBT 进行 update， 耗时也不过1分钟左右 ，比最开始的半小时已经好多了。</p>
+<p>要不，我把这个问题留给你们了？</p>
+<h2 id="写在最后">写在最后</h2>
+<p>最后从30分钟到1分钟实际上就是在 <code>build.sbt</code> 加了两行配置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala">offline <span style="color:#66d9ef">:</span><span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">,</span>
+updateOptions <span style="color:#66d9ef">:</span><span style="color:#f92672">=</span> updateOptions<span style="color:#f92672">.</span>value<span style="color:#f92672">.</span>withCachedResolution<span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">).</span>withLatestSnapshots<span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">)</span>
+</code></pre></div><p>整个分析问题的思路也很简单，就是先找到问题根源，再去找解决方案。</p>
+<p>在寻找解决方案的时候一般都是搜索引擎，文档或者源码，正常情况下文档应该都能解决问题了，这期间我就绕了不少弯路，我甚至曾去看了 SBT 的  <strong>Resolver</strong> 的源码， 现在看来，绝对是跑偏了。</p>
+<p>整个解决过程并没有多么高深莫测甚至可以说是无聊至极，因为大部分时间都是看文档并验证其配置。</p>
+<p>不过还是那句话：<strong>工欲善其事必先利其器</strong></p>
+<h2 id="参考">参考</h2>
+<ol>
+<li><a href="https://www.scala-sbt.org/1.x/docs/">sbt Reference Manua</a></li>
+<li><a href="https://www.scala-sbt.org/0.13/sxr/">sbt 源码</a></li>
+<li><a href="https://www.wireshark.org/docs/wsug_html_chunked/">Wireshark User’s Guide</a></li>
+<li><a href="http://ant.apache.org/ivy/history/2.0.0/index.html">Apache Ivy Documentation (2.0.0)</a></li>
+<li><a href="https://github.com/sbt/sbt/wiki/User-Stories:--Offline-mode-and-Dependency-Locking">Offline mode and Dependency Locking</a></li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

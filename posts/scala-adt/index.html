@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title> Scala 与 Algebraic data type &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                         Scala 与 Algebraic data type
+                    </h1>
+                    <h2 class="headline">
+                    Aug 18, 2020 20:50
+                    · 609 words
+                    · 3 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="scala-与-algebraic-data-type">Scala 与 Algebraic data type</h1>
+<h2 id="前言">前言</h2>
+<p>在计算机编程中，数据类型（Data type）是一个基本概念，它是数据的一个属性，编译器或解释器可以根据该属性知道开发者打算如何使用该数据。</p>
+<p>常见的数据类型有<strong>基本数据类型</strong>（Primitive data types）和<strong>组合数据类型</strong>（Composite Types）。</p>
+<p>基本数据类型一般都是由编程语言内置的，比如 Integer、Float、Boolean、Char 等，而组合数据类型是从基本类型派生出来的，一个组合类型可以由基本类型组成，也可以由「其他组合类型 + 基本类型」组成。</p>
+<p>比如在 Java 中通过 class 关键字就可以创建一个组合类型</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">private</span> String name<span style="color:#f92672">;</span> <span style="color:#75715e">// 姓名
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">private</span> Integer age<span style="color:#f92672">;</span> <span style="color:#75715e">// 年龄
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">private</span> List<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> familyMembers<span style="color:#f92672">;</span> <span style="color:#75715e">// 家庭成员
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+</code></pre></div><p>Scala 中的 <code>case class</code> 也是组合类型</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span><span style="color:#f92672">(</span>name<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">String</span><span style="color:#f92672">,</span> age<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Integer</span><span style="color:#f92672">,</span> familyMembers<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">List</span><span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">])</span>
+</code></pre></div><p>组合类型又可以分为很多种，而本文要聊的 <strong>Algebraic data type</strong> （以下简称 ADT 或 ADTs）就是其中之一</p>
+<p>注：Algebraic data type，一般译作<em>代数数据类型</em></p>
+<h2 id="algebraic-data-type">Algebraic data type</h2>
+<p>Algebraic data type 在函数式编程语言中是一个很常见的概念，要理解 ADT ，得先明白 Algebra（代数）的含义。</p>
+<p>所谓“代数”，指的就是用符号代替元素和运算，在 ADT 中，代数就是 <strong>product</strong> 和 <strong>sum</strong> （即积与和）。</p>
+<p>这里的 product 和 sum 是一种<strong>组合既有类型从而产生新类型的运算</strong>：</p>
+<ul>
+<li>和：表示选择，即 A ｜ B，读作 A 或 B</li>
+<li>积：表示组合，即  (A, B)，读作 A 和 B</li>
+</ul>
+<p>基于这两种组合方式，ADT 又被划分为了 Sum type 和 Product type。</p>
+<p>为了理解 Sum type 和 Product type，我们需要先了解一下<strong>类型计数</strong>从而找到代数与类型之间的联系。</p>
+<h3 id="类型计数">类型计数</h3>
+<p>类型计数就是将类型当作一个集合，然后去统计该集合中可能的元素数量，比如</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>值</th>
+<th>计数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>boolean</td>
+<td>true | false</td>
+<td>2</td>
+</tr>
+<tr>
+<td>int</td>
+<td>-2147483648 ~ 2147483647</td>
+<td>2^32</td>
+</tr>
+<tr>
+<td>Unit</td>
+<td>Unit</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Nothing</td>
+<td></td>
+<td>0</td>
+</tr>
+<tr>
+<td>String</td>
+<td></td>
+<td>infinite</td>
+</tr>
+<tr>
+<td>注：Unit 和 Nothing 都是 Scala 中的类型</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sum-type">Sum type</h3>
+<p>Sum type，也称之为 Tagged Union，引用一下 wiki 的定义</p>
+<blockquote>
+<p>Sum type is a <a href="https://en.wikipedia.org/wiki/Data_structure">data structure</a> used to hold a value that could take on several different, but fixed, types</p>
+</blockquote>
+<p>大意就是 Sum type 是从几个固定的类型中选取一个来构造值并进行保存的数据结构。</p>
+<p>有点绕，没关系，我们可以通过实际的代码来更直观的感受一下 Sum type。</p>
+<p>在 Scala 中要实现 Sum type 得借助与 <code>sealed</code> 关键字：sealed 一般用于修饰 trait，编译器会强制要求该 trait 与其实现类在同一个文件下，这样编译器可以获得 trait 的所有子类型信息。</p>
+<p>比如下面的代码，Circle、Rectangle 和 Square 类都继承了 Shape 特质：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">Shape</span> <span style="color:#f92672">{}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Circle</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Shape</span> <span style="color:#f92672">{}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Rectangle</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Shape</span> <span style="color:#f92672">{}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Square</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Shape</span> <span style="color:#f92672">{}</span>
+</code></pre></div><p>如果将 Shape 当作一个集合的话，它的元素就是 Circle、Rectangle 和 Square，那么这个集合的 size = 3，这表示了 Shape 可能的值</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a6e22e">Shape</span> <span style="color:#66d9ef">=</span> <span style="color:#a6e22e">Circle</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">Rectangle</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">Square</span>
+      <span style="color:#66d9ef">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+      <span style="color:#66d9ef">=</span> <span style="color:#ae81ff">3</span>
+</code></pre></div><p>但是对于每一个 Shape 对象而言，它只可能是 Circle、Rectangle 或 Square之一，这就是前面提到的<strong>选择</strong>。</p>
+<p>用继承来模拟 Sum type 会让人感觉 Sum type 就是继承，不如再来看一下在没有继承的 Haskell 中 Sum type 是怎样实现的。</p>
+<p>下面的 Haskell 代码通过 data 关键字创建了一个新类型 Shape，该类型的值被限定为了  Circle、Rectangle 和 Square 之一，更直观的感受到 Sum type 所表达的选择的含义：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">Shape</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">Circle</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">Rectangle</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">Square</span>
+</code></pre></div><p>注：Circle、Rectangle、Square 在这里一般被称之为值构造器</p>
+<h3 id="product-type">Product type</h3>
+<p>相较于 Sum type， Product type 其实更容易理解一些，它就是组合多个类型并同时持有这些类型对应的值的结构。</p>
+<p>在 Scala 中，Tuple 和 case class 可以算是很典型的 Product type。</p>
+<p>以<strong>二元组</strong> <code>(Boolean, Boolean) </code> 为例，两个元素的类型都是 Boolean，那么这个二元组可能的组合就有 4 种</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">)</span>
+</code></pre></div><p>这个推算很简单，Boolean 的值可能为 true 或 false，即 2 种可能性，那么两个 Boolean 组合就是 2 * 2 = 4 ：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#f92672">(</span><span style="color:#a6e22e">Boolean</span><span style="color:#f92672">,</span> <span style="color:#a6e22e">Boolean</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">)</span>
+                   <span style="color:#66d9ef">=</span> <span style="color:#f92672">(</span><span style="color:#ae81ff">2</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">)</span>
+                   <span style="color:#66d9ef">=</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>
+                   <span style="color:#66d9ef">=</span> <span style="color:#ae81ff">4</span>
+</code></pre></div><p>其实就是一个笛卡尔积的计算。</p>
+<h2 id="adt-与-模式匹配">ADT 与 模式匹配</h2>
+<p>了解了 ADT 以后，难免会去思考它的作用，其实 ADT 的一个很明显的优势就是结合<strong>模式匹配</strong>，通过模式匹配可以解构 ADT，从而让我们写出更优雅简洁的代码。</p>
+<blockquote>
+<p>解构</p>
+<p>/jiěgòu/</p>
+<p><em>动词</em></p>
+<p>对事物的内容结构进行剖析。</p>
+</blockquote>
+<p>在模式匹配中，编译器可以检查 ADT 的所有组合情况是否都已经覆盖到了，如果没有覆盖全的话编译器会发出一个警告信息，减少错误的产生（在 Scala 中叫 exhaustiveness checking）。</p>
+<p>以 Scala 为例，我们可以使用二元组来自定义 and 和 or 运算，然后通过模式匹配求解，这个过程就是针对 Product type 的解构：</p>
+<p>注：_ 代表通配符，表示任意值</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">def</span> and<span style="color:#f92672">(</span>a<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span><span style="color:#f92672">,</span> b<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+  <span style="color:#f92672">(</span>a<span style="color:#f92672">,</span> b<span style="color:#f92672">)</span> <span style="color:#66d9ef">match</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#66d9ef">true</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#66d9ef">true</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#66d9ef">false</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#66d9ef">false</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">def</span> or<span style="color:#f92672">(</span>a<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span><span style="color:#f92672">,</span> b<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+  <span style="color:#f92672">(</span>a<span style="color:#f92672">,</span> b<span style="color:#f92672">)</span> <span style="color:#66d9ef">match</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">_</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#66d9ef">true</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">_</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#66d9ef">true</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">_</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">_</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#66d9ef">false</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>再来一个复杂点的例子，将前面的 Shape 扩展一下（结合了 Sum type 与 Product type）：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">Shape</span> <span style="color:#f92672">{}</span>
+
+<span style="color:#75715e">// 通过半径构建 circle
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Circle</span><span style="color:#f92672">(</span>radius<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Double</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Shape</span>
+
+<span style="color:#75715e">// 通过长和宽构建矩形
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Rectangle</span><span style="color:#f92672">(</span>width<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Double</span><span style="color:#f92672">,</span> length<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Double</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Shape</span>
+
+<span style="color:#75715e">// 通过宽构建正方形
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Square</span><span style="color:#f92672">(</span>width<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Double</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Shape</span>
+</code></pre></div><p>再来定义一个将 Shape 转为字符串的方法：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">def</span> showShape<span style="color:#f92672">(</span>shape<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Shape</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+  shape <span style="color:#66d9ef">match</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// 匹配半径为 3.14 的圆
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">Circle</span><span style="color:#f92672">(</span><span style="color:#ae81ff">3.14</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#e6db74">&#34;perfect small circle&#34;</span>
+    <span style="color:#75715e">// 匹配半径小于 10 的圆
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">Circle</span><span style="color:#f92672">(</span>a<span style="color:#f92672">)</span> <span style="color:#66d9ef">if</span> a <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">10</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#e6db74">&#34;small circle&#34;</span>
+    <span style="color:#75715e">// 匹配任意半径的圆
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">Circle</span><span style="color:#f92672">(</span><span style="color:#66d9ef">_</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#e6db74">&#34;circle&#34;</span>
+    <span style="color:#75715e">// 匹配任意长宽的矩形
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">Rectangle</span><span style="color:#f92672">(</span><span style="color:#66d9ef">_</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">_</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#e6db74">&#34;rectangle&#34;</span>
+    <span style="color:#75715e">// 匹配任意宽度的正方形
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">Square</span><span style="color:#f92672">(</span><span style="color:#66d9ef">_</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#e6db74">&#34;square&#34;</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h2 id="最后">最后</h2>
+<p>学习这样的知识蛮有趣的，这样以后在讨论 A 和 B 语言有些相似特性时，就不用再去纠结 A 抄 B ， B 抄 A 的争论，因为它们可能都是基于同一个理论的不同实现而已。</p>
+<p>另外，在知乎（<a href="https://www.zhihu.com/question/24460419">题：代数数据类型是什么？</a>）上也有大佬认为 Haskell 和 Scala 中的  Algebraic data type 并不算是真正的 Algebraic data type，因为它们都没有 <strong>strict positivity condition</strong> （这已经触及到我的知识盲区了），如果有哪位大佬对此有所了解的话，忘不吝赐教一下。</p>
+<h2 id="参考">参考</h2>
+<ol>
+<li><a href="https://en.wikipedia.org/wiki/Algebraic_data_type">WIKI：Algebraic_data_type</a></li>
+<li><a href="https://wiki.haskell.org/Algebraic_data_type">Haskell: Algebraic_data_type</a></li>
+<li><a href="http://scala.cool/2017/03/how-to-use-algebraic-data-type-in-scala-development/">如何在 Scala 中利用 ADT 良好地组织业务</a>，By Shaw</li>
+<li><a href="http://songkun.me/2018/07/12/2018-07-12-adt-in-haskell-and-scala/">Algebraic Data Type 及其在 Haskell 和 Scala 中的表现 </a>，By Song Kun</li>
+<li><a href="https://codewords.recurse.com/issues/three/algebra-and-calculus-of-algebraic-data-types">The algebra (and calculus!) of algebraic data types</a>，By Joel Burget</li>
+<li><a href="https://medium.com/@willkurt/why-sum-types-matter-in-haskell-ba2c1ab4e372">Why Sum Types Matter in Haskell</a>，By Will Kurt</li>
+<li><a href="https://www.zhihu.com/question/50576405">知乎：什么才是代数？</a></li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/hashmap-some-detail/">HashMap 的细节笔记<aside class="dates">Apr 27 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

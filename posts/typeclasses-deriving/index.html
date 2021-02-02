@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title> Scala2 如何实现 Type class 派生 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                         Scala2 如何实现 Type class 派生
+                    </h1>
+                    <h2 class="headline">
+                    Aug 15, 2020 00:04
+                    · 970 words
+                    · 5 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="scala2-如何实现-type-class-派生">Scala2 如何实现 Type class 派生</h1>
+<h2 id="前言">前言</h2>
+<p>本文主要是讨论在 Scala 中自动为 case class 派生 Type class 实例，如果你不知道什么是 Type class 的话，建议先阅读我的上一篇文章 <em><a href="https://blog.cc1234.cc/articles/typeclasses-1/typeclasses-1.html">《真的学不动了： 除了 class , 也该了解 Type classes 了》</a></em>。</p>
+<blockquote>
+<p>本文使用的 Scala 版本为 2.13.2，Shapless 版本为 2.3.3</p>
+</blockquote>
+<h2 id="提出问题">提出问题</h2>
+<p>假设我现在有一个用于生成随机测试数据的 Type class，并且已经实现了 Int， Boolean 等基本类型的 Random 实例</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">object</span> <span style="color:#a6e22e">Random</span> <span style="color:#f92672">{</span>
+  
+  <span style="color:#66d9ef">def</span> apply<span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]()(</span><span style="color:#66d9ef">implicit</span> random<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">])</span> <span style="color:#66d9ef">=</span> random<span style="color:#f92672">.</span>random<span style="color:#f92672">()</span>
+  
+  <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> intRandom <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Math</span><span style="color:#f92672">.</span>abs<span style="color:#f92672">(</span>scala<span style="color:#f92672">.</span>util<span style="color:#f92672">.</span><span style="color:#a6e22e">Random</span><span style="color:#f92672">.</span>nextInt<span style="color:#f92672">(</span><span style="color:#ae81ff">10000000</span><span style="color:#f92672">))</span>
+  <span style="color:#f92672">}</span>
+
+  <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> stringRandom <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">String</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">UUID</span><span style="color:#f92672">.</span>randomUUID<span style="color:#f92672">().</span>toString
+  <span style="color:#f92672">}</span>
+
+  <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> booleanRandom <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Boolean</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#f92672">=</span> scala<span style="color:#f92672">.</span>util<span style="color:#f92672">.</span><span style="color:#a6e22e">Random</span><span style="color:#f92672">.</span>nextBoolean<span style="color:#f92672">()</span>
+  <span style="color:#f92672">}</span>
+  
+  <span style="color:#75715e">// ......
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+</code></pre></div><p>这样就可以像下面这样生成基本类型的随机数据了，编译器会自动找到对应的实例进行注入</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> Random._
+
+<span style="color:#75715e">// 相当于 Random.apply[Int]()(intRandom), scala 可以省略 apply
+</span><span style="color:#75715e"></span>val id <span style="color:#f92672">=</span> Random<span style="color:#f92672">[</span>Int<span style="color:#f92672">]()</span>
+  
+<span style="color:#75715e">// 相当于 Random.apply[String]()(stringRandom)
+</span><span style="color:#75715e"></span>val name <span style="color:#f92672">=</span> Random<span style="color:#f92672">[</span>String<span style="color:#f92672">]()</span>
+</code></pre></div><p>但在实际开发中，经常要面对很多组合类型， 比如下面的 Doctor 和 User 类型</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Doctor</span><span style="color:#f92672">(</span>id<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">)</span>
+
+<span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span><span style="color:#f92672">(</span>id<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">,</span> name<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">String</span><span style="color:#f92672">,</span> isCertified<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span><span style="color:#f92672">)</span>
+</code></pre></div><p>如果要使用 Random 生成这样的数据就得实现 Random[User]、Random[Doctor] 实例</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> userShow <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">User</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">User</span><span style="color:#f92672">(</span>scala<span style="color:#f92672">.</span>util<span style="color:#f92672">.</span><span style="color:#a6e22e">Random</span><span style="color:#f92672">.</span>nextInt<span style="color:#f92672">(),</span> <span style="color:#a6e22e">UUID</span><span style="color:#f92672">.</span>randomUUID<span style="color:#f92672">().</span>toString<span style="color:#f92672">,</span> scala<span style="color:#f92672">.</span>util<span style="color:#f92672">.</span><span style="color:#a6e22e">Random</span><span style="color:#f92672">.</span>nextBoolean<span style="color:#f92672">())</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#75715e">// ... 省略 Doctor 的实例
+</span></code></pre></div><p>上面的实现没有复用已有的 Random[Int], Random[Boolean] 和 Random[String] 实例，为了做到复用，一般会使用隐式方法来实现：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">def</span> userRandom<span style="color:#f92672">(</span><span style="color:#66d9ef">implicit</span> intRandom<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span><span style="color:#f92672">],</span>
+                        stringRandom<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">String</span><span style="color:#f92672">],</span>
+                        booleanRandom<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Boolean</span><span style="color:#f92672">])</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">]</span> <span style="color:#66d9ef">=</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">User</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">User</span><span style="color:#f92672">(</span>intRandom<span style="color:#f92672">.</span>random<span style="color:#f92672">(),</span> stringRandom<span style="color:#f92672">.</span>random<span style="color:#f92672">(),</span> booleanRandom<span style="color:#f92672">.</span>random<span style="color:#f92672">())</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#75715e">// 相当于 Random.apply[User]()(userRandom(intRandom, stringRandom, booleanRandom))
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> user <span style="color:#66d9ef">=</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">]()</span>
+</code></pre></div><p>通过 Random[User]() 的调用简单说一下编译器的推导过程</p>
+<p>1、调用 Random[User] 实际是调用的</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a6e22e">Random</span><span style="color:#f92672">.</span>apply<span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">]()(</span><span style="color:#66d9ef">implicit</span> random<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">])</span>
+</code></pre></div><p>2、编译器没有找到 Random[User] 实例，但是发现方法 <strong>implicit def userRandom</strong> 会返回一个 Random[User]，于是调用该方法</p>
+<p>3、<strong>implicit def userRandom</strong>  又需要 Random[Int]、Random[String] 和 Random[Boolean] 等隐式实例，编译器在作用域内找到对应实例并注入</p>
+<p>userRandom 函数虽然复用了已有的 Random 实例，但还是没有解决每一个新的 case class 都需要实现一个对应的  Random 实例这个问题。</p>
+<p>有没有一种办法可以自动为 case class 派生 Type class 实例呢？有，Shapeless 就是答案之一</p>
+<p><img src="img/deriving-word.png" alt="image-20200822184653606"></p>
+<h2 id="shapeless">Shapeless</h2>
+<p><a href="https://github.com/milessabin/shapeless">Shapeless</a> 是一个为 Scala 编写的通用的类型级编程库，它提供的 HList 和 Generic 可以帮助我们实现 Type class 的派生。</p>
+<p>这里的派生指的是我们的 Type class 能处理任意 case class， 就像是专门为该类型实现了一个 Type class 实例一样。</p>
+<p>下面先来简单了解一下 HList 和 Generic。</p>
+<h3 id="hlist">HList</h3>
+<p><code>HList</code> 是 <strong>Heterogenous lists</strong> 的简写，一般叫做<strong>异类列表</strong>，这里的异类指的是 HList 中的元素可以是不同的类型（就像 Tuple 一样）。</p>
+<p><code>HList</code> 本身是一个特质（类似于接口），有着 <code>HNil</code> 和 <code>::</code> 两个实现类</p>
+<p>注：<code>::</code> 是类名，Scala 支持使用符号作为类型名称</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">HList</span>
+
+<span style="color:#75715e">// HNil 代表空元素的 HList
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">HNil</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">HList</span> 
+<span style="color:#66d9ef">case</span> <span style="color:#66d9ef">object</span> <span style="color:#a6e22e">HNil</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">HNil</span>
+
+
+<span style="color:#75715e">// 第二个参数 tail 也是 `HList` 类型的，也就是递归定义的。
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">final</span> <span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">::</span><span style="color:#f92672">[</span><span style="color:#66d9ef">+H</span>, <span style="color:#66d9ef">+T</span> <span style="color:#66d9ef">&lt;:</span> <span style="color:#66d9ef">HList</span><span style="color:#f92672">](</span>head <span style="color:#66d9ef">:</span> <span style="color:#66d9ef">H</span><span style="color:#f92672">,</span> tail <span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">HList</span>
+</code></pre></div><p>下面展示了一个简单的 <code>::</code> 类的构造</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">val</span> hListObject <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">:</span><span style="color:#66d9ef">:</span><span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#66d9ef">String</span><span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">::</span><span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">1</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">::</span><span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">2</span><span style="color:#66d9ef">.</span><span style="color:#960050;background-color:#1e0010">2</span><span style="color:#66d9ef">F</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">HNil</span><span style="color:#f92672">)))</span>
+</code></pre></div><p>shapeless 还提供了很多隐式转换方法，可以更便捷的构造 HList</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">import</span> shapeless._
+
+<span style="color:#75715e">// 这里的 :: 是 case class 构造器
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> jack <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">:</span><span style="color:#66d9ef">:</span><span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#66d9ef">Jack</span><span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">::</span><span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">18</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">::</span><span style="color:#f92672">(</span><span style="color:#960050;background-color:#1e0010">50</span><span style="color:#66d9ef">.</span><span style="color:#960050;background-color:#1e0010">5</span><span style="color:#66d9ef">d</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">HNil</span><span style="color:#f92672">)))</span>
+
+<span style="color:#75715e">// 下面的 :: 是一个隐式转换方法
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> tom <span style="color:#66d9ef">=</span> <span style="color:#e6db74">&#34;Tom&#34;</span> <span style="color:#66d9ef">:</span><span style="color:#66d9ef">:</span> <span style="color:#960050;background-color:#1e0010">18</span> <span style="color:#66d9ef">::</span> <span style="color:#960050;background-color:#1e0010">50</span><span style="color:#66d9ef">.</span><span style="color:#960050;background-color:#1e0010">5</span><span style="color:#66d9ef">d</span> <span style="color:#66d9ef">::</span> <span style="color:#66d9ef">HNil</span>
+</code></pre></div><p>对比一下 HList 和 case class，会发现它们的结构非常相似。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span><span style="color:#f92672">(</span>name<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">String</span><span style="color:#f92672">,</span> age<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">,</span> weight<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Double</span><span style="color:#f92672">)</span>
+
+<span style="color:#66d9ef">val</span> jack <span style="color:#66d9ef">=</span> <span style="color:#a6e22e">User</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;jack&#34;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">18</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">50.5d</span><span style="color:#f92672">)</span>      <span style="color:#75715e">// case class
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> tom <span style="color:#66d9ef">=</span> <span style="color:#e6db74">&#34;Tom&#34;</span> <span style="color:#66d9ef">:</span><span style="color:#66d9ef">:</span> <span style="color:#960050;background-color:#1e0010">18</span> <span style="color:#66d9ef">::</span> <span style="color:#960050;background-color:#1e0010">50</span><span style="color:#66d9ef">.</span><span style="color:#960050;background-color:#1e0010">5</span><span style="color:#66d9ef">d</span> <span style="color:#66d9ef">::</span> <span style="color:#66d9ef">HNil</span>  <span style="color:#75715e">// HList
+</span></code></pre></div><p>正因为 HList 和 case class 的结构类似，所以它们也可以互相转换，而转换的方式就是使用  Generic。</p>
+<h3 id="generic">Generic</h3>
+<p>其实 Generic 的接口定义并不限于 HList 和 case class 的转换，它只是定义了 <strong>T</strong> 和 <strong>Repr</strong> 两个泛型，所以理论上是可以基于 Generic 去实现任意两种类型的转换的。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">Generic</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Repr</span>
+  
+  <span style="color:#66d9ef">def</span> to<span style="color:#f92672">(</span>t <span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Repr</span>
+  
+  <span style="color:#66d9ef">def</span> from<span style="color:#f92672">(</span>r <span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Repr</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span>
+<span style="color:#f92672">}</span>
+
+</code></pre></div><p>通过 Generic 的伴生对象可以很轻松的构建一个 Generic 实例，Generic 的实现使用了一个称之为 <a href="http://gigiigig.github.io/posts/2015/09/13/aux-pattern.html">Aux Pattern</a> 的手段，主要是为了绕过编译器的限制，这里可以不用深究。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">object</span> <span style="color:#a6e22e">Generic</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Aux</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span>, <span style="color:#66d9ef">Repr0</span><span style="color:#f92672">]</span> <span style="color:#66d9ef">=</span> <span style="color:#a6e22e">Generic</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span> <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">Repr</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Repr0</span> <span style="color:#f92672">}</span>
+  
+  <span style="color:#66d9ef">def</span> apply<span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">](</span><span style="color:#66d9ef">implicit</span> gen<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Generic</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">])</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Aux</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span>, <span style="color:#66d9ef">gen.Repr</span><span style="color:#f92672">]</span> <span style="color:#66d9ef">=</span> gen
+<span style="color:#f92672">}</span>
+</code></pre></div><p>下面的代码展示了如何使用 Generic 在 <code>case class User</code> 和 <code>HList</code> 之间进行转换</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">val</span> generic <span style="color:#66d9ef">=</span> <span style="color:#a6e22e">Generic</span><span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">]</span>
+
+<span style="color:#75715e">// case class =&gt; HList
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> userHList<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">::</span><span style="color:#f92672">[</span><span style="color:#66d9ef">String</span>, <span style="color:#66d9ef">::</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span>, <span style="color:#66d9ef">::</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Double</span>, <span style="color:#66d9ef">HNil</span><span style="color:#f92672">]]]</span> <span style="color:#66d9ef">=</span> generic<span style="color:#f92672">.</span>to<span style="color:#f92672">(</span><span style="color:#a6e22e">User</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Jack&#34;</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">18</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">50</span><span style="color:#f92672">))</span>
+
+<span style="color:#75715e">// HList =&gt; case class
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> userClass<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">User</span> <span style="color:#f92672">=</span> generic<span style="color:#f92672">.</span>from<span style="color:#f92672">(</span>userHList<span style="color:#f92672">)</span>
+</code></pre></div><p>因为 Shapeless 已经在隐式作用域内提供了能转换 case class 和 HList 的 Generic.Aux 实例，所以我们也可以通过下面的方式来进行转换</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">import</span> shapeless._
+
+<span style="color:#75715e">// 定义 case class
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Demo</span><span style="color:#f92672">()</span>
+
+<span style="color:#75715e">// 接受一个 case class，返回一个 HList。
+</span><span style="color:#75715e">// Generic.Aux[C, HL] 的实例在 Shapeless 库中已经有了
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">def</span> genericTest<span style="color:#f92672">[</span><span style="color:#66d9ef">C</span>, <span style="color:#66d9ef">HL</span> <span style="color:#66d9ef">&lt;:</span> <span style="color:#66d9ef">HList</span><span style="color:#f92672">](</span>t<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">C</span><span style="color:#f92672">)(</span><span style="color:#66d9ef">implicit</span> gen<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Generic.Aux</span><span style="color:#f92672">[</span><span style="color:#66d9ef">C</span>, <span style="color:#66d9ef">HL</span><span style="color:#f92672">])</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">HList</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+  gen<span style="color:#f92672">.</span>to<span style="color:#f92672">(</span>t<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
+
+genericTest<span style="color:#f92672">(</span><span style="color:#a6e22e">Demo</span><span style="color:#f92672">())</span>  <span style="color:#75715e">// Demo 转为了 HNil
+</span></code></pre></div><h2 id="思路">思路</h2>
+<p>那么如何借助 Shapeless 来为 case class 自动派生 Type class 实例呢？</p>
+<p>其实思路很简单：既然 case class 都能转为 HList，那么都复用 HList 的 Type class 实例不就可以了吗？</p>
+<p>这样问题就变成了</p>
+<ul>
+<li>自动将 case class 转为 HList</li>
+<li>实现 HList 的 type class 实例</li>
+</ul>
+<p>第一个问题 Shapless 框架已经提供了解决方案，所以重点就是第二个问题的解决。</p>
+<p>如下图所示，HList 的结构可以被递归的分解为 「头节点 + 尾列表」（递归结构），递归的终止条件就是尾列表为 HNil 时：</p>
+<p><img src="img/HList-decompose.png" alt="image-20200822130953933"></p>
+<p>用代码展示就是这样</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a6e22e">HList</span><span style="color:#f92672">(</span>T1<span style="color:#f92672">,</span> <span style="color:#a6e22e">HList</span><span style="color:#f92672">(</span>T2<span style="color:#f92672">,</span> <span style="color:#a6e22e">HList</span><span style="color:#f92672">(</span>T3<span style="color:#f92672">,</span> <span style="color:#a6e22e">HList</span><span style="color:#f92672">(</span>T4<span style="color:#f92672">,</span> <span style="color:#a6e22e">HNil</span><span style="color:#f92672">))))</span>
+</code></pre></div><p>那么 HList 的 Type class 实例实际就是<strong>组合 T 类型和 HList 类型的实例</strong>，所以将问题又可以分解为</p>
+<ul>
+<li>实现单个元素类型（如 T1、T2、T3、T4等）的 Type class 实例</li>
+<li>实现 HNil 的 Type class 实例</li>
+<li>实现 HList 的 Type class 实例</li>
+</ul>
+<p>我们希望只要提供了以上 Type class 实例以后，编译器能按下图的方式自动推导（白色的代表匹配到的 Type class 实例）</p>
+<p><img src="img/caseClass-deriving.png" alt="image-20200822131516132"></p>
+<p>好了，Talk is Cheap，Show me the code</p>
+<h2 id="实现">实现</h2>
+<p>我们基于最开始的 Random[T] 来进行实现</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">object</span> <span style="color:#a6e22e">Random</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">def</span> apply<span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]()(</span><span style="color:#66d9ef">implicit</span> random<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">])</span> <span style="color:#66d9ef">=</span> random<span style="color:#f92672">.</span>random<span style="color:#f92672">()</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>基于前一小节方案，我们先来实现针对 HList 类型的 Random 实例，HList 有两个子类：<code>HNil</code> 和 <code>::</code> ，所以要实现两个实例。</p>
+<p>HNil 的很简单，它表示没有任何值了，直接返回 HNil 就可以了</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> hNilRandom <span style="color:#66d9ef">=</span>  <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">HNil</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">HNil</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">HNil</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p><code>::</code> 是递归定义的，实际就是前一节分析的由 「头节点 +尾列表」 组成，所以 <code>::</code> 的 Random 实例就是<strong>组合头节点类型的实例和尾列表 HList  的实例</strong>，这就得用到隐式方法了</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 生成 :: 类型的 Type class 实例
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * @tparam T  任意类型
+</span><span style="color:#75715e"> * @tparam HL 任意 HList 类型
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">def</span> hListRandom<span style="color:#f92672">[</span><span style="color:#66d9ef">T</span>, <span style="color:#66d9ef">HL</span> <span style="color:#66d9ef">&lt;:</span> <span style="color:#66d9ef">HList</span><span style="color:#f92672">](</span><span style="color:#66d9ef">implicit</span> tRandom<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">],</span>
+                                         hListRandom<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">HL</span><span style="color:#f92672">])</span> <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">::</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span>, <span style="color:#66d9ef">HL</span><span style="color:#f92672">]]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">::</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span>, <span style="color:#66d9ef">HL</span><span style="color:#f92672">]</span> <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">:</span><span style="color:#66d9ef">:</span><span style="color:#f92672">(</span><span style="color:#66d9ef">tRandom.random</span><span style="color:#f92672">(),</span> <span style="color:#66d9ef">hListRandom.random</span><span style="color:#f92672">())</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>Random[T] 就是基本类型的实例，复用前面定义的就可以了</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> stringRandom <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">String</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">String</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">UUID</span><span style="color:#f92672">.</span>randomUUID<span style="color:#f92672">().</span>toString
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> booleanRandom <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Boolean</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#f92672">=</span> scala<span style="color:#f92672">.</span>util<span style="color:#f92672">.</span><span style="color:#a6e22e">Random</span><span style="color:#f92672">.</span>nextBoolean<span style="color:#f92672">()</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#75715e">// ......
+</span></code></pre></div><p>这样针对  HList 的实例就算完成了，可以试验一下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#75715e">// 编译通过, 生成类型 shapeless.::[Int,shapeless.::[String,shapeless.HNil]]
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span> <span style="color:#66d9ef">::</span> <span style="color:#66d9ef">String</span> <span style="color:#66d9ef">::</span> <span style="color:#66d9ef">HNil</span><span style="color:#f92672">]()</span>
+
+<span style="color:#75715e">// 编译通过, 生成类型 ::[Int,shapeless.::[String,shapeless.HNil]]
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span> <span style="color:#66d9ef">::</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#66d9ef">::</span> <span style="color:#66d9ef">String</span> <span style="color:#66d9ef">::</span> <span style="color:#66d9ef">HNil</span><span style="color:#f92672">]()</span>
+</code></pre></div><p>现在还需要一个<strong>能处理 case class 的 Random 实例</strong>，这个实例会把 case class 转为 HList，然后去调用 Random[HList] 实例。</p>
+<p>把 case class 转为 HList 需要借助  Generic.Aux ，那么 case class 的 Random 实例实际上就是组合了 Genric.Aux 和  Random[HList]  两个 Type class 实例，这里就又要用到隐式方法了:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * @tparam T   任意 case class
+</span><span style="color:#75715e"> * @tparam HL  任意 HList 类型
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">def</span> caseClassRandom<span style="color:#f92672">[</span><span style="color:#66d9ef">T</span>, <span style="color:#66d9ef">HL</span> <span style="color:#66d9ef">&lt;:</span> <span style="color:#66d9ef">HList</span><span style="color:#f92672">](</span><span style="color:#66d9ef">implicit</span> gen<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Generic.Aux</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span>, <span style="color:#66d9ef">HL</span><span style="color:#f92672">],</span> hListRandom<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">HL</span><span style="color:#f92672">])</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> random<span style="color:#f92672">()</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span> <span style="color:#f92672">=</span> gen<span style="color:#f92672">.</span>from<span style="color:#f92672">(</span>hListRandom<span style="color:#f92672">.</span>random<span style="color:#f92672">())</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>注：<strong>Generic.Aux[T, HL]</strong> 实例已由 Shapeless 置于隐式作用域内了</p>
+<p>这样其实就已经实现了可以处理任意 case class 的 Random 实例了</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Doctor</span><span style="color:#f92672">(</span>id<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">)</span>
+
+<span style="color:#66d9ef">case</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span><span style="color:#f92672">(</span>id<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">,</span> name<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">String</span><span style="color:#f92672">,</span> isCertified<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span><span style="color:#f92672">)</span>
+
+<span style="color:#75715e">// 编译通过，输出 User(3489254,48ad1cc8-d529-42f1-9ed2-c710dc1e90a3,false)
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> user <span style="color:#66d9ef">=</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">User</span><span style="color:#f92672">]()</span>
+
+<span style="color:#75715e">// 编译通过，输出 Doctor(1778276)
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> doctor <span style="color:#66d9ef">=</span> <span style="color:#a6e22e">Random</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Doctor</span><span style="color:#f92672">]()</span>
+</code></pre></div><p>通过下面的图再来理解一下编译器的推导过程，其实很简单</p>
+<p><img src="img/Random-deriving.png" alt="image-20200822125522904"> </p>
+<h2 id="总结">总结</h2>
+<p>整个派生的过程利用了编译器的自动推导，相较于利用反射等其他运行时的技术手段来实现，这样的方式更加的巧妙，并且天然就拥有了类型的静态检查。</p>
+<p>但就目前的实现来说有一个不足：无法获取 case class 的 Field 的属性名称。</p>
+<p>这在很多场景时非常有必要的，比如如果要实现一个将 case class 格式化为 Json 的 Type class，那么肯定是需要拿到属性名称才能实现的（Scala 的 Spray-JSON 框架就是基于 Type class 实现的）。</p>
+<p>好在 Shapeless 提供了 LabelledGeneric 来解决这个问题，限于篇幅，以后有机会再详谈吧。</p>
+<p>再多说一句，在 Scala3 中已经提供了原生的 Type class 派生语法了，对比 Shapeless，语言原生的支持肯定更加完备，感兴的可以到<a href="https://dotty.epfl.ch/docs/reference/contextual/derivation.html">官网文档</a>查看。</p>
+<h2 id="参考">参考</h2>
+<ol>
+<li><a href="https://scala.cool/2017/09/shapeless-1/">Shapeless 入门指南（一）：自动派生 typeclass 实例</a>，By Jilen</li>
+<li><a href="http://www.dreadedsoftware.com/blog/2017/1/4/simple-generic-derivation-with-shapeless">Simple Generic Derivation with Shapeless</a>，By Marcus Henry</li>
+<li><a href="http://gigiigig.github.io/posts/2015/09/13/aux-pattern.html">aux pattern</a>，By Luigi</li>
+<li><a href="https://dotty.epfl.ch/docs/reference/contextual/derivation.html">Dotty: Type Class Derivation</a></li>
+<li><a href="https://github.com/milessabin/shapeless">Shapeless</a></li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/hashmap-some-detail/">HashMap 的细节笔记<aside class="dates">Apr 27 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

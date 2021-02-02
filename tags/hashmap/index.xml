@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HashMap on 且徐行</title>
+    <link>https://blog.cc1234.cc/tags/hashmap/</link>
+    <description>Recent content in HashMap on 且徐行</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 27 Apr 2020 21:19:45 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/hashmap/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HashMap 的细节笔记</title>
+      <link>https://blog.cc1234.cc/posts/hashmap-some-detail/</link>
+      <pubDate>Mon, 27 Apr 2020 21:19:45 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/hashmap-some-detail/</guid>
+      <description>HashMap 的细节笔记 HashMap 的节点转为红黑树以后，树形节点之间是基于什么来比较的呢？ 首先会根据 key 的 Hash 值来进行比较，如果相等的话，会再判断 key 是否实现了 Comparable 接口，如果是的话，可以直接通过 compareTo 方法进行比较。
+如果 hash 值相等，而且也没有实现Comparable 接口呢？此时会对 key 对象使用 System.identityHashCode(key) 进行再次 hash 运算，最后再根据新的 hash 值进行比较。
+那么 System.identityHashCode 又是什么操作呢？
+这是一个 native 的方法，实现的原理也很简单，就是不管你对象有没重写 hashCode 函数，它都只返回对象默认的 hashCode 值。
+为什么 HashMap 的链表节点冲突数达到 8 才会转为红黑树？ 在 hashmap 的源码注释中有一段 Implementation notes， 里面有提到具体的决策原因。
+虽然红黑树的查询事件复杂度是 logN, 但是红黑树节点的 size 大概是普通节点的 2 倍，而且在插入效率方面，红黑树的插入时间复杂度为 logN, 链表的插入节点时间复杂度是 O (1)。
+综上所述，实则是一个时间和空间的决策，那么为什么是 8 呢？
+如果 key 的 hash 值分布的足够均匀，几乎不会转换成树形节点。
+假设使用随机的 hash 算法，理想情况下，通过泊松分布的概率函数可以计算某个桶位冲突节点达到 K 个的概率，设 λ = 0.</description>
+    </item>
+    
+  </channel>
+</rss>

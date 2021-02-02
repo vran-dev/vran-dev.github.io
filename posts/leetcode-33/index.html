@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title>LeetCode-33-Search in rotated sorted array &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        LeetCode-33-Search in rotated sorted array
+                    </h1>
+                    <h2 class="headline">
+                    Jan 11, 2019 00:00
+                    · 365 words
+                    · 2 minute read
+                      <span class="tags">
+                      
+                      
+                          
+                              <a href="https://blog.cc1234.cc/tags/leetcode">LeetCode</a>
+                          
+                      
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h2 id="leetcode-33-search-in-rotated-sorted-array">LeetCode-33-Search in rotated sorted array</h2>
+<h3 id="题意">题意</h3>
+<p>假设有一个按升序排列的数组， 现在将其从中间某个位置（未知）将其分成两部分，并交换位置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">原数组<span style="color:#960050;background-color:#1e0010">：</span><span style="color:#f92672">[</span>0<span style="color:#f92672">,</span>1<span style="color:#f92672">,</span>3<span style="color:#f92672">,</span>5<span style="color:#f92672">,</span>6<span style="color:#f92672">,</span>7<span style="color:#f92672">,</span>8<span style="color:#f92672">]</span> 
+将其分为两部分<span style="color:#960050;background-color:#1e0010">，</span>索引<span style="color:#f92672">&lt;</span>4 算一部分<span style="color:#960050;background-color:#1e0010">，</span> 剩余的为第二部分
+将其旋转后得到
+<span style="color:#f92672">[</span>6<span style="color:#f92672">,</span>7<span style="color:#f92672">,</span>8<span style="color:#f92672">,</span>0<span style="color:#f92672">,</span>1<span style="color:#f92672">,</span>3<span style="color:#f92672">,</span>5<span style="color:#f92672">]</span>
+</code></pre></div><p>现在你需要在这个旋转后的数组种找寻是否有输入的一个目标值， 如果有就返回它在数组中的索引位置，否则返回-1.</p>
+<p><strong>约束条件：</strong></p>
+<ol>
+<li>数组中的值都是不重复的</li>
+<li>算法的时间复杂度必须是O(logN)</li>
+</ol>
+<h3 id="思路">思路</h3>
+<p>注意理解两个约束条件（很重要）， 第二个条件要求时间复杂度必须是O(logN), 而在数组查找问题中看见O(logN)我们一般会想到<strong>二分查找法</strong>（又叫折半查找法）</p>
+<p>但是<strong>二分查找</strong>要求整个输入必须是有序的， 而我们这个输入明显不符合要求。</p>
+<p><strong>二分查找</strong>一次排除一半的结果集，这是因为能确定结果不在其中，根据这个思路我们还是有希望用<strong>二分查找</strong>解决这个问题的。</p>
+<p>但是我们得先分析旋转后的数组情况， 以便找出一定的规律每次去排除一半的结果集</p>
+<p>首先根据题意， 我们得知输入数组最开始是升序的， 只不过要经历一次旋转， 而旋转的位置是未知的。</p>
+<p>如果我们给定的旋转位置比0还小的话， 这样数组就不会变化，结构如下图，即 x~y 为升序, 这种情况用正常的<strong>二分查找</strong>就能解决问题了。</p>
+<p><img src="img/a.jpg" alt="a"></p>
+<h2 id="分析">分析</h2>
+<p>如果给定的旋转位置&gt;=0并且合法，那么数组会被我们分成A,B两部分， 这就会存在以下两种情况</p>
+<ul>
+<li>A.length &gt; B.length</li>
+<li>A.length &lt;= B.length</li>
+</ul>
+<p>下面用图来说明这两种情况， 在图中蓝色区域为<strong>A</strong>, 红色区域为<strong>B</strong></p>
+<p>先看<strong>第一种情况</strong>: A.length &gt; B.length</p>
+<p>这种情况下</p>
+<pre><code>x &lt; m, n &lt; y, m &lt; n, x &lt; y;
+</code></pre><p><img src="img/b.jpg" alt="b"></p>
+<p>这种情况下使用<strong>二分查找</strong>计算得到的中间位置<code>midle</code>就落在蓝色区域内</p>
+<p>如果 <code>array[midle] &lt; target</code> : 红色部分肯定小于<code>array[midle]</code> , 而<code>midle～y</code>为升序， 我们就能确定值在 middle + 1 ~ y之间</p>
+<p>如果<code>array[midle] &gt; target</code> : 红色部分肯定小于<code>array[midle]</code>, 并且<code>array[n] ~ array[midle-1]</code> 也小于<code>array[midle</code>], 那么target 就可能在 <code>n ~ midle</code> 或<code>x ~ m</code>之间</p>
+<p>如果 <code>array[midle] == target</code> : 直接返回midle就可以了</p>
+<p>再看<strong>第二种情况</strong>：A.length &lt;= B.length (我们把A.length == B.length算作同一种情况)</p>
+<p>这种情况下数据大小关系和上面是一样的：</p>
+<pre><code>x &lt; m, n &lt; y, m &lt; n, x &lt; y;
+</code></pre><p><img src="img/c.jpg" alt="c"></p>
+<p>这种情况下使用<strong>二分查找</strong>计算得到的中间位置<code>midle</code>就落在红色区域内，下面的分析就和第一种情况类似了</p>
+<p>如果 <code>array[midle] &lt; target</code> :  蓝色部分大于 <code>array[midle]</code>, 并且<code>array[midle + 1] ~ array[m]</code> 也大于 <code>array[midle]</code>, 所以target就在 <code>midle + 1 ~ m</code> 或 <code>n ~ y</code>之间</p>
+<p>如果 <code>array[midle] &gt; target</code> : 蓝色部分大于array[midle],  那么target 就只可能在 <code>x ~ midle</code> 之间</p>
+<p>如果 <code>array[midle] == target</code> : 直接返回midle</p>
+<h3 id="解题">解题</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Class Solution <span style="color:#f92672">{</span>
+    
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">search</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span><span style="color:#f92672">[]</span> nums<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> target<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// 输入校验
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>nums <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">||</span> nums<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span> <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>1<span style="color:#f92672">;</span>
+        
+        <span style="color:#75715e">// 二分查找
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> l <span style="color:#f92672">=</span> 0<span style="color:#f92672">,</span> r <span style="color:#f92672">=</span> nums<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> 1<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>l <span style="color:#f92672">&lt;=</span> r<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">int</span> m <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>r <span style="color:#f92672">-</span> l<span style="color:#f92672">)/</span>2 <span style="color:#f92672">+</span> l<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>target <span style="color:#f92672">&gt;</span> nums<span style="color:#f92672">[</span>m<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>nums<span style="color:#f92672">[</span>l<span style="color:#f92672">]</span> <span style="color:#f92672">&lt;</span> nums<span style="color:#f92672">[</span>r<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                    l <span style="color:#f92672">=</span> m <span style="color:#f92672">+</span> 1<span style="color:#f92672">;</span>
+                <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                    <span style="color:#75715e">// A.length &lt; B.length
+</span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>nums<span style="color:#f92672">[</span>m<span style="color:#f92672">]</span> <span style="color:#f92672">&lt;</span> nums<span style="color:#f92672">[</span>r<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>target <span style="color:#f92672">&gt;</span> nums<span style="color:#f92672">[</span>r<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                            r <span style="color:#f92672">=</span> m <span style="color:#f92672">-</span> 1<span style="color:#f92672">;</span>
+                        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span><span style="color:#f92672">(</span>target <span style="color:#f92672">&lt;</span> nums<span style="color:#f92672">[</span>r<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                            l <span style="color:#f92672">=</span> m <span style="color:#f92672">+</span> 1<span style="color:#f92672">;</span>
+                        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                            <span style="color:#66d9ef">return</span> r<span style="color:#f92672">;</span>
+                        <span style="color:#f92672">}</span>
+                    <span style="color:#f92672">}</span> 
+                    <span style="color:#75715e">// A.length &gt;= B.length
+</span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                        l <span style="color:#f92672">=</span> m <span style="color:#f92672">+</span> 1<span style="color:#f92672">;</span>
+                    <span style="color:#f92672">}</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>target <span style="color:#f92672">&lt;</span> nums<span style="color:#f92672">[</span>m<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>nums<span style="color:#f92672">[</span>l<span style="color:#f92672">]</span> <span style="color:#f92672">&lt;</span> nums<span style="color:#f92672">[</span>r<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                    r <span style="color:#f92672">=</span> m <span style="color:#f92672">-</span> 1<span style="color:#f92672">;</span>
+                <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                    <span style="color:#75715e">// A.length &lt; B.length
+</span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>nums<span style="color:#f92672">[</span>m<span style="color:#f92672">]</span> <span style="color:#f92672">&lt;</span> nums<span style="color:#f92672">[</span>r<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                        r <span style="color:#f92672">=</span> m <span style="color:#f92672">-</span> 1<span style="color:#f92672">;</span>
+                    <span style="color:#f92672">}</span> 
+                    <span style="color:#75715e">// A.length &gt;= B.length
+</span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>target <span style="color:#f92672">&gt;</span> nums<span style="color:#f92672">[</span>l<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                        	r <span style="color:#f92672">=</span> m <span style="color:#f92672">-</span> 1<span style="color:#f92672">;</span>
+                        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span><span style="color:#f92672">(</span>target <span style="color:#f92672">&lt;</span> nums<span style="color:#f92672">[</span>l<span style="color:#f92672">])</span> <span style="color:#f92672">{</span>
+                            l <span style="color:#f92672">=</span> m <span style="color:#f92672">+</span> 1<span style="color:#f92672">;</span>
+                        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                            <span style="color:#66d9ef">return</span> l<span style="color:#f92672">;</span>
+                        <span style="color:#f92672">}</span>
+                    <span style="color:#f92672">}</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                <span style="color:#66d9ef">return</span> m<span style="color:#f92672">;</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        
+        <span style="color:#75715e">// 未找到值
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span>1<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+    
+<span style="color:#f92672">}</span>
+</code></pre></div>
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title>Spring Ant-Style Matcher 笔记 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        Spring Ant-Style Matcher 笔记
+                    </h1>
+                    <h2 class="headline">
+                    May 4, 2020 11:40
+                    · 91 words
+                    · 1 minute read
+                      <span class="tags">
+                      
+                      
+                          
+                              <a href="https://blog.cc1234.cc/tags/java">Java</a>
+                          
+                              <a href="https://blog.cc1234.cc/tags/spring">Spring</a>
+                          
+                      
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="spring-ant-style-matcher-笔记">Spring Ant-Style Matcher 笔记</h1>
+<p>在使用 Spring 的时候经常会写路径相关的配置，比如</p>
+<ul>
+<li><code>@RequestMapping</code> 中配置请求路径</li>
+<li><code>@ComponentScan</code> 中配置包路径</li>
+<li>为 Interceptor 配置规则</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<p>而这些路径的配置规则中，我们经常会看见 <em>、</em>* 等类似于正则表达式的符号，这实际上就是 Spring 的路径匹配规则。</p>
+<p>Spring 默认有一个 <code>AntPathMatcher</code> 类用于处理这类路径的规则匹配， 它借鉴了 <a href="https://ant.apache.org/">Ant</a> 的实现（如果你感兴趣的话，可以在<a href="https://ant.apache.org/manual/dirtasks.html#patterns">点击这里</a>进行了解），这也是为什么称之为 <strong>Ant-Style</strong> 的原因。</p>
+<blockquote>
+<p>题外话：Ant 是一个自动化构建工具，最开始是为了解决 Tomcat 的构建问题而诞生的</p>
+</blockquote>
+<p>Ant 本身是定义了三种匹配规则，而 spring 在此基础之上额外扩展了一种，参考下面的表格</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>?</td>
+<td>匹配单个字符</td>
+</tr>
+<tr>
+<td>*</td>
+<td>匹配 0 个或多个字符</td>
+</tr>
+<tr>
+<td>**</td>
+<td>匹配 0 个或多个目录</td>
+</tr>
+<tr>
+<td>{spring: [a-z]+}</td>
+<td>匹配正则表达式 [a-z]+, 将匹配后的路径作为 spring 的变量</td>
+</tr>
+</tbody>
+</table>
+<p>下面的表格展示了一个具体的实例</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>com/t?st.jsp</td>
+<td>匹配 com/test.jsp，com/tast.jsp，com/txst.jsp</td>
+</tr>
+<tr>
+<td>com/*.jsp</td>
+<td>匹配 com 目录下所有以 .jsp 结尾的文件</td>
+</tr>
+<tr>
+<td>com/**/test.jsp</td>
+<td>匹配 com 所有层级的子目录下的 test.jsp 文件</td>
+</tr>
+<tr>
+<td>org/springframework/**/*.jsp</td>
+<td>匹配所有 org/springframework 的子目录下的 jsp 文件</td>
+</tr>
+<tr>
+<td>com/{filename:\w+}.jsp</td>
+<td>匹配 com 目录下的以字母命名的 jsp 文件，并将文件名赋值给变量 filename</td>
+</tr>
+</tbody>
+</table>
+<p>注意：pattern 和 path 的路径要么都是绝对路径，要么都是相对路径</p>
+<h2 id="参考">参考</h2>
+<p>1、<a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/util/AntPathMatcher.html">org.springframework.util.AntPathMatcher</a></p>
+<p>2、<a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant patterns</a></p>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/hashmap-some-detail/">HashMap 的细节笔记<aside class="dates">Apr 27 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title> VAVR：颠覆你的 Java 体验  &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                         VAVR：颠覆你的 Java 体验 
+                    </h1>
+                    <h2 class="headline">
+                    Jul 25, 2020 09:50
+                    · 1663 words
+                    · 8 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="vavr颠覆你的-java-体验">VAVR：颠覆你的 Java 体验</h1>
+<h2 id="何方神圣">何方神圣？</h2>
+<p>众所周知， Java8 在一定程度上支持了函数式编程，但标准库提供的函数式 API 不是很完备和友好。</p>
+<p>为了更好的进行函数式编程，我们就不得不借助于第三方库，而 VAVR 就是这方面的佼佼者，它可以有效减少代码量并提高代码质量。</p>
+<p><a href="https://github.com/vavr-io/vavr">VAVR</a> 可不是默默无闻之辈，它的前身是发布于 2014 年的 Javaslang，目前在 github 上有着近 4k 的 star。</p>
+<p><img src="img/vavr-github.png" alt="image-20200723120246102"></p>
+<p>看到这儿，很多人就说我标题党了，<strong>一个 Java 库还来颠覆 Java</strong>  ？</p>
+<p>这可不不是我玩<strong>震惊体</strong>，打开 VAVR 的<a href="https://www.vavr.io/">官网</a> ，它的首页就用加粗字体写着 「<strong>vavr</strong> - turns java<strong>™</strong> upside down」</p>
+<p><img src="img/vavr.png" alt="image-20200722210142180"></p>
+<p>这翻译过来不就是颠覆 Java 吗？</p>
+<h2 id="食用指南">食用指南</h2>
+<p>阅读本文需要读者对 Java8 的 lambda 语法和常用 API 有一定的了解。</p>
+<p>由于是一篇框架的介绍文（地推 ing），为了避免写成官方文档的翻译，本文会有一些约束</p>
+<ul>
+<li>不会穷尽所有特性和 API，仅做抛砖引玉</li>
+<li>不会深入到源码细节</li>
+</ul>
+<p>关于示例代码，基本会以单元测试的形式给出并保证运行通过</p>
+<blockquote>
+<p>注：本文使用的 VAVR 版本为 0.10.3，JDK 版本为 11。</p>
+</blockquote>
+<p>先来个概览</p>
+<p><img src="img/vavr-preview.png" alt="image-20200724232244960"></p>
+<h2 id="集合全新的开始">集合，全新的开始</h2>
+<p>不得不说 Java8 的集合库引入 Stream 以后确实很好用，但也正是因为使用了 Stream，不得不写很多样板代码，反而降低了不少体验。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// of 方法是 Java9 开始提供的静态工厂
+</span><span style="color:#75715e"></span>java<span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">List</span><span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> 2<span style="color:#f92672">,</span> 3<span style="color:#f92672">,</span> 4<span style="color:#f92672">,</span> 5<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>i <span style="color:#f92672">-&gt;</span> i <span style="color:#f92672">&gt;</span> 3<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>i <span style="color:#f92672">-&gt;</span> i <span style="color:#f92672">*</span> 2<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
+</code></pre></div><p>而且 Java 的集合库本身是可变的，显然违背了函数式编程的基本特性 - 不可变，为此 VAVR 设计了一套全新的集合库，使用体验无限接近于 Scala。</p>
+<p>更简洁的 API</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">io<span style="color:#f92672">.</span><span style="color:#a6e22e">vavr</span><span style="color:#f92672">.</span><span style="color:#a6e22e">collection</span><span style="color:#f92672">.</span><span style="color:#a6e22e">List</span><span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> 2<span style="color:#f92672">,</span> 3<span style="color:#f92672">,</span> 4<span style="color:#f92672">,</span> 5<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>i <span style="color:#f92672">-&gt;</span> i <span style="color:#f92672">&gt;</span> 3<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>i <span style="color:#f92672">-&gt;</span> i <span style="color:#f92672">*</span> 2<span style="color:#f92672">);</span>
+</code></pre></div><p>往集合追加数据会产生新的集合，从而保证不可变</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">var list <span style="color:#f92672">=</span> io<span style="color:#f92672">.</span><span style="color:#a6e22e">vavr</span><span style="color:#f92672">.</span><span style="color:#a6e22e">collection</span><span style="color:#f92672">.</span><span style="color:#a6e22e">List</span><span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> 2<span style="color:#f92672">)</span>
+var list2 <span style="color:#f92672">=</span> list
+  <span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">(</span>List<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>3<span style="color:#f92672">,</span> 4<span style="color:#f92672">))</span>
+  <span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">(</span>List<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>5<span style="color:#f92672">,</span> 6<span style="color:#f92672">))</span>
+  <span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">(</span>7<span style="color:#f92672">);</span>
+<span style="color:#75715e">// list = [1, 2]
+</span><span style="color:#75715e">// list2 = [1, 2, 3, 4, 5, 6]
+</span></code></pre></div><p>强大的兼容性，可以非常方便的与 Java 标准集合库进行转换</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">var javaList <span style="color:#f92672">=</span> java<span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">List</span><span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> 2<span style="color:#f92672">,</span> 3<span style="color:#f92672">);</span>
+java<span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">List</span><span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">&gt;</span> javaList2 <span style="color:#f92672">=</span> io<span style="color:#f92672">.</span><span style="color:#a6e22e">vavr</span><span style="color:#f92672">.</span><span style="color:#a6e22e">collection</span><span style="color:#f92672">.</span><span style="color:#a6e22e">List</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ofAll</span><span style="color:#f92672">(</span>javaList<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>i <span style="color:#f92672">-&gt;</span> i <span style="color:#f92672">&gt;</span> 1<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>i <span style="color:#f92672">-&gt;</span> i <span style="color:#f92672">*</span> 2<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">toJavaList</span><span style="color:#f92672">();</span>
+</code></pre></div><p>再来看一个稍微复杂一点的例子：过滤一批用户中已成年的数据，按照年龄对其分组，每个分组只展示用户的姓名。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
+</span><span style="color:#75715e">* 用户信息
+</span><span style="color:#75715e">*/</span>
+<span style="color:#a6e22e">@Data</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">private</span> Long id<span style="color:#f92672">;</span>
+  <span style="color:#66d9ef">private</span> String name<span style="color:#f92672">;</span>
+  <span style="color:#66d9ef">private</span> Integer age<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>先用 Java 标准集合库来实现这个需求，可以看见 <code>collect(...)</code> 这一长串嵌套是真的很难受</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Map<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;&gt;</span> <span style="color:#a6e22e">userStatistic</span><span style="color:#f92672">(</span>List<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> users<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> users<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>u <span style="color:#f92672">-&gt;</span> u<span style="color:#f92672">.</span><span style="color:#a6e22e">getAge</span><span style="color:#f92672">()</span> <span style="color:#f92672">&gt;=</span> 18<span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">groupingBy</span><span style="color:#f92672">(</span>User<span style="color:#f92672">::</span>getAge<span style="color:#f92672">,</span> Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">mapping</span><span style="color:#f92672">(</span>User<span style="color:#f92672">::</span>getName<span style="color:#f92672">,</span> Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">())));</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>再来看看 VAVR 的实现，是不是更简洁，更直观？</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Map<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;&gt;</span> <span style="color:#a6e22e">userStatistic</span><span style="color:#f92672">(</span>List<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> users<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> users<span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>u <span style="color:#f92672">-&gt;</span> u<span style="color:#f92672">.</span><span style="color:#a6e22e">getAge</span><span style="color:#f92672">()</span> <span style="color:#f92672">&gt;=</span> 18<span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">groupBy</span><span style="color:#f92672">(</span>User<span style="color:#f92672">::</span>getAge<span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">mapValues</span><span style="color:#f92672">(</span>usersGroup <span style="color:#f92672">-&gt;</span> usersGroup<span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>User<span style="color:#f92672">::</span>getName<span style="color:#f92672">));</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>VAVR 的集合库提供了更多 Functional 的 API，比如</p>
+<ul>
+<li>take(Integer) 取前 n 个值</li>
+<li>tail() 取除了头结点外的集合</li>
+<li>zipWithIndex()  使得便利时可以拿到索引（不用  fori)</li>
+<li>find(Predicate) 基于条件查询值，在 Java 标准库得使用 filter + findFirst 才能实现</li>
+<li>&hellip;..</li>
+</ul>
+<p>虽然代码实例都是用的 List，但是以上特性在 Queue、Set、Map 都可以使用，都支持与 Java 标准库的转换。</p>
+<h2 id="元组java-缺失的结构">元组，Java 缺失的结构</h2>
+<p>熟悉 Haskell、Scala 的同学肯定对「元组」这个数据结构不陌生。</p>
+<p>元组类似一个数组，可以存放不同类型的对象并维持其类型信息，这样在取值时就不用 cast 了。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#75715e">// scala 的元组，用括号构建
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> tup <span style="color:#66d9ef">=</span> <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">)</span>
+
+<span style="color:#75715e">// 按索引取值，执行对应类型的操作
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> sum <span style="color:#66d9ef">=</span> tup<span style="color:#f92672">.</span>_1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>  <span style="color:#75715e">// int 加法
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> world <span style="color:#66d9ef">=</span> <span style="color:#e6db74">&#34;hello &#34;</span><span style="color:#f92672">+</span>tup<span style="color:#f92672">.</span>_2 <span style="color:#75715e">// 字符串拼接
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> res <span style="color:#66d9ef">=</span> <span style="color:#f92672">!</span>tup<span style="color:#f92672">.</span>_3 <span style="color:#75715e">// 布尔取反
+</span></code></pre></div><p>当然，Java 并没有原生的语法支持创建元组，标准库也没有元组相关的类。</p>
+<p>不过，VAVR 通过泛型实现了元组，通过 <code>Tuple</code> 的静态工厂，我们可以非常轻易的创建元组（ 配合 Java10 的 var 语法简直不要太美好）</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> io.vavr.Tuple<span style="color:#f92672">;</span>
+
+<span style="color:#66d9ef">public</span> TupleTest <span style="color:#f92672">{</span>
+  
+    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testTuple</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// 一元组
+</span><span style="color:#75715e"></span>        var oneTuple <span style="color:#f92672">=</span> Tuple<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;string&#34;</span><span style="color:#f92672">);</span>
+        String oneTuple_1 <span style="color:#f92672">=</span> oneTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_1</span><span style="color:#f92672">;</span>
+
+        <span style="color:#75715e">// 二元组
+</span><span style="color:#75715e"></span>        var twoTuple <span style="color:#f92672">=</span> Tuple<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;string&#34;</span><span style="color:#f92672">,</span> 1<span style="color:#f92672">);</span>
+        String twoTuple_1 <span style="color:#f92672">=</span> twoTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_1</span><span style="color:#f92672">;</span>
+        Integer twoTuple_2 <span style="color:#f92672">=</span> twoTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_2</span><span style="color:#f92672">;</span>
+
+      	<span style="color:#75715e">// 五元组
+</span><span style="color:#75715e"></span>        var threeTuple <span style="color:#f92672">=</span> Tuple<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;string&#34;</span><span style="color:#f92672">,</span> 2<span style="color:#f92672">,</span> 1<span style="color:#f92672">.</span><span style="color:#a6e22e">2F</span><span style="color:#f92672">,</span> 2<span style="color:#f92672">.</span><span style="color:#a6e22e">4D</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#39;c&#39;</span><span style="color:#f92672">);</span>
+        String threeTuple_1 <span style="color:#f92672">=</span> threeTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_1</span><span style="color:#f92672">;</span>
+        Integer threeTuple_2 <span style="color:#f92672">=</span> threeTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_2</span><span style="color:#f92672">;</span>
+        Float threeTuple_3 <span style="color:#f92672">=</span> threeTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_3</span><span style="color:#f92672">;</span>
+        Double threeTuple_4 <span style="color:#f92672">=</span> threeTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_4</span><span style="color:#f92672">;</span>
+        Character threeTuple_5 <span style="color:#f92672">=</span> threeTuple<span style="color:#f92672">.</span><span style="color:#a6e22e">_5</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>如果没有 <code>var</code>，就得写出下面这样冗长的变量定义</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Tuple5<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">,</span> Float<span style="color:#f92672">,</span> Double<span style="color:#f92672">,</span> Character<span style="color:#f92672">&gt;</span> tuple5 <span style="color:#f92672">=</span> Tuple<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;string&#34;</span><span style="color:#f92672">,</span> 2<span style="color:#f92672">,</span> 1<span style="color:#f92672">.</span><span style="color:#a6e22e">2F</span><span style="color:#f92672">,</span> 2<span style="color:#f92672">.</span><span style="color:#a6e22e">4D</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#39;c&#39;</span><span style="color:#f92672">);</span>
+</code></pre></div><p>目前，VAVR 最多支持构造八元组，也就是支持最多 8 个类型，而不是最多 8 个值。</p>
+<p>当元组和「模式匹配」的配合使用时，那更是强大的一塌糊涂</p>
+<p>PS：虽然现在提模式匹配有点早了（后面会再遇见的），不过我们仍然可以提前感受一下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">var tup <span style="color:#f92672">=</span> Tuple<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">,</span> 1<span style="color:#f92672">);</span>
+
+<span style="color:#75715e">// 模式匹配
+</span><span style="color:#75715e"></span>Match<span style="color:#f92672">(</span>tup<span style="color:#f92672">).</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>
+   Case<span style="color:#f92672">(</span>$Tuple2<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span>is<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)),</span> $<span style="color:#f92672">(</span>is<span style="color:#f92672">(</span>1<span style="color:#f92672">))),</span> <span style="color:#f92672">(</span>t1<span style="color:#f92672">,</span> t2<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> run<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{})),</span>
+   Case<span style="color:#f92672">(</span>$Tuple2<span style="color:#f92672">(</span>$<span style="color:#f92672">(),</span> $<span style="color:#f92672">()),(</span>t1<span style="color:#f92672">,</span> t2<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span>run<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{}))</span>
+<span style="color:#f92672">);</span>
+</code></pre></div><p>上面的代码其实就等同于 if&hellip;else</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// 等同于 if...else
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>tup<span style="color:#f92672">.</span><span style="color:#a6e22e">_1</span><span style="color:#f92672">.</span><span style="color:#a6e22e">equalas</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)</span>  <span style="color:#f92672">&amp;&amp;</span> tup<span style="color:#f92672">.</span><span style="color:#a6e22e">_2</span> <span style="color:#f92672">==</span> 1<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+  <span style="color:#75715e">// ...  do something
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+  <span style="color:#75715e">// ... do something
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+</code></pre></div><h2 id="除了-option还有-tryeitherfuture">除了 Option，还有 Try、Either、Future&hellip;&hellip;</h2>
+<p>Java8 引入了 Optional 去解决臭名昭著的 NullPointerException，而 VAVR 也有一个类似的工具 - <strong>Option</strong>，但它却有着不同的设计。</p>
+<p>除了 Option 外，VAVR 还实现了 Try、Either、Future 等函数式的结构，它们都是 Java 标准库没有但非常强大的工具。</p>
+<h3 id="option">Option</h3>
+<p><code>Option</code> 与 Java 标准库的 <code>Optional</code> 很相似，都代表着一个可选值，但是两者的设计却是大不相同的。（VAVR 的 Option 设计和 Scala 更接近）</p>
+<p>在 VAVR 中，<code>Option</code> 是一个 interface，它的具体实现有 Some 和 None</p>
+<p><img src="img/option-structure.png" alt="image-20200723072353090"></p>
+<ul>
+<li>Some: 代表有值</li>
+<li>None: 代表没有值</li>
+</ul>
+<p>你可以通过下面的单元测试进行验证</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testOption</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  	<span style="color:#75715e">// 通过 of 工厂方法构造
+</span><span style="color:#75715e"></span>    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">instanceof</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">None</span><span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span> <span style="color:#66d9ef">instanceof</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">Some</span><span style="color:#f92672">);</span>
+    
+  	<span style="color:#75715e">// 通过 none 或 some 构造
+</span><span style="color:#75715e"></span>    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Option<span style="color:#f92672">.</span><span style="color:#a6e22e">none</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">instanceof</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">Some</span><span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Option<span style="color:#f92672">.</span><span style="color:#a6e22e">some</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span> <span style="color:#66d9ef">instanceof</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">Some</span><span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+
+</code></pre></div><p>而对于 <code>java.util.Optional</code> 来说，无论通过什么方式构造，都是同一个类型。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testOptional</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Optional<span style="color:#f92672">.</span><span style="color:#a6e22e">ofNullable</span><span style="color:#f92672">(</span><span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">instanceof</span> Optional<span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Optional<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span> <span style="color:#66d9ef">instanceof</span> Optional<span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Optional<span style="color:#f92672">.</span><span style="color:#a6e22e">empty</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">instanceof</span> Optional<span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>Optional<span style="color:#f92672">.</span><span style="color:#a6e22e">ofNullable</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span> <span style="color:#66d9ef">instanceof</span> Optional<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>为什么两者会有这样的设计区别呢？</p>
+<p>本质上来讲就是对 「Option 的作用就是使得对 null 的计算保证安全吗？」这一问题的不同回答。</p>
+<p>下面的的两个测试方法，同样的逻辑，用 Option 和 Optional 却得出了不同的结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testWithJavaOptional</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// Java Optional
+</span><span style="color:#75715e"></span>    var result <span style="color:#f92672">=</span> Optional<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>str <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">(</span>String<span style="color:#f92672">)</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">orElseGet</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">);</span>
+
+  	<span style="color:#75715e">// result = &#34;world&#34;
+</span><span style="color:#75715e"></span>    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;word&#34;</span><span style="color:#f92672">,</span> result<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testWithVavrOption</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  	<span style="color:#75715e">// Vavr Option
+</span><span style="color:#75715e"></span>    var result <span style="color:#f92672">=</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>str <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">(</span>String<span style="color:#f92672">)</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">getOrElse</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">);</span>
+  
+  	<span style="color:#75715e">// result = null
+</span><span style="color:#75715e"></span>    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertNull</span><span style="color:#f92672">(</span>result<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>在 VAVR 的测试代码中，通过 <code>Optional.of(&quot;hello&quot;)</code> 实际上得到了一个 <code>Some(&quot;hello&quot;)</code> 对象。</p>
+<p>随后调用 <code>map(str -&gt; (String)null)</code> 返回的仍然是一个 <code>Some</code> 对象（Some 代表有值），所以最终的 result = null，而不是 <code>getOrElse(() -&gt; &quot;world&quot;)</code> 返回的 world 字符串。</p>
+<p>在 Java 的测试代码中，调用 <code>map(str -&gt; null)</code> 时，Optional 就已经被切换为了 Optional.empty，所以最终就返回了 <code>orElseGet(() -&gt; &quot;world&quot;)</code> 的结果。</p>
+<blockquote>
+<p>这也是函数式开发者们批判  java.util.Optional 设计的一个点</p>
+</blockquote>
+<p>除了设计上的区别外， io.vavr.control.Option 比 java.util.Optional 也要多出更多友好的 API</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
+<span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testVavrOption</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  	<span style="color:#75715e">// option 直接转为 List
+</span><span style="color:#75715e"></span>    List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;vavr hello world&#34;</span><span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>String<span style="color:#f92672">::</span>toUpperCase<span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">toJavaList</span><span style="color:#f92672">();</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertNotNull</span><span style="color:#f92672">(</span>result<span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> result<span style="color:#f92672">.</span><span style="color:#a6e22e">size</span><span style="color:#f92672">());</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;vavr hello world&#34;</span><span style="color:#f92672">,</span> result<span style="color:#f92672">.</span><span style="color:#a6e22e">iterator</span><span style="color:#f92672">().</span><span style="color:#a6e22e">next</span><span style="color:#f92672">());</span>
+  
+  	<span style="color:#75715e">// exists(Function)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">boolean</span> exists <span style="color:#f92672">=</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">exists</span><span style="color:#f92672">(</span>str <span style="color:#f92672">-&gt;</span> str<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">));</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>exists<span style="color:#f92672">);</span>
+
+  	<span style="color:#75715e">// contains
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">boolean</span> contains <span style="color:#f92672">=</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">contains</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>contains<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+
+</code></pre></div><p>考虑到与标准库的兼容，Option 可以很方便的与 Optional 进行互转</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;toJava&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">toJavaOptional</span><span style="color:#f92672">();</span>
+
+Option<span style="color:#f92672">.</span><span style="color:#a6e22e">ofOptional</span><span style="color:#f92672">(</span>Optional<span style="color:#f92672">.</span><span style="color:#a6e22e">empty</span><span style="color:#f92672">());</span>
+</code></pre></div><h3 id="try">Try</h3>
+<p>Try  和 Option 类似，也类似于一个「容器」，只不过它容纳的是<strong>可能出错的行为</strong>，你是不是马上就想到了 try..catch  结构?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+	<span style="color:#75715e">//..
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Throwable t<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	<span style="color:#75715e">//...
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+  <span style="color:#75715e">//....
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+
+</code></pre></div><p>通过 VAVR 的 Try，也能实现另外一种更 functional 的 try&hellip;catch。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
+</span><span style="color:#75715e">* 输出
+</span><span style="color:#75715e">*  failure: / by zero
+</span><span style="color:#75715e">*  finally
+</span><span style="color:#75715e">*/</span>
+Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> 1 <span style="color:#f92672">/</span> 0<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">andThen</span><span style="color:#f92672">(</span>r <span style="color:#f92672">-&gt;</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;and then &#34;</span> <span style="color:#f92672">+</span> r<span style="color:#f92672">))</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">onFailure</span><span style="color:#f92672">(</span>error <span style="color:#f92672">-&gt;</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;failure&#34;</span> <span style="color:#f92672">+</span> error<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">()))</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">andFinally</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+      System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;finally&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">});</span>
+</code></pre></div><p>Try 也是个接口， 具体的实现是 Success  或 Failure</p>
+<ul>
+<li>Success：代表执行没有异常</li>
+<li>Failure：代表执行出现异常</li>
+</ul>
+<p><img src="img/try-structure.png" alt="image-20200723102944316"></p>
+<p>和 Optoin 一样，也可以通过 of 工厂方法进行构建</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testTryInstance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  	<span style="color:#75715e">// 除以 0 ，构建出 Failure
+</span><span style="color:#75715e"></span>    var error <span style="color:#f92672">=</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> 0 <span style="color:#f92672">/</span> 0<span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>error <span style="color:#66d9ef">instanceof</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">Failure</span><span style="color:#f92672">);</span>
+
+  	<span style="color:#75715e">// 合法的加法，构建出 Success
+</span><span style="color:#75715e"></span>    var normal <span style="color:#f92672">=</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> 1 <span style="color:#f92672">+</span> 1<span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>normal <span style="color:#66d9ef">instanceof</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">Success</span><span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>通过 Try 的 recoverWith 方法，我们可以很优雅的实现降级策略</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testTryWithRecover</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;NPE&#34;</span><span style="color:#f92672">,</span> testTryWithRecover<span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> NullPointerException<span style="color:#f92672">()));</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;IllegalState&#34;</span><span style="color:#f92672">,</span> testTryWithRecover<span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> IllegalStateException<span style="color:#f92672">()));</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Unknown&#34;</span><span style="color:#f92672">,</span> testTryWithRecover<span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> RuntimeException<span style="color:#f92672">()));</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">private</span> String <span style="color:#a6e22e">testTryWithRecover</span><span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>String<span style="color:#f92672">)</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+      <span style="color:#66d9ef">throw</span> e<span style="color:#f92672">;</span>
+    <span style="color:#f92672">})</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">recoverWith</span><span style="color:#f92672">(</span>NullPointerException<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;NPE&#34;</span><span style="color:#f92672">))</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">recoverWith</span><span style="color:#f92672">(</span>IllegalStateException<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;IllegalState&#34;</span><span style="color:#f92672">))</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">recoverWith</span><span style="color:#f92672">(</span>RuntimeException<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;Unknown&#34;</span><span style="color:#f92672">))</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>对于 Try 的计算结果，可以通过 map 进行转换，也可以很方便的与 Option 进行转换。</p>
+<p>还可以使用 map 对结果进行转换，并且与 Option 进行交互</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testTryMap</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    String res <span style="color:#f92672">=</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;hello world&#34;</span><span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>String<span style="color:#f92672">::</span>toUpperCase<span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">toOption</span><span style="color:#f92672">()</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">getOrElse</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;default&#34;</span><span style="color:#f92672">);</span>
+    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;HELLO WORLD&#34;</span><span style="color:#f92672">,</span> res<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h3 id="future">Future</h3>
+<p>这个 Future 可不是 <code>java.util.concurrent.Future</code>，但它们都是对异步计算结果的一个抽象。</p>
+<p>vavr 的 <code>Future</code> 提供了比 <code>java.util.concurrent.Future</code> 更友好的回调机制</p>
+<ul>
+<li>onFailure 失败的回调</li>
+<li>onSuccess 成功的回调</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testFutureFailure</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">final</span> var word <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello world&#34;</span><span style="color:#f92672">;</span>
+    io<span style="color:#f92672">.</span><span style="color:#a6e22e">vavr</span><span style="color:#f92672">.</span><span style="color:#a6e22e">concurrent</span><span style="color:#f92672">.</span><span style="color:#a6e22e">Future</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>1<span style="color:#f92672">),</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> word<span style="color:#f92672">)</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">onFailure</span><span style="color:#f92672">(</span>throwable <span style="color:#f92672">-&gt;</span> Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">fail</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;不应该走到 failure 分支&#34;</span><span style="color:#f92672">))</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">onSuccess</span><span style="color:#f92672">(</span>result <span style="color:#f92672">-&gt;</span> Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span>word<span style="color:#f92672">,</span> result<span style="color:#f92672">));</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testFutureSuccess</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    io<span style="color:#f92672">.</span><span style="color:#a6e22e">vavr</span><span style="color:#f92672">.</span><span style="color:#a6e22e">concurrent</span><span style="color:#f92672">.</span><span style="color:#a6e22e">Future</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>1<span style="color:#f92672">),</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+          <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException<span style="color:#f92672">();</span>
+      <span style="color:#f92672">})</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">onFailure</span><span style="color:#f92672">(</span>throwable <span style="color:#f92672">-&gt;</span> Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertTrue</span><span style="color:#f92672">(</span>throwable <span style="color:#66d9ef">instanceof</span> RuntimeException<span style="color:#f92672">))</span>
+      <span style="color:#f92672">.</span><span style="color:#a6e22e">onSuccess</span><span style="color:#f92672">(</span>result <span style="color:#f92672">-&gt;</span> Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">fail</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;不应该走到 success 分支&#34;</span><span style="color:#f92672">));</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>它也可以和 Java 的 CompleableFuture 互转</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Future<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>1<span style="color:#f92672">),</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;toJava&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">toCompletableFuture</span><span style="color:#f92672">();</span>
+
+Future<span style="color:#f92672">.</span><span style="color:#a6e22e">fromCompletableFuture</span><span style="color:#f92672">(</span>CompletableFuture<span style="color:#f92672">.</span><span style="color:#a6e22e">runAsync</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{}));</span>
+</code></pre></div><h3 id="其他">其他</h3>
+<p>最后再来简单过一下  Either 和 Lazy 吧</p>
+<ul>
+<li>
+<p>Either 它表示某个值可能为两种类型中的一种，比如下面的 <code>compute()</code> 函数的 Either 返回值代表结构可能为 Exception 或 String。通常用 right 代表正确的值（英文 right 有正确的意思）</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Either<span style="color:#f92672">&lt;</span>Exception<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">compute</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  <span style="color:#75715e">//...
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+  
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">test</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  Either<span style="color:#f92672">&lt;</span>Exception<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> either <span style="color:#f92672">=</span> compute<span style="color:#f92672">();</span>
+    
+  <span style="color:#75715e">// 异常值
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>either<span style="color:#f92672">.</span><span style="color:#a6e22e">isLeft</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+    Exception exception <span style="color:#f92672">=</span> compute<span style="color:#f92672">().</span><span style="color:#a6e22e">getLeft</span><span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException<span style="color:#f92672">(</span>exception<span style="color:#f92672">);</span>
+  <span style="color:#f92672">}</span>
+  
+  <span style="color:#75715e">// 正确值
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>either<span style="color:#f92672">.</span><span style="color:#a6e22e">isRight</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+    String result <span style="color:#f92672">=</span> compute<span style="color:#f92672">().</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>
+    <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div></li>
+<li>
+<p>Lazy 也是一个容器，他可以延迟某个计算，直到该计算被首次调用，初次调用之后该结果会被缓存，后续调用就可以直接拿到结果。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Lazy<span style="color:#f92672">&lt;</span>Double<span style="color:#f92672">&gt;</span> lazy <span style="color:#f92672">=</span> Lazy<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>Math<span style="color:#f92672">::</span>random<span style="color:#f92672">);</span>
+lazy<span style="color:#f92672">.</span><span style="color:#a6e22e">isEvaluated</span><span style="color:#f92672">();</span> <span style="color:#75715e">// = false
+</span><span style="color:#75715e"></span>lazy<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>         <span style="color:#75715e">// = 0.123 (random generated)
+</span><span style="color:#75715e"></span>lazy<span style="color:#f92672">.</span><span style="color:#a6e22e">isEvaluated</span><span style="color:#f92672">();</span> <span style="color:#75715e">// = true
+</span><span style="color:#75715e"></span>lazy<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>         <span style="color:#75715e">// = 0.123 (memoized)
+</span></code></pre></div></li>
+</ul>
+<p>在 <code>io.vavr.API</code> 中提供了很多静态方法来模拟 Scala 的语法构造 Option、Try 这些结构，但是要结合 Java 的静态导入使用</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import static</span> io.vavr.API.*<span style="color:#f92672">;</span>
+
+<span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testAPI</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  <span style="color:#75715e">// 构造 Option
+</span><span style="color:#75715e"></span>  var some <span style="color:#f92672">=</span> Some<span style="color:#f92672">(</span>1<span style="color:#f92672">);</span>
+  var none <span style="color:#f92672">=</span> None<span style="color:#f92672">();</span>
+
+  <span style="color:#75715e">// 构造 Future
+</span><span style="color:#75715e"></span>  var future <span style="color:#f92672">=</span> Future<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">);</span>
+
+  <span style="color:#75715e">// 构造 Try
+</span><span style="color:#75715e"></span>  var tryInit <span style="color:#f92672">=</span> Try<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>当然这个大写字母开头的函数名有点不符合 Java 的方法命名规范，算是一种 Hack 手段吧。</p>
+<p>关于更多细节的内容，有兴趣的可以去查阅<a href="https://www.vavr.io/vavr-docs/#_values">官网文档</a>学习</p>
+<h2 id="模式匹配ifelse-的克星">模式匹配：if..else 的克星</h2>
+<p>这里的模式指的是<strong>数据结构的组成模式</strong>，在 Scala 中可以直接通过 match 关键字使用模式匹配</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">def</span> testPatternMatch<span style="color:#f92672">(</span>nameOpt<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Option</span><span style="color:#f92672">[</span><span style="color:#66d9ef">String</span><span style="color:#f92672">],</span> nums<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">List</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span><span style="color:#f92672">])</span> <span style="color:#66d9ef">=</span> <span style="color:#f92672">{</span>
+	<span style="color:#75715e">/**
+</span><span style="color:#75715e">	* 匹配 Option 的结构
+</span><span style="color:#75715e">	*/</span>
+  nameOpt <span style="color:#66d9ef">match</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">Some</span><span style="color:#f92672">(</span>name<span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> println<span style="color:#f92672">(</span><span style="color:#e6db74">s&#34;你好，</span><span style="color:#e6db74">$name</span><span style="color:#e6db74">&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">None</span> <span style="color:#66d9ef">=&gt;</span> println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;无名之辈&#34;</span><span style="color:#f92672">)</span>
+  <span style="color:#f92672">}</span>
+
+  <span style="color:#75715e">/**
+</span><span style="color:#75715e">  * 匹配 List 的结构
+</span><span style="color:#75715e">  */</span>
+  nums <span style="color:#66d9ef">match</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">Nil</span> <span style="color:#66d9ef">=&gt;</span> println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;空列表&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">List</span><span style="color:#f92672">(</span>v<span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> println<span style="color:#f92672">(</span><span style="color:#e6db74">s&#34;size=1 </span><span style="color:#e6db74">$v</span><span style="color:#e6db74">&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">List</span><span style="color:#f92672">(</span>v<span style="color:#f92672">,</span> v2<span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> println<span style="color:#f92672">(</span><span style="color:#e6db74">s&#34;size=2 </span><span style="color:#e6db74">$v</span><span style="color:#e6db74">、 </span><span style="color:#e6db74">$v2</span><span style="color:#e6db74">&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">case</span> <span style="color:#66d9ef">_</span> <span style="color:#66d9ef">=&gt;</span> println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;size &gt; 2&#34;</span><span style="color:#f92672">)</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>在 Java 中没有模式匹配的概念，自然就没有相关的语法了（switch 可不算）。</p>
+<p>不过 VAVR 使用 OOP 的方式实现了了模式匹配，虽然比不了 Scala 原生的体验，但也相当接近了</p>
+<blockquote>
+<p>Java 在 <a href="https://openjdk.java.net/jeps/375">JEP 375: Pattern Matching for instanceof</a> 提案中针对 instanceof 实现了一个模式匹配的特性（预计在 Java15 发布），不过我觉得该特性距离 Scala 的模式匹配还有一段距离</p>
+</blockquote>
+<p>我们来实现一个将 BMI 值格式化成文字描述的需求，先用 Java 的命令式风格来实现</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">bmiFormat</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> height<span style="color:#f92672">,</span> <span style="color:#66d9ef">double</span> weight<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">double</span> bmi <span style="color:#f92672">=</span> weight <span style="color:#f92672">/</span> <span style="color:#f92672">(</span>height <span style="color:#f92672">*</span> height<span style="color:#f92672">);</span>
+  String desc<span style="color:#f92672">;</span>
+  <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>bmi <span style="color:#f92672">&lt;</span> 18<span style="color:#f92672">.</span><span style="color:#a6e22e">5</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    desc <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;有些许晃荡！&#34;</span><span style="color:#f92672">;</span>
+  <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>bmi <span style="color:#f92672">&lt;</span> 25<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    desc <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;继续加油哦！&#34;</span><span style="color:#f92672">;</span>
+  <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>bmi <span style="color:#f92672">&lt;</span> 30<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    desc <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;你是真的稳！&#34;</span><span style="color:#f92672">;</span>
+  <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+    desc <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;难受！&#34;</span><span style="color:#f92672">;</span>
+  <span style="color:#f92672">}</span>
+  <span style="color:#66d9ef">return</span> desc<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>接下来再用 VAVR 的模式匹配来重构吧，消灭这些 if..else。</p>
+<p>为了让语法体验更友好，最好先通过 <code>static import</code> 导入 API。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import static</span> io.vavr.API.*<span style="color:#f92672">;</span>
+</code></pre></div><p>下面是重构后的代码段</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">bmiFormat</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> height<span style="color:#f92672">,</span> <span style="color:#66d9ef">double</span> weight<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">double</span> bmi <span style="color:#f92672">=</span> weight <span style="color:#f92672">/</span> <span style="color:#f92672">(</span>height <span style="color:#f92672">*</span> height<span style="color:#f92672">);</span>
+  <span style="color:#66d9ef">return</span> Match<span style="color:#f92672">(</span>bmi<span style="color:#f92672">).</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>
+    <span style="color:#75715e">// else if (bmi &lt; 18.5)
+</span><span style="color:#75715e"></span>    Case<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span>v <span style="color:#f92672">-&gt;</span> v <span style="color:#f92672">&lt;</span> 18<span style="color:#f92672">.</span><span style="color:#a6e22e">5</span><span style="color:#f92672">),</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;有些许晃荡！&#34;</span><span style="color:#f92672">),</span>
+    <span style="color:#75715e">// else if (bmi &lt; 25)
+</span><span style="color:#75715e"></span>    Case<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span>v <span style="color:#f92672">-&gt;</span> v <span style="color:#f92672">&lt;</span> 25<span style="color:#f92672">),</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;继续加油哦！&#34;</span><span style="color:#f92672">),</span>
+    <span style="color:#75715e">// else if (bmi &lt; 30)
+</span><span style="color:#75715e"></span>    Case<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span>v <span style="color:#f92672">-&gt;</span> v <span style="color:#f92672">&lt;</span> 30<span style="color:#f92672">),</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;你是真的稳！&#34;</span><span style="color:#f92672">),</span>
+    <span style="color:#75715e">// else
+</span><span style="color:#75715e"></span>    Case<span style="color:#f92672">(</span>$<span style="color:#f92672">(),</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;难受！&#34;</span><span style="color:#f92672">)</span>
+  <span style="color:#f92672">);</span>
+
+<span style="color:#f92672">}</span>
+</code></pre></div><ul>
+<li>
+<p>Match(&hellip;)，Case(&hellip;)，$(&hellip;) 都是 <code>io.vavr.API</code> 的静态方法，用于模拟「模式匹配」的语法</p>
+</li>
+<li>
+<p>最后一个 $() 表示匹配除了上面之外的所有情况</p>
+</li>
+</ul>
+<p>为了便于读者理解，我将各个方法的签名简单列了一下（Case 和 $ 方法有很多重载，就不全列了）</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> Match<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">Match</span><span style="color:#f92672">(</span>T value<span style="color:#f92672">)</span> <span style="color:#f92672">{...}</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">,</span> R<span style="color:#f92672">&gt;</span> Case<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">,</span> R<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">Case</span><span style="color:#f92672">(</span>Pattern0<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> pattern<span style="color:#f92672">,</span> Function<span style="color:#f92672">&lt;?</span> <span style="color:#66d9ef">super</span> T<span style="color:#f92672">,</span> <span style="color:#f92672">?</span> <span style="color:#66d9ef">extends</span> R<span style="color:#f92672">&gt;</span> f<span style="color:#f92672">)</span> <span style="color:#f92672">{...}</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> Pattern0<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">$</span><span style="color:#f92672">(</span>Predicate<span style="color:#f92672">&lt;?</span> <span style="color:#66d9ef">super</span> T<span style="color:#f92672">&gt;</span> predicate<span style="color:#f92672">)</span> <span style="color:#f92672">{...}</span>
+</code></pre></div><p><code>of</code> 是 Match 对象的方法</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">final</span> <span style="color:#f92672">&lt;</span>R<span style="color:#f92672">&gt;</span> R <span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>Case<span style="color:#f92672">&lt;?</span> <span style="color:#66d9ef">extends</span> T<span style="color:#f92672">,</span> <span style="color:#f92672">?</span> <span style="color:#66d9ef">extends</span> R<span style="color:#f92672">&gt;...</span> cases<span style="color:#f92672">)</span> <span style="color:#f92672">{...}</span>
+</code></pre></div><p>来，再展示一下自创的语法记忆</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">匹配一下<span style="color:#960050;background-color:#1e0010">（</span>这个东西<span style="color:#960050;background-color:#1e0010">）</span>的结构<span style="color:#960050;background-color:#1e0010">，</span>是不是下面的情况之一
+<span style="color:#75715e">// Match(XXX).Of(
+</span><span style="color:#75715e"></span>
+  <span style="color:#f92672">-</span> 结构和 A 一样<span style="color:#960050;background-color:#1e0010">，</span>做点什么事情
+  <span style="color:#75715e">//Case(  $(A),   () -&gt; doSomethingA()   ),
+</span><span style="color:#75715e"></span>  
+  <span style="color:#f92672">-</span> 结构和 B 一样<span style="color:#960050;background-color:#1e0010">，</span>做点什么事情
+  <span style="color:#75715e">//Case(  $(B),   () -&gt; doSomethingB()   ),
+</span><span style="color:#75715e"></span>  <span style="color:#f92672">-</span> <span style="color:#f92672">.....</span>
+  
+  <span style="color:#f92672">-</span> 和上面的结构都不一样<span style="color:#960050;background-color:#1e0010">，</span>也做点事情
+  <span style="color:#75715e">//Case(  $(),    () -&gt; doSomethingOthers())
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">//);
+</span></code></pre></div><p>当模式匹配和前面提到的 Option、Try、Either、Tuple 结合时，那可是 1 + 1 &gt; 3 的结合。</p>
+<p>下面的代码展示了「模式匹配」是如何让 Option 如虎添翼的</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import static</span> io.vavr.API.*<span style="color:#f92672">;</span>
+<span style="color:#f92672">import static</span> io.vavr.Patterns.$None<span style="color:#f92672">;</span>
+<span style="color:#f92672">import static</span> io.vavr.Patterns.$Some<span style="color:#f92672">;</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PatternMatchTest</span> <span style="color:#f92672">{</span>
+  
+    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testMatchNone</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+      <span style="color:#75715e">// 匹配 None
+</span><span style="color:#75715e"></span>        var noneOpt <span style="color:#f92672">=</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">none</span><span style="color:#f92672">();</span>
+        Match<span style="color:#f92672">(</span>noneOpt<span style="color:#f92672">).</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>
+                Case<span style="color:#f92672">(</span>$None<span style="color:#f92672">(),</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+                    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span>Option<span style="color:#f92672">.</span><span style="color:#a6e22e">none</span><span style="color:#f92672">(),</span> r<span style="color:#f92672">);</span>
+                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+                <span style="color:#f92672">}),</span>
+                Case<span style="color:#f92672">(</span>$<span style="color:#f92672">(),</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">::</span>failed<span style="color:#f92672">)</span>
+        <span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testMatchValue</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+      <span style="color:#75715e">// 匹配某一个值为 Nice 的 Some
+</span><span style="color:#75715e"></span>        var opt2 <span style="color:#f92672">=</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Nice&#34;</span><span style="color:#f92672">);</span>
+        Match<span style="color:#f92672">(</span>opt2<span style="color:#f92672">).</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>
+                Case<span style="color:#f92672">(</span>$Some<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Nice&#34;</span><span style="color:#f92672">)),</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+                    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Nice&#34;</span><span style="color:#f92672">,</span> r<span style="color:#f92672">);</span>
+                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+                <span style="color:#f92672">}),</span>
+                Case<span style="color:#f92672">(</span>$<span style="color:#f92672">(),</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">::</span>failed<span style="color:#f92672">)</span>
+        <span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testMatchAnySome</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+      <span style="color:#75715e">// 匹配 Some，值任意
+</span><span style="color:#75715e"></span>        var opt <span style="color:#f92672">=</span> Option<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello world&#34;</span><span style="color:#f92672">);</span>
+        Match<span style="color:#f92672">(</span>opt<span style="color:#f92672">).</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>
+                Case<span style="color:#f92672">(</span>$None<span style="color:#f92672">(),</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">::</span>failed<span style="color:#f92672">),</span>
+                Case<span style="color:#f92672">(</span>$Some<span style="color:#f92672">(</span>$<span style="color:#f92672">()),</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+                    Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello world&#34;</span><span style="color:#f92672">,</span> r<span style="color:#f92672">);</span>
+                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+                <span style="color:#f92672">})</span>
+        <span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">failed</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">fail</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;不应该执行该分支&#34;</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>    
+</code></pre></div><p>还有 Try，顺便说一句，有时候 Case 没有返回值的时候， 第二个参数可以用 API.run() 替代</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import static</span> io.vavr.API.*<span style="color:#f92672">;</span>
+<span style="color:#f92672">import static</span> io.vavr.Patterns.*<span style="color:#f92672">;</span>
+<span style="color:#f92672">import static</span> io.vavr.Predicates.instanceOf<span style="color:#f92672">;</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PatternMatchTest</span> <span style="color:#f92672">{</span>
+
+    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testMatchFailure</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        var res <span style="color:#f92672">=</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException<span style="color:#f92672">();</span>
+        <span style="color:#f92672">});</span>
+        Match<span style="color:#f92672">(</span>res<span style="color:#f92672">).</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>
+          <span style="color:#75715e">// 匹配成功情况
+</span><span style="color:#75715e"></span>                Case<span style="color:#f92672">(</span>$Success<span style="color:#f92672">(</span>$<span style="color:#f92672">()),</span> r <span style="color:#f92672">-&gt;</span> run<span style="color:#f92672">(</span>Assert<span style="color:#f92672">::</span>fail<span style="color:#f92672">)),</span>
+          <span style="color:#75715e">// 匹配异常为 RuntimeException
+</span><span style="color:#75715e"></span>                Case<span style="color:#f92672">(</span>$Failure<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span>instanceOf<span style="color:#f92672">(</span>RuntimeException<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">))),</span> r <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">),</span>
+          <span style="color:#75715e">// 匹配异常为 IllegalStateException
+</span><span style="color:#75715e"></span>                Case<span style="color:#f92672">(</span>$Failure<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span>instanceOf<span style="color:#f92672">(</span>IllegalStateException<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">))),</span> r <span style="color:#f92672">-&gt;</span> run<span style="color:#f92672">(</span>Assert<span style="color:#f92672">::</span>fail<span style="color:#f92672">)),</span>
+          <span style="color:#75715e">// 匹配异常为 NullPointerException
+</span><span style="color:#75715e"></span>                Case<span style="color:#f92672">(</span>$Failure<span style="color:#f92672">(</span>$<span style="color:#f92672">(</span>instanceOf<span style="color:#f92672">(</span>NullPointerException<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">))),</span> r <span style="color:#f92672">-&gt;</span> run<span style="color:#f92672">(</span>Assert<span style="color:#f92672">::</span>fail<span style="color:#f92672">)),</span>
+          <span style="color:#75715e">// 匹配其余失败的情况
+</span><span style="color:#75715e"></span>                Case<span style="color:#f92672">(</span>$Failure<span style="color:#f92672">(</span>$<span style="color:#f92672">()),</span> r <span style="color:#f92672">-&gt;</span> run<span style="color:#f92672">(</span>Assert<span style="color:#f92672">::</span>fail<span style="color:#f92672">))</span>
+        <span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testMatchSuccess</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        var res <span style="color:#f92672">=</span> Try<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;Nice&#34;</span><span style="color:#f92672">);</span>
+        Match<span style="color:#f92672">(</span>res<span style="color:#f92672">).</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>
+          <span style="color:#75715e">// 匹配任意成功的情况
+</span><span style="color:#75715e"></span>                Case<span style="color:#f92672">(</span>$Success<span style="color:#f92672">(</span>$<span style="color:#f92672">()),</span> r <span style="color:#f92672">-&gt;</span> run<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> Assert<span style="color:#f92672">.</span><span style="color:#a6e22e">assertEquals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Nice&#34;</span><span style="color:#f92672">,</span> r<span style="color:#f92672">))),</span>
+          <span style="color:#75715e">// 匹配任意失败的情况
+</span><span style="color:#75715e"></span>                Case<span style="color:#f92672">(</span>$Failure<span style="color:#f92672">(</span>$<span style="color:#f92672">()),</span> r <span style="color:#f92672">-&gt;</span> run<span style="color:#f92672">(</span>Assert<span style="color:#f92672">::</span>fail<span style="color:#f92672">))</span>
+        <span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>现在再回头看看元组的代码，你可以尝试一下自己写写三元组的模式匹配了。</p>
+<h2 id="最后">最后</h2>
+<p>本文只介绍了一些常用的特性，而除此之外，VAVR 还支持 Curring、Memoization、 Partial application 等高级特性，如果想深入的学习可以前往官网了解。</p>
+<p>最后，这块砖已经抛出去了，能不能引到你这块玉呢？</p>
+<blockquote>
+<p><strong>广告</strong>：</p>
+<p>如果你正在找基于 Java9+ 的项目用于学习新特性，我自荐一下 <a href="https://github.com/vran-dev/PrettyZoo">PrettyZoo</a>，</p>
+<p>这是一款基于 Java11开发的 zookeeper 桌面客户端，使用了模块化，var 等诸多新特性，欢迎 star、fork、issue。</p>
+</blockquote>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/hashmap-some-detail/">HashMap 的细节笔记<aside class="dates">Apr 27 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

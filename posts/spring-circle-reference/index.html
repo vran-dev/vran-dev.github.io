@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title>Spring的循环依赖 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        Spring的循环依赖
+                    </h1>
+                    <h2 class="headline">
+                    Aug 22, 2019 13:30
+                    · 869 words
+                    · 5 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="spring的循环依赖">Spring的循环依赖</h1>
+<h2 id="前言">前言</h2>
+<blockquote>
+<p>本文最耗时间的点就在于想一个好的标题， 既要灿烂夺目，又要光华内敛，事实证明这比砍需求还要难！</p>
+</blockquote>
+<p>由于对象之间的依赖关系经常是错综复杂，使用不当会引发很多意想不到的问题， 一个很典型的问题就是<strong>循环依赖</strong> （也可以称之为<strong>循环引用</strong>）。</p>
+<p>Spring 为我们提供了依赖注入，并且在某些情景（单例 Bean 的注入）下支持循环依赖的注入</p>
+<p>本文的主要目的是分析 Spring 在 Bean 的创建中是如何处理循环依赖的。</p>
+<p>我会从循环依赖是什么，以及它的坏处，到最后通过Spring的源码来看它是如何处理这个问题的。</p>
+<blockquote>
+<p>循环依赖不仅仅是 Spring 的 Bean 之间会产生， 往大了看，系统模块之间会产生循环依赖， 系统与系统之间也会产生循环依赖，这是一个典型的坏味道，我们应该尽量避免。</p>
+</blockquote>
+<h2 id="什么是循环依赖">什么是循环依赖</h2>
+<p>循环依赖指的是<strong>多个对象之间的依赖关系形成一个闭环</strong>。</p>
+<p>下图展示了两个对象 A 和 B 形成的一个循环依赖</p>
+<p><img src="img/circular-reference.png" alt="image-20190820121530408"></p>
+<p>下图展示了多个对象形成的一个循环依赖</p>
+<p><img src="img/circular-reference2.png" alt="image-20190820204151669"></p>
+<p>现实中由于依赖层次深、关系复杂等因素， 导致循环依赖可能并不是那么一目了然。</p>
+<h2 id="为什么要避免循环依赖">为什么要避免循环依赖</h2>
+<p>循环依赖会为系统带来很多意想不到的问题，下面我们来简单讨论一下</p>
+<p>一、<strong>循环依赖会产生多米诺骨牌效应</strong></p>
+<p>换句话说就是牵一发而动全身，想象一下平静的湖面落入一颗石子，涟漪会瞬间向周围扩散。</p>
+<p>循环依赖形成了一个环状依赖关系， 这个环中的某一点产生不稳定变化，都会导致整个环产生不稳定变化</p>
+<p>实际的体验就是</p>
+<ul>
+<li>难以为代码编写测试，因为易变导致写的测试也不稳定</li>
+<li>难以重构，因为互相依赖，你改动一个自然会影响其他依赖对象</li>
+<li>难以维护，你根本不敢想象你的改动会造成什么样的后果</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<p>二、<strong>循环依赖会导致内存溢出</strong></p>
+<p>参考下面的代码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AService</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">private</span> BService bService <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BService<span style="color:#f92672">();</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BService</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">private</span> AService aService <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AService<span style="color:#f92672">();</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>当你通过 <code>new AService()</code> 创建一个对象时你会获得一个栈溢出的错误。</p>
+<p>如果你了解 <strong>Java</strong> 的初始化顺序就应该知道为什么会出现这样的问题。</p>
+<p>因为调用 <code>new AService()</code> 时会先去执行属性 bService 的初始化, 而 bService 的初始化又会去执行 AService 的初始化， 这样就形成了一个循环调用，最终导致调用栈内存溢出。</p>
+<h2 id="spring的循环依赖示例">Spring的循环依赖示例</h2>
+<p>下面我们通过简单的示例来展示 Spring 中的循环依赖注入， 我分别展示了一个构造器注入和 Field 注入的循环依赖示例</p>
+<ul>
+<li>
+<p>构造器注入</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Service</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AService</span> <span style="color:#f92672">{</span>
+    
+  <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> BService bService<span style="color:#f92672">;</span>
+    
+  <span style="color:#a6e22e">@Autowired</span>
+  <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">AService</span><span style="color:#f92672">(</span>BService bService<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">BService</span> <span style="color:#f92672">=</span> bService
+  <span style="color:#f92672">}</span>
+    
+<span style="color:#f92672">}</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Service</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BService</span> <span style="color:#f92672">{</span>
+    
+  <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> AService aService<span style="color:#f92672">;</span>
+    
+  <span style="color:#a6e22e">@Autowired</span>
+  <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">BService</span><span style="color:#f92672">(</span>AService aService<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">aService</span> <span style="color:#f92672">=</span> aService<span style="color:#f92672">;</span>
+  <span style="color:#f92672">}</span>
+    
+<span style="color:#f92672">}</span>
+</code></pre></div></li>
+<li>
+<p>Field注入</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Service</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AService</span> <span style="color:#f92672">{</span>
+    
+  <span style="color:#a6e22e">@Autowired</span>
+  <span style="color:#66d9ef">private</span> BService bService<span style="color:#f92672">;</span>
+    
+<span style="color:#f92672">}</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Service</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BService</span> <span style="color:#f92672">{</span>
+    
+  <span style="color:#a6e22e">@Autowired</span>
+  <span style="color:#66d9ef">private</span> AService aService<span style="color:#f92672">;</span>
+    
+<span style="color:#f92672">}</span>
+</code></pre></div><p><code>Setter</code>注入和 Feild注入 类似</p>
+</li>
+</ul>
+<p>如果你启动 Spring 容器的话， <strong>构造器注入</strong>的方式会抛出异常 BeanCreationException ， 提示你出现了循环依赖。</p>
+<p>但是 Field 注入的方式就会正常启动，并注入成功。</p>
+<p>这说明 Spring 虽然能够处理循环依赖，但前提条件时你得按照它能够处理的方式去做才行。</p>
+<p>比如 prototype 的 Bean 也不能处理循环依赖的注入，这点我们需要注意。</p>
+<h2 id="一个检测循环依赖的方法">一个检测循环依赖的方法</h2>
+<p>在我们具体分析 Spring 的 Field 注入是如何解决循环依赖时， 我们来看看如何到检测循环依赖。</p>
+<p>在一个循环依赖的场景中，我们可以确定以下约束</p>
+<ol>
+<li>依赖关系是一个图的结构</li>
+<li>依赖是有向的</li>
+<li>循环依赖说明依赖关系产生了环</li>
+</ol>
+<p>明确后，我们就能知道检测循环依赖本质就是在<strong>检测一个图中是否出现了环</strong>， 这是一个很简单的算法问题。</p>
+<p>利用一个 <code>HashSet</code> 依次记录这个依赖关系方向中出现的元素， 当出现重复元素时就说明产生了<code>环</code>， 而且这个重复元素就是环的起点。</p>
+<p>参考下图， 红色的节点就代表是循环出现的点</p>
+<p><img src="img/circurlar-reference-Detection.png" alt="image-20190820214157160"></p>
+<p>以第一个图为例，依赖方向为 A-&gt;B-&gt;C-&gt;A ，很容易检测到 A 就是环状点。</p>
+<h2 id="spring是如何处理循环依赖的">Spring是如何处理循环依赖的</h2>
+<p>Spring 能够处理 <strong>单例Bean</strong> 的循环依赖（<strong>Field注入方式</strong>)，本节我们就通过纸上谈兵的方式来看看它是如何做到的。</p>
+<p>首先，我们将 Spring 创建 Bean 的生命周期简化为两个步骤：实例化 -&gt; 依赖注入， 如下图所示</p>
+<p><img src="img/init-bean.png" alt="image-20190821084913337"></p>
+<p><strong>实例化</strong>就相当于通过 <code>new</code> 创建了一个具体的对象， 而<strong>依赖注入</strong>就相当于为对象的属性进行赋值操作</p>
+<p>我们再将这个过程扩展到两个相互依赖 Bean 的创建过程上去,  如下图所示</p>
+<p><img src="img/init-cicular-bean.png" alt="image-20190821085026269"></p>
+<p>A 在执行依赖注入时需要实例化 B， 而 B 在执行依赖注入时又会实例化 A ，形成了一个很典型的依赖环。</p>
+<p>产生环的节点就是 B 在执行依赖注入的阶段， 如果我们将其&quot;砍”掉， 就没有环了， 如下图所示</p>
+<p><img src="img/resolve-circular-bean.png" alt="image-20190821085058598"></p>
+<p>这样做确实没有循环依赖了，但却带来了另一个问题，B 是没有经过依赖注入的， 也就是说 B 是不完整的， 这怎么办呢？</p>
+<p>此时 A 已经创建完成并维护在 Spring 容器内，A 持有 B 的引用， 并且 Spring 维护着未进行依赖注入的 B 的引用。</p>
+<p>当 Spring <strong>主动创建</strong> B 时可以直接取得 B 的引用 （省去了实例化的过程）， 当执行依赖注入时， 也可以直接从容器内取得 A 的引用， 这样 B 就创建完成了</p>
+<p><img src="img/circular-refernce-resolve.png" alt="image-20190821090540301"></p>
+<p>A 持有的未进行依赖注入的 B，和后面单独创建 B 流程里面是同一个引用对象， 当 B 执行完依赖注入后，A 持有的 B 也就是一个完整的 Bean了。</p>
+<h2 id="show-me-the-code">Show me the code</h2>
+<blockquote>
+<p>没有代码的泛泛而谈是没有灵魂的</p>
+</blockquote>
+<p>我画了一个简化的流程图来展示一个 Bean 的创建（省略了 Spring 的 BeanPostProcessor，Aware 等事件）过程， 希望你过一遍，然后我们再去看源码。</p>
+<p>入口直接从 <code>getBean(String)</code> 方法开始， 以 <code>populateBean</code> 结束， 用于分析循环依赖的处理是足够的了</p>
+<p><img src="img/spring-di.png" alt="image-20190821130844906"></p>
+<p><code>getBean(String)</code> 是 <strong>AbstractBeanFactory</strong> 的方法,  它内部调用了  <code>doGetBean</code> 方法， 下面是源码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AbstractBeanFactory</span> <span style="color:#66d9ef">extends</span> FactoryBeanRegistrySupport <span style="color:#66d9ef">implements</span> ConfigurableBeanFactory <span style="color:#f92672">{</span>
+ 	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getBean</span><span style="color:#f92672">(</span>String name<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> BeansException <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">return</span> doGetBean<span style="color:#f92672">(</span>name<span style="color:#f92672">,</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
+  
+  <span style="color:#66d9ef">protected</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> T <span style="color:#a6e22e">doGetBean</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> String name<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Class<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> requiredType<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Object<span style="color:#f92672">[]</span> args<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> typeCheckOnly<span style="color:#f92672">){</span>
+    <span style="color:#f92672">...</span>
+    <span style="color:#75715e">// #1
+</span><span style="color:#75715e"></span>    Object sharedInstance <span style="color:#f92672">=</span> getSingleton<span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+    <span style="color:#f92672">...</span>
+    <span style="color:#66d9ef">final</span> RootBeanDefinition mbd <span style="color:#f92672">=</span> getMergedLocalBeanDefinition<span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>mbd<span style="color:#f92672">.</span><span style="color:#a6e22e">isSingleton</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+      <span style="color:#75715e">// #2
+</span><span style="color:#75715e"></span>    	sharedInstance <span style="color:#f92672">=</span> getSingleton<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ObjectFactory<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;()</span> <span style="color:#f92672">{</span>
+						<span style="color:#a6e22e">@Override</span>
+						<span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getObject</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> BeansException <span style="color:#f92672">{</span>
+              	<span style="color:#75715e">// #3
+</span><span style="color:#75715e"></span>								<span style="color:#66d9ef">return</span> createBean<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> mbd<span style="color:#f92672">,</span> args<span style="color:#f92672">);</span>
+						<span style="color:#f92672">}</span>
+					<span style="color:#f92672">});</span>
+    <span style="color:#f92672">}</span>
+    <span style="color:#f92672">...</span>
+    <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>T<span style="color:#f92672">)</span>bean<span style="color:#f92672">;</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>我简化了 <code>doGetBean</code> 的方法体，与流程图对应起来，使得我们可以轻松找到下面的调用流程</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">doGetBean <span style="color:#f92672">-&gt;</span> getSingleton<span style="color:#f92672">(</span>String<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> getSingleton<span style="color:#f92672">(</span>String<span style="color:#f92672">,</span> ObjectFactory<span style="color:#f92672">)</span>
+</code></pre></div><p><code>getSingleton</code> 是 <strong>DefaultSingletonBeanRegistry</strong> 的重载方法</p>
+<p><strong>DefaultSingletonBeanRegistry</strong> 维护了三个 <strong>Map</strong> 用于缓存不同状态的 Bean,  稍后我们分析 <code>getSingleton</code> 时会用到</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/** 维护着所有创建完成的Bean */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;</span> singletonObjects <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ConcurrentHashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;(</span>256<span style="color:#f92672">);</span>
+
+<span style="color:#75715e">/** 维护着创建中Bean的ObjectFactory */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> ObjectFactory<span style="color:#f92672">&lt;?&gt;&gt;</span> singletonFactories <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> ObjectFactory<span style="color:#f92672">&lt;?&gt;&gt;(</span>16<span style="color:#f92672">);</span>
+
+<span style="color:#75715e">/** 维护着所有半成品的Bean */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;</span> earlySingletonObjects <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;(</span>16<span style="color:#f92672">);</span>
+</code></pre></div><p><code>getSingleton(String)</code>  调用了重载方法  <code>getSingleton(String, boolean)</code>， 而该方法实际就是一个查询 Bean 的实现， 先看图再看代码：</p>
+<p><img src="img/getSingleton.png" alt="image-20190821143946283"></p>
+<p>从图中我们可以看见如下查询层次</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">singletonObjects <span style="color:#f92672">=&gt;</span>  earlySingletonObjects <span style="color:#f92672">=&gt;</span> singletonFactories
+</code></pre></div><p>再结合源码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DefaultSingletonBeanRegistry</span> <span style="color:#66d9ef">extends</span> SimpleAliasRegistry <span style="color:#66d9ef">implements</span> SingletonBeanRegistry <span style="color:#f92672">{</span>
+  <span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getSingleton</span><span style="color:#f92672">(</span>String beanName<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">return</span> getSingleton<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
+  
+  <span style="color:#66d9ef">protected</span> Object <span style="color:#a6e22e">getSingleton</span><span style="color:#f92672">(</span>String beanName<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> allowEarlyReference<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// 从singletonObjects获取已创建的Bean
+</span><span style="color:#75715e"></span>		Object singletonObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">singletonObjects</span><span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+    
+    <span style="color:#75715e">// 如果没有已创建的Bean， 但是该Bean正在创建中
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>singletonObject <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> isSingletonCurrentlyInCreation<span style="color:#f92672">(</span>beanName<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// 从earlySingletonObjects获取已经实例化的Bean
+</span><span style="color:#75715e"></span>				singletonObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">earlySingletonObjects</span><span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+      
+      	<span style="color:#75715e">// 如果没有实例化的Bean， 但是参数allowEarlyReference为true
+</span><span style="color:#75715e"></span>				<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>singletonObject <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> allowEarlyReference<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// 从singletonFactories获取ObjectFactory
+</span><span style="color:#75715e"></span>					ObjectFactory<span style="color:#f92672">&lt;?&gt;</span> singletonFactory <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">singletonFactories</span><span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+					<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>singletonFactory <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">// 使用ObjectFactory获取Bean实例
+</span><span style="color:#75715e"></span>						singletonObject <span style="color:#f92672">=</span> singletonFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getObject</span><span style="color:#f92672">();</span>
+            
+            <span style="color:#75715e">// 保存实例， 并清理ObjectFactory
+</span><span style="color:#75715e"></span>						<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">earlySingletonObjects</span><span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> singletonObject<span style="color:#f92672">);</span>
+						<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">singletonFactories</span><span style="color:#f92672">.</span><span style="color:#a6e22e">remove</span><span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+					<span style="color:#f92672">}</span>
+				<span style="color:#f92672">}</span>
+		<span style="color:#f92672">}</span>
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>singletonObject <span style="color:#f92672">!=</span> NULL_OBJECT <span style="color:#f92672">?</span> singletonObject <span style="color:#f92672">:</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
+  
+<span style="color:#f92672">}</span>
+
+</code></pre></div><p>通过 <code>getSingleton(String)</code> 没有找到Bean的话就会继续往下调用 <code>getSingleton(String, ObjectFactory)</code> ,  这也是个重载方法， 源码如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getSingleton</span><span style="color:#f92672">(</span>String beanName<span style="color:#f92672">,</span> ObjectFactory<span style="color:#f92672">&lt;?&gt;</span> singletonFactory<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		<span style="color:#f92672">...</span>	
+    <span style="color:#75715e">// 获取缓存的Bean
+</span><span style="color:#75715e"></span>    Object singletonObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">singletonObjects</span><span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+			<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>singletonObject <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+				<span style="color:#f92672">...</span>
+        <span style="color:#75715e">// 标记Bean在创建中
+</span><span style="color:#75715e"></span>        beforeSingletonCreation<span style="color:#f92672">(</span>beanName<span style="color:#f92672">);</span>
+				<span style="color:#66d9ef">boolean</span> newSingleton <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
+				<span style="color:#f92672">...</span>
+        <span style="color:#75715e">// 创建新的Bean， 实际就是调用createBean方法
+</span><span style="color:#75715e"></span>        singletonObject <span style="color:#f92672">=</span> singletonFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getObject</span><span style="color:#f92672">();</span>
+        newSingleton <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+				<span style="color:#f92672">...</span>
+				<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>newSingleton<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+          <span style="color:#75715e">// 缓存bean
+</span><span style="color:#75715e"></span>					addSingleton<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> singletonObject<span style="color:#f92672">);</span>
+				<span style="color:#f92672">}</span>
+			<span style="color:#f92672">}</span>
+			<span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>singletonObject <span style="color:#f92672">!=</span> NULL_OBJECT <span style="color:#f92672">?</span> singletonObject <span style="color:#f92672">:</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
+</code></pre></div><p>流程很清晰，就没必要再画图了，简单来说就是根据 beanName 找不到 Bean 的话就使用传入的 ObjectFactory 创建一个 Bean。</p>
+<p>从最开始的代码片段我们可以知道这个 ObjectFactory 的 getObject 方法实际就是调用了 <code>createBean</code> 方法</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">sharedInstance <span style="color:#f92672">=</span> getSingleton<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ObjectFactory<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;()</span> <span style="color:#f92672">{</span>
+						<span style="color:#a6e22e">@Override</span>
+						<span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getObject</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> BeansException <span style="color:#f92672">{</span>
+              	<span style="color:#75715e">// #3
+</span><span style="color:#75715e"></span>								<span style="color:#66d9ef">return</span> createBean<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> mbd<span style="color:#f92672">,</span> args<span style="color:#f92672">);</span>
+						<span style="color:#f92672">}</span>
+					<span style="color:#f92672">});</span>
+</code></pre></div><p><code>createBean</code> 是 <strong>AbstractAutowireCapableBeanFactory</strong> 实现的，内部调用了 <code>doCreateBean</code> 方法</p>
+<p><code>doCreateBean</code> 承担了 bean 的实例化，依赖注入等职责。</p>
+<p>参考下图</p>
+<p><img src="img/doCreateBean.png" alt="image-20190821154219474"></p>
+<p><code>createBeanInstance</code> 负责实例化一个 Bean 对象。</p>
+<p><code>addSingletonFactory</code> 会将单例对象的引用通过 ObjectFactory 保存下来， 然后将该 ObjectFactory 缓存在 <strong>Map</strong> 中（该方法在依赖注入之前执行）。</p>
+<p><code>populateBean</code> 主要是执行依赖注入。</p>
+<p>下面是源码， 基本与上面的流程图保持一致， 细节的地方我也标了注释了</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AbstractAutowireCapableBeanFactory</span> <span style="color:#66d9ef">extends</span> AbstractBeanFactory
+      <span style="color:#66d9ef">implements</span> AutowireCapableBeanFactory <span style="color:#f92672">{</span>
+	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">protected</span> Object <span style="color:#a6e22e">createBean</span><span style="color:#f92672">(</span>String beanName<span style="color:#f92672">,</span> RootBeanDefinition mbd<span style="color:#f92672">,</span> Object<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> BeanCreationException <span style="color:#f92672">{</span>
+		<span style="color:#f92672">...</span>
+		<span style="color:#66d9ef">return</span> doCreateBean<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> mbdToUse<span style="color:#f92672">,</span> args<span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
+	
+	<span style="color:#66d9ef">protected</span> Object <span style="color:#a6e22e">doCreateBean</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> String beanName<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> RootBeanDefinition mbd<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Object<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		<span style="color:#f92672">...</span>
+		BeanWrapper instanceWrapper <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>instanceWrapper <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#75715e">// 实例化Bean
+</span><span style="color:#75715e"></span>			instanceWrapper <span style="color:#f92672">=</span> createBeanInstance<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> mbd<span style="color:#f92672">,</span> args<span style="color:#f92672">);</span>
+		<span style="color:#f92672">}</span>
+		<span style="color:#66d9ef">final</span> Object bean <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>instanceWrapper <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">?</span> instanceWrapper<span style="color:#f92672">.</span><span style="color:#a6e22e">getWrappedInstance</span><span style="color:#f92672">()</span> <span style="color:#f92672">:</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">);</span>
+		<span style="color:#75715e">// 允许单例Bean的提前暴露
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">boolean</span> earlySingletonExposure <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>mbd<span style="color:#f92672">.</span><span style="color:#a6e22e">isSingleton</span><span style="color:#f92672">()</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">allowCircularReferences</span> <span style="color:#f92672">&amp;&amp;</span> isSingletonCurrentlyInCreation<span style="color:#f92672">(</span>beanName<span style="color:#f92672">));</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>earlySingletonExposure<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#75715e">// 新建并缓存ObjectFactory
+</span><span style="color:#75715e"></span>			addSingletonFactory<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ObjectFactory<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;()</span> <span style="color:#f92672">{</span>
+				<span style="color:#a6e22e">@Override</span>
+				<span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getObject</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> BeansException <span style="color:#f92672">{</span>
+					<span style="color:#75715e">// 如果忽略BeanPostProcessor逻辑， 该方法实际就是直接返回bean对象
+</span><span style="color:#75715e"></span>					<span style="color:#75715e">// 而这里的bean对象就是前面实例化的对象
+</span><span style="color:#75715e"></span>					<span style="color:#66d9ef">return</span> getEarlyBeanReference<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> mbd<span style="color:#f92672">,</span> bean<span style="color:#f92672">);</span>
+				<span style="color:#f92672">}</span>
+			<span style="color:#f92672">});</span>
+		<span style="color:#f92672">}</span>
+
+		<span style="color:#f92672">...</span>
+		<span style="color:#75715e">// 依赖注入
+</span><span style="color:#75715e"></span>    populateBean<span style="color:#f92672">(</span>beanName<span style="color:#f92672">,</span> mbd<span style="color:#f92672">,</span> instanceWrapper<span style="color:#f92672">);</span>
+		<span style="color:#f92672">...</span>
+	<span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>如果你仔细看了上面的代码片段，相信你已经找到 Spring 处理循环依赖的关键点了</p>
+<p>我们以 A，B 循环依赖注入为例，画了一个完整的注入流程图</p>
+<p><img src="img/circular-di.png" alt="image-20190821155744858"></p>
+<p>注意上图的<strong>黄色节点</strong>， 我们再来过一下这个流程</p>
+<ol>
+<li>在创建 A 的时候，会将 <strong>实例化的A</strong> 通过 <code>addSingleFactory</code>（黄色节点）方法缓存, 然后执行依赖注入B。</li>
+<li>注入会走创建流程， 最后B又会执行依赖注入A。</li>
+<li>由于第一步已经缓存了 A 的引用， 再次创建 A 时可以通过 <code>getSingleton</code> 方法得到这个 A 的提前引用（拿到最开始缓存的 objectFactory， 通过它取得对象引用）， 这样 B 的依赖注入就完成了。</li>
+<li>B 创建完成后， 代表 A 的依赖注入也完成了，那么 A 也创建成功了 （实际上 Spring 还有 initial 等步骤，不过与我们这次的讨论主题相关性不大）</li>
+</ol>
+<p>这样整个依赖注入的流程就完成了</p>
+<h2 id="总结">总结</h2>
+<p>又到了总结的时候了，虽然全文铺的有点长，但是 Spring 处理单例 Bean 的循环依赖却并不复杂，而且稍微扩展一下，我们还可以将这样的处理思路借鉴一下从而处理类似的问题。</p>
+<p>不可避免的文章还是留下了不少坑，比如</p>
+<ul>
+<li>我没有详细解释构造器注入为什么不能处理循环依赖</li>
+<li>我没有详细说明 Spring 如何检测循环依赖的细节</li>
+<li>我也没有说明 prototype 的 Bean 为什么不能处理循环依赖</li>
+<li>&hellip;..</li>
+</ul>
+<p>当然这些都能在 Spring 创建 Bean 的流程里面找到（getBean(String) 方法），细节的东西就留给读者自己去源码里面发现了哦</p>
+<h2 id="参考">参考</h2>
+<ol>
+<li><a href="https://en.wikipedia.org/wiki/Circular_dependency">Circular_dependency</a></li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title>TCP之TCP_NODELAY &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        TCP之TCP_NODELAY
+                    </h1>
+                    <h2 class="headline">
+                    Mar 26, 2019 14:08
+                    · 143 words
+                    · 1 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="tcp之tcp_nodelay">TCP之TCP_NODELAY</h1>
+<h2 id="0x00-前言">0X00 前言</h2>
+<p>我们在使用socket（TCP）进行编程时会有很多配置选项, 而<code>TCP_NODEPLAY</code>也正是其中之一， 本文的目的就是研究<code>TCP_NODELAY</code>产生的效果以及其背后的原理。</p>
+<h2 id="0x01-tcp_delay与nagle">0X01 TCP_DELAY与Nagle</h2>
+<p><code>TCP_NODELAY</code>的值为0或1（在有的语言中为true或false）， 当设置为1（true)时即代表着关闭<strong>Nagle</strong>算法， 反之则代表打开<strong>Nagle</strong>算法。</p>
+<p>Nagle算法由John Nagle发明， 该算法旨在通过减少发送网络包的数量从而提升网络的性能。</p>
+<p>那么它是如何减少发送的包数量的呢， 这又得了解作者描述的一个问题 &ndash; “小数据包问题”：</p>
+<blockquote>
+<p>应用不断的提交小单为的数据， 经常只有<strong>1byte</strong>大小，而为了发送这<strong>1byte</strong>的数据， 还需要传输<strong>40byte</strong>的数据首部包(TCP首部 20byte + IPV4首部 20byte),  从而对网络造成了巨大的开销</p>
+</blockquote>
+<p>为了解决这个问题，Nagle算法就应运而生了， 下面是该算法的伪码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># MSS代表最大分段大小， 可以理解为TCP愿意接受的数据的字节数最大值</span>
+<span style="color:#75715e"># the window size代表接收窗口的大小</span>
+
+<span style="color:#66d9ef">if</span> there is new data to send
+  <span style="color:#66d9ef">if</span> the window size &gt;<span style="color:#f92672">=</span> MSS and available data is &gt;<span style="color:#f92672">=</span> MSS
+    send complete MSS segment now
+  <span style="color:#66d9ef">else</span>
+    <span style="color:#75715e"># 如果存在未被确认的数据</span>
+    <span style="color:#66d9ef">if</span> there is unconfirmed data still in the pipe
+      <span style="color:#75715e"># 将该数据加入缓冲， 当接收方一个确认保文返回时就发送该缓冲内的数据</span>
+      enqueue data in the buffer <span style="color:#66d9ef">until</span> an acknowledge is received
+    <span style="color:#66d9ef">else</span>
+      send data immediately
+    end <span style="color:#66d9ef">if</span>
+  end <span style="color:#66d9ef">if</span>
+end <span style="color:#66d9ef">if</span>
+</code></pre></div><p>我们主要关注Nagle算法对数据合并的方式和时机，以及发送合并数据的时机， 参考下图</p>
+<p><img src="img/nagle-1.png" alt="1553603838528"></p>
+<p>该算法还是很容易理解的， 根据上面的图可能有人会提出疑问</p>
+<blockquote>
+<p>如果seq=0的数据在发送途中丢失， server就永远不会返回ack了， 而client却会一直将数据放入缓冲并等待下次ack才发送，这不就永远也不会发送了吗？</p>
+</blockquote>
+<p>其实这个并不是Nagle算法的范畴了，TCP本身有一个定时器，如果在一定时间内发送的数据没有收到ack的话会再次重发丢失的数据的。</p>
+<h2 id="0x02-nagle与延迟确认">0X02 Nagle与延迟确认</h2>
+<p>前面我们了解到没有ack的话，Nagle算法合并的数据时不会被发送出去的，而这个特性就与TCP的另一个特性相冲了，那就是<strong>延迟确认(ACK)</strong>, 延迟确认也是提升TCP性能的一种方式，具体请参考<a href="https://zh.wikipedia.org/wiki/TCP%E5%BB%B6%E8%BF%9F%E7%A1%AE%E8%AE%A4">wiki</a>。</p>
+<p>简单来说的话就是<strong>接收端</strong>等待一定的时间再返回ack， 而这个一定的时间在RFC1122中规定最高可以达到500ms。没有ACK的话，Nagle算法合并的数据包就不会被发送出去， 知道<strong>延迟ACK</strong>超时后返回ACK， 这样就增加了往返时延，参考下图</p>
+<p><img src="img/nagle-2.png" alt="1553603862361"></p>
+<h2 id="0x03-nagle与粘包">0x03 Nagle与粘包</h2>
+<p>最后说一点其他与Nagle算法相关的东西，如果你在搜索引擎使用<strong>粘包</strong> ，<strong>TCP_NODELAY</strong>， <strong>Nagle</strong>等关键字搜索的话会看见很多文章有以下结论：</p>
+<blockquote>
+<p>通过设置TCP_NODELAY=1关闭Nagle算法可以解决TCP粘包的问题</p>
+</blockquote>
+<p>我这里直接上结论：<strong>Nagle算法并不是造成粘包的原因， 所以通过配置TCP_NODELAY=1并不能解决这个问题。</strong>（人在家中坐，锅从天上来， Nagle表示这锅我不背）</p>
+<p>我们都知道<strong>TCP</strong>是一个基于字节流的网络传输协议，它并不关注数据的机构。</p>
+<p>而我们所说的<code>粘包/半包</code>指的是接收的消息结构与期望不符， 既然TCP并不关注消息的结构自然也就不保证消息按结构交付了， 但是TCP会保证数据可靠，顺序的交付。</p>
+<p>比如我们基于TCP传送消息A和消息B, 见下图</p>
+<p><img src="img/tcp-1.png" alt="1553607242737"></p>
+<p>消息A由字节流中的A_1和A_2组成， 消息B由字节流中的B_1和B_2组成， 其中最右边的 <strong>?</strong> 表示着接收端多次(或1次)接收数据可能形成的结构， 可以参考下图</p>
+<p><img src="img/tcp-2.png" alt="1553607533585"></p>
+<p>上图中消息A和消息B粘在了一起，消息A和消息B的一部分粘在了一起都是属于粘包。</p>
+<p>到现在我们基本就明白了粘包/半包指的是应用层对接收到的不符合期望的消息结构的一种描述， 而这个问题本身就该应用层来处理。</p>
+<p><strong>关闭Nagle算法只是保证小数据会被立即发送而不会被合并进缓冲， 但是并不会保证应用层最后接收到的消息结构就符合期望。</strong></p>
+<h2 id="参考">参考</h2>
+<ol>
+<li><a href="https://zh.wikipedia.org/wiki/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AE">https://zh.wikipedia.org/wiki/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AE</a> TCP协议</li>
+<li><a href="https://en.wikipedia.org/wiki/Nagle%27s_algorithm">https://en.wikipedia.org/wiki/Nagle%27s_algorithm</a> Nagle算法</li>
+<li><a href="https://en.wikipedia.org/wiki/TCP_delayed_acknowledgment">https://en.wikipedia.org/wiki/TCP_delayed_acknowledgment</a> TCP延迟确认</li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

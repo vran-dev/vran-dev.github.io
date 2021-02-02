@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title>简单聊聊TCP的可靠性 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        简单聊聊TCP的可靠性
+                    </h1>
+                    <h2 class="headline">
+                    Aug 30, 2019 13:58
+                    · 458 words
+                    · 3 minute read
+                      <span class="tags">
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="简单聊聊tcp的可靠性">简单聊聊TCP的可靠性</h1>
+<h2 id="前言">前言</h2>
+<blockquote>
+<p>传输控制协议（缩写：TCP）是一种面向连接的、可靠的、基于<a href="https://zh.wikipedia.org/wiki/%E5%AD%97%E7%AF%80%E6%B5%81">字节流</a>的<a href="https://zh.wikipedia.org/wiki/%E4%BC%A0%E8%BE%93%E5%B1%82">传输层</a>通信协议，由 <a href="https://zh.wikipedia.org/wiki/IETF">IETF</a> 的 <a href="https://zh.wikipedia.org/wiki/RFC">RFC</a> <a href="https://tools.ietf.org/html/rfc793">793</a> 定义。</p>
+</blockquote>
+<p>TCP 在不可靠的 IP 协议之上实现了可靠性， 从而使得我们不必再去关注网络传输中的种种复杂性，所谓的可靠就是让我们去信任它即可。</p>
+<p>信任归信任，可我们还是的得去了解它，知道它为何值得信任，信任主要体现在哪些方面，换句话说就是</p>
+<ul>
+<li>TCP的可靠性是什么</li>
+<li>TCP如何实现的可靠性</li>
+</ul>
+<p>上面的问题就是本文讨论的核心点</p>
+<blockquote>
+<p>TCP 的可靠性实则是一个很大的话题，很多细节都值得深究，由于本人水平有限，文中很多描述都没有深入甚至可能有错误，读者若有不同观点，尽可提出。</p>
+</blockquote>
+<h2 id="什么是可靠性">什么是可靠性</h2>
+<p>其实在 <a href="https://tools.ietf.org/html/rfc793">RFC 793</a> 的 <code>1.5 Operation</code> 专门对 <strong>Reliability</strong> （可靠性）做了说明。</p>
+<p>总结下来如下</p>
+<blockquote>
+<p>确保一个进程从其接收缓存中读出的数据流是无损坏，无间隔，非冗余和按序的数据流；即字节流与连接的另一方端系统发送出的字节流是完全相同的</p>
+</blockquote>
+<h2 id="需要解决的问题">需要解决的问题</h2>
+<p>前面说到的可靠性，提到了<strong>无损坏</strong>，<strong>无间隔</strong>，<strong>非冗余</strong>和<strong>按序</strong>等几个关键词， 而在网络中要实现这些指标，我们都有对应的问题需要去解决。</p>
+<p>其中最典型的几个问题如下</p>
+<ul>
+<li>
+<p>干扰</p>
+<p>网络的干扰可能是因为硬件故障导致数据包受到破坏， 也有可能是网络波动导致数据包的某些 bit 位产生了变化</p>
+<blockquote>
+<p>题外话：这里的干扰并不包含恶意攻击，恶意攻击是属于传输安全的范畴了，比如我们熟知的 SSL/TLS 就是一个成熟的网络传输安全问题的解决方案</p>
+</blockquote>
+<p>如下图，发送的 <code>111</code> 由于干扰变成了 <code>101</code></p>
+</li>
+</ul>
+<p><img src="img/msg-interrupt.png" alt="image-20190829135044197"></p>
+<ul>
+<li>
+<p>乱序</p>
+<p>发送方连续先后发送两个数据包， 后发送的数据包可能先到达接收方，如果接收方按接收顺序处理数据包，这就会导致接收的数据包与发送的数据包不一致。</p>
+<p>造成这样的原因是因为每一个数据包都会根据当时的网络情况选择不同的路由进行传输， 就像多个人开车从上海到北京有很多路线可选，不一定先出发就能先到（我没去过北京，请不要杠我&hellip;&hellip;）</p>
+<p>如下图，发送方顺序发送了 <code> A -&gt; B -&gt; C</code> 三个数据包， 然而接收方可能是以 <code>A -&gt; C -&gt; B</code> 这样的顺序接收的报文，很明显 B 和 C 两个个报文的顺序不符合期望，产生了乱序</p>
+<p><img src="img/msg-out-order.png" alt="image-20190829153210016"></p>
+</li>
+<li>
+<p>丢包</p>
+<p>网络丢包是一个很常见的现象，造成的原因也多种多样，比较常见的有</p>
+<ol>
+<li>
+<p>接收方由于缓存溢出，导致无法再处理到来的数据包了，直接丢弃从而造成丢包</p>
+</li>
+<li>
+<p>网络拥塞导致数据包丢包</p>
+</li>
+<li>
+<p>数据包被检测到损坏了，被接收方丢弃造成了丢包</p>
+</li>
+<li>
+<p>&hellip;&hellip;</p>
+</li>
+</ol>
+<p>下图展示了这种情况，发送的数据 <code>CBA</code> 由于 <code>A</code> 产生了丢包，导致接收方只收到了 <code>CB</code></p>
+<p><img src="img/msg-lose.png" alt="image-20190829135215908"></p>
+</li>
+<li>
+<p>冗余</p>
+<p>发送方可能因为某些原因重复发送了同一个数据包，接收方要有能力处理这种冗余数据包。</p>
+<p>比如发送方发送的一个数据包因为网络拥塞迟迟没有被接收方收到， 发送方认为产生了丢包就又重发了一次，最终接收方收到了两个同样的数据包，产生了数据冗余</p>
+</li>
+</ul>
+<p><img src="img/msg-repeat.png" alt="image-20190829135228481"></p>
+<p>在继续往下看之前，可以先思考一下: 你会如何去解决这些问题？</p>
+<h2 id="0x01-解决干扰">0x01 解决干扰</h2>
+<p>为了能够检测到数据包在传输过程中是否发生了差错，TCP 引入了<strong>checksum</strong>。</p>
+<blockquote>
+<p>checksum 的具体细节可以查阅<a href="https://tools.ietf.org/html/rfc1071">RFC1071</a></p>
+</blockquote>
+<p>下图是 TCP 的报文结构，蓝色部分就是 checksum</p>
+<p><img src="img/tcp-payload-1.png" alt="image-20190829153234566"></p>
+<p>**checksum **是一个 16bit 长的字段，发送方在计算 checksum 时会先将报文中的 <strong>Checksum</strong> 置零，然后基于整个报文（头部 + 数据部分）计算出 checksum 。</p>
+<blockquote>
+<p>实际上还会加上96bit的伪头部，可以参考 <a href="https://tools.ietf.org/html/rfc793">RFC 793</a> Header Format 一节</p>
+</blockquote>
+<p>接收方在收到报文后也会计算 checksum</p>
+<ul>
+<li>如果计算结果符合期望值，说明数据包没有收到干扰/损坏</li>
+<li>如果不符合期望，一般会直接丢弃该数据包</li>
+</ul>
+<p>做后端的同学应该很熟悉，这就和我们平常做API开发时的数据签名一样。</p>
+<p>checksum 的主要作用是校验报文是否在传输过程中因为某些原因产生了变化（干扰），它并不能解决安全的问题。</p>
+<blockquote>
+<p>TCP的 checksum 也有一定的限制，并不一定100%能检测到数据包产生的错误</p>
+</blockquote>
+<h2 id="0x02-解决乱序和冗余">0x02 解决乱序和冗余</h2>
+<p>请先回顾一下前面谈到乱序时的一个示例图。</p>
+<p>乱序有多个解决方案，一个很简单的易懂的方法就是：接收方收到数据包后，再通知发送发送方发送下一个。</p>
+<p>也就是俗称的 停-等 协议，虽然可以保证数据的有序性，但是这样的方案对网络利用率实在是太低了。</p>
+<p>（如下图所示）</p>
+<p><img src="img/seq-ack.png" alt="image-20190830210734529"></p>
+<p>另一个很朴实的解决方案就是为每个报文标上序号， 这样接收方在收到报文后只需要按序号对报文排序就可以得到有序的报文了，过程如下图所示</p>
+<p><img src="img/seq-ack2.png" alt="image-20190829153255448"></p>
+<p>实际上 TCP 协议采用的就是为报文加上序号这样的方法</p>
+<p>TCP 的报文结构上维护着一个  <code>seq</code>  (<code>Sequence Number</code> ），如下图的红色区域所示</p>
+<p><img src="img/image-20190829153317941.png" alt="image-20190829153317941"></p>
+<p>TCP 的发送端和接收端各自独立维护一个 <code>seq</code> ，  <code>seq</code> 的初始值是在创建连接时初始化的（值是随机的）。</p>
+<p>有一个控制位 <code>SYN</code> 就是专门用来在发送方和接收方同步 <code>seq</code> 的 （这里的同步指的是让对方知道自己的 seq 初始值是多少）</p>
+<blockquote>
+<p>详细内容参考RFC 793 的 3.3. Sequence Numbers</p>
+</blockquote>
+<p>建立连接后，发送的每一个报文都会携带 <code>seq</code>。</p>
+<p>如下图所示，假设初始 <code>seq=1</code> ，发送的第一个报文 <strong>A</strong> 的长度为 12， 那么发送第二个报文 <strong>B</strong> 的 <code>seq=1+12=13</code>。</p>
+<p><img src="img/seq.png" alt="image-20190829142404675"></p>
+<p><img src="img/seq-2.png" alt="image-20190829141620413"></p>
+<p>接收方接收到多个报文后，可以基于 seq 对数据包进行升序排序，并且通过检查 <code>seq</code> 的值，可以判断接收的数据包之间是否有间隔。</p>
+<p>除此之外，<code>seq</code> 使得 TCP 有能力处理重复数据包的问题（幂等），因为接收方可以根据 <code>seq</code> 判断出该数据包是不是已经被接收了，这样顺带还解决了数据冗余的问题。</p>
+<h2 id="0x03-解决丢包">0x03 解决丢包</h2>
+<p>丢包的原因可能各式各样，先从一个简单的场景开始开始分析：</p>
+<p><strong>假设没有丢包的情况下，如何让发送方知道接收方已成功接收到数据包了呢？</strong></p>
+<p>这就像人与人之间交谈，你如何判断对方听见了呢？</p>
+<p>现实生活中我们靠的是对方的响应来做出判断</p>
+<p><img src="img/phone-call.png" alt="image-20190829153334520"></p>
+<p>TCP也采用类似的机制，我们一般称之为 <code>ACK</code> (Acknowledgment)：接收方在收到数据包以后会对发送方响应一个特定的数据包。</p>
+<p>还是继续看一下TCP的结构图，注意绿色区域的 <code>Acknowledgment Number</code> （后面简称 <code>ack</code>）</p>
+<blockquote>
+<p>注意大写ACK和小写ack是有区别的</p>
+<p>大写ACK一般指的是报文的类型</p>
+<p>小写ack指的就是这个 32bit 长的号码</p>
+</blockquote>
+<p><img src="img/tcp-payload.png" alt="image-20190829153350639"></p>
+<p><code>ack</code> 与 <code>seq</code> 都是32bit长，前面我们说到TCP建立连接后发送的报文都会带上 <code>seq</code> ， 接收方在收到报文后，会响应一个类型为 <strong>ACK</strong> 的报文。</p>
+<p>报文的 <code>acknowledgment number</code>的值是接收方下次期望收到的报文的<code>seq</code>值</p>
+<blockquote>
+<p>实际上 ack 的值会受很多情况影响， 比如 TCP 的累积确认机制， 选择重传机制等等都会影响 ack 的值，细节可以参考<a href="https://tools.ietf.org/html/rfc793">RFC 793</a></p>
+</blockquote>
+<p>有了 <code>ACK</code> 后， 发送方就可以知道报文有没有被正确接收了</p>
+<p>请看下图，这是一个简单的交互， 发送方发送数据，接收方确认数据后做出响应</p>
+<p><img src="img/ack.png" alt="image-20190829153629735"></p>
+<p>前面我们都是基于没有丢包的情况进行分析的，如果会产生丢包呢？</p>
+<p><code>ACK</code> 并没有解决丢包的问题</p>
+<ul>
+<li>发送的数据如果丢包了就没有 <code>ACK</code></li>
+<li><code>ACK</code> 如果丢包了，发送方就不知道数据是否被正确接收</li>
+</ul>
+<p>如下图所示：</p>
+<p><img src="img/ack-2.png" alt="image-20190829153642763"></p>
+<p>此时我们引入 <strong>超时</strong> 和 <strong>重传</strong>， 结合 <code>ACK</code> 机制一起来应对丢包的问题</p>
+<ul>
+<li>发送方发送一个未被确认的数据包后就启动一个计时器</li>
+<li>如果在指定时间内没有收到 <code>ACK</code> ， 发送方可以重传该报文</li>
+</ul>
+<p><img src="img/ack-3.png" alt="image-20190829153659573"></p>
+<p><strong>超时重传</strong> + <strong>ACK</strong> 也有一个小问题，就是最开始提到的数据冗余问题。</p>
+<p>重传数据包可能导致接收方接收到多个重复的数据包， 如果你还没忘记的话，这个可以通过前面一节说到的 <code>seq</code> 去解决</p>
+<blockquote>
+<p>实际上 TCP 的<strong>拥塞控制</strong>也是预防丢包的有效机制之一，有兴趣的同学可以去了解</p>
+</blockquote>
+<h2 id="0x04-基本可靠">0x04 基本可靠</h2>
+<p>在回顾一下我们最开始对可靠的要求</p>
+<blockquote>
+<p>确保一个进程从其接受缓存中读出的数据流是无损坏，无间隔，非冗余和按序的数据流&hellip;&hellip;</p>
+</blockquote>
+<p>前面我们通过 checksum、 seq、ack、超时重传等机制，算是达到了一个可靠性的基本要求， 为什么说是基本可靠呢？</p>
+<p>因为到目前为止我们的场景还都相对简单，所以会忽略掉很多变量和细节问题。</p>
+<p>比如我们都没有提到很重要的 <strong>滑动窗口</strong>，<strong>拥塞控制</strong>，<strong>路有选择</strong>等， 但实际上这些也是 TCP 在复杂的网络环境中实现可靠性不可或缺的东西。</p>
+<h2 id="0x05-番外篇">0x05 番外篇</h2>
+<p>本节作为番外篇，可以认为是对前面内容的一些补充，补充主要也是针对一些细节的地方，以 FAQ 的方式进行表述。</p>
+<ol>
+<li>
+<p>每个 <code>seq</code> 都需要一个 <code>ack</code> 吗？</p>
+<p>当然不是</p>
+<p>发送方可以直接发送多个报文， 接收方在接收到报文后先不急着响应 <code>ack</code>，因为后续报文可能马上到达， 这就是 <code>ACK延迟确认</code></p>
+<p>延迟确认可以让我们同时对多个接受的报文进行一次确认，这个又称之为<code>累积确认</code></p>
+<p>这样接收方就不必对每个报文都进行确认，接收到多个报文后如果延迟时间内没有报文到来，就发送下一个期望接收报文的 <code>ack</code>， 如下图所示</p>
+<p><img src="img/faq-1.png" alt="image-20190829153801061"></p>
+</li>
+<li>
+<p>上图中，如果同时发送多个 seq 报文，若中间某一个丢包，ack 如何响应呢？</p>
+<p>一般接收方会有一个接收缓冲，会缓存接收到的报文，这些报文按 seq 值排序,  如果中间缺少某段报文，那么接收方就会响应这段报文的 seq 值。</p>
+<p>如下图所示，发送方发送了 <code>seq=1,seq=2,seq=3</code> 的报文， <code>seq=2</code> 丢包， 但是接收方缓存了 1 和 3，所以知道这部分报文不连续，中间缺少 2，所以响应了一个 <code>ack=2</code>  (一般叫做最小ack)。</p>
+<p>发送方重发 seq=2 的报文， 接收方发现 <code>1,2,3</code> 已经完整接收了，就响应下一个期望值, 即响应 <code>ack=4</code>。</p>
+<p><img src="img/faq-2.png" alt="image-20190830213137102"></p>
+</li>
+<li>
+<p>每发送一个报文就启动一个定时器吗？</p>
+<p>为了保证可靠性，TCP增加了<strong>超时重传</strong>机制， 使得每个<strong>未被确认</strong>（ACK）的报文在一定时间后可以被重新发送。</p>
+<p>一种实现方式就为每个未被确认的报文都单独配置一个计时器，可是这样做的话开销太大了。</p>
+<p>在 <a href="https://tools.ietf.org/html/rfc6298">RFC 6298</a> 的 <code>Managing the RTO Timer</code> 中提及了一种<strong>单一计时器</strong>的管理方式（具体细节请参考文档）</p>
+<blockquote>
+<p>每个已发送但未确认数据包都会被放进队列里， 这个队列持有一个单独的计时器。</p>
+<p>当第一个数据包进入队列时，计时器启动了。</p>
+<p>如果计时器超时，队列头部的数据包会被重发，并且计时器重新计时。</p>
+<p>当收到ACK时，计时器也会重启。</p>
+<p>队列的所有数据都被确认了的话，就关闭定时器。</p>
+</blockquote>
+</li>
+<li>
+<p>超时时间怎么设置呢？</p>
+<p>重传超时时间（Retransmission TimeOut）， 一般简称 <strong>RTO</strong>， 这个时间既不能太长也不能太短。</p>
+<ul>
+<li>太长可能会出现数据包已经丢了，但还要等待无谓的时间才能重传</li>
+<li>太短可能数据包尚未到达，此时发生重传，浪费了资源</li>
+</ul>
+<p>往返时延 <a href="https://baike.baidu.com/item/RTT">RTT</a> （Round Trip Time）是配置 RTO 的一个重要指标， 但是由于网络间端到端的 RTT 并不是固定的，所以 TCP 采用了一种自适应的方法来计算 RTT， 并且根据计算的值来配置 RTO。</p>
+<p>整个过程是动态的，也就是说当 RTT 变化时，RTO 也能相应的做出调整。</p>
+<p>具体的细节可以参考 <a href="https://tools.ietf.org/html/rfc6298">RFC 6298</a> 的 <code>The Basic Algorithm</code></p>
+</li>
+<li>
+<p>一定要超时了才重传吗？</p>
+<p>TCP 有一个<strong>快速重传</strong>机制， 当一个接收方收到三个以上的重复 <code>ack</code> 时，接收方就会直接根据 <code>ack</code> 的值重传对应的报文而无需等待超时。</p>
+<p>下图展示了一个简单的示例</p>
+<p><img src="img/faq-5.png" alt="image-20200714161030885"></p>
+<ol>
+<li>
+<p>发送方发送了 seq=1、 seq=2、 seq=3、 seq=4 的报文</p>
+</li>
+<li>
+<p>seq=1的报文发送了丢包</p>
+</li>
+<li>
+<p>接收方分别接受到了 <code>2,3,4</code> 的报文，接收方缓存收到的报文，通过检查 seq 知道报文不连续，缺少 <code>seq=1</code> 的报文， 所以每次都响应 <code>ack=2</code></p>
+</li>
+</ol>
+<pre><code>（为了简化描述，我们不考虑延迟确认和缓冲区大小）
+</code></pre>
+<ol start="4">
+<li>
+<p>发送方连续收到了 3 个 <code>ack=2</code> 的报文，所以认为 <code>seq=1</code> 的报文丢包了，重传 <code>seq=1</code></p>
+</li>
+<li>
+<p>接收方收到 <code>seq=1</code> 的报文后，发现 seq=2、seq=3、seq=4 已经接收过了，直接响应 <code>ack=5</code></p>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="总结">总结</h2>
+<p>我们看见 TCP 在实现<strong>可靠性</strong>上做出了很多精妙的设计，这些设计在大的方面追求至简，而在细节又追求极致，绝对是非常值得学习和思考的。</p>
+<p>而且这些设计在现在的软件中也可以经常看见它们的影子</p>
+<ul>
+<li>比如消息队列有类似的 ack 机制去确保消息已经被投递</li>
+<li>比如为了保证异步消息的有序性也会有类似 <code>seq</code> 的机制</li>
+</ul>
+<p>正如前言所说，<strong>可靠性</strong> 实则是一个很大的话题，不可避免的我还是留下了很多坑，如果有错误的地方，还望指出。</p>
+<h2 id="参考">参考</h2>
+<ol>
+<li>James F.Kurose， Keith W.Ross 著 陈鸣译。《计算机网络 自顶向下方法》 (第六版)</li>
+<li><a href="https://en.wikipedia.org/wiki/Transmission_Control_Protocol">维基百科 TCP</a></li>
+<li><a href="https://tools.ietf.org/html/rfc793">RFC 793</a></li>
+<li><a href="https://tools.ietf.org/html/rfc1071">RFC 1071</a></li>
+<li><a href="https://tools.ietf.org/html/rfc6298">RFC 6298</a></li>
+<li><a href="https://zh.wikipedia.org/wiki/%E4%B8%80%E8%A3%9C%E6%95%B8">一的补数</a></li>
+<li><a href="https://zh.wikipedia.org/wiki/%E4%BA%8C%E8%A3%9C%E6%95%B8">二的补数</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Round-trip_delay_time">往返时延</a></li>
+<li><a href="https://baike.baidu.com/item/TCP%E8%B6%85%E6%97%B6%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6">TCP超时重传机制</a></li>
+<li><a href="https://zh.wikipedia.org/wiki/%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6">拥塞控制</a></li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

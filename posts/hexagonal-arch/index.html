@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<meta name="author" content="vran">
+		<meta name="description" content="且徐行">
+		<meta name="generator" content="Hugo 0.80.0" />
+		<title>架构简谈：从分层到六边形 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+
+		
+		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
+		
+
+		
+
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://blog.cc1234.cc/'> <span class="arrow">←</span>Home</a>
+	
+	<a href='https://blog.cc1234.cc/posts'>Archive</a>
+	<a href='https://blog.cc1234.cc/tags'>Tags</a>
+	<a href='https://blog.cc1234.cc/about'>About</a>
+
+	
+
+	
+</nav>
+
+
+        <section id="wrapper" class="post">
+            <article>
+                <header>
+                    <h1>
+                        架构简谈：从分层到六边形
+                    </h1>
+                    <h2 class="headline">
+                    Dec 7, 2019 11:49
+                    · 99 words
+                    · 1 minute read
+                      <span class="tags">
+                      
+                      
+                          
+                              <a href="https://blog.cc1234.cc/tags/%E6%9E%B6%E6%9E%84">架构</a>
+                          
+                      
+                      
+                      </span>
+                    </h2>
+                </header>
+                
+                <section id="post-body">
+                    <h1 id="架构演化论从分层到六边形">架构演化论：从分层到六边形</h1>
+<h2 id="分层架构">分层架构</h2>
+<p>分层架构模式被认为是所有架构的始祖，该架构将系统从上至下划分为不同的层级，层与层之间定义了明确的依赖限制，按照限制的强弱可以分为严格分层和松散分层两种风格。</p>
+<p>不管是严格分层还是松散分层，最基本的规则都一样：上层可以依赖下层，而下层不能依赖上层。</p>
+<p>严格分层相对于松散分层的不同点在于是否限制同层依赖和跨层依赖。</p>
+<p><img src="img/image-20191223181146409.png" alt="image-20191223181146409"></p>
+<p>分层架构强调层与层之间的边界，明确的边界可以降低耦合，使得职责更加清晰。</p>
+<p>在分层中，底层往往比上层稳定，自上而下的依赖就完全符合了<strong>稳定依赖原则</strong>，如果采用严格分层模式（禁止同层依赖）的话，还可以避免循环依赖。</p>
+<p><img src="img/image-20191223181755151.png" alt="image-20191223181755151"></p>
+<blockquote>
+<p><strong>David Wheeler</strong>: All problems in computer science can be solved by another level of indirection</p>
+</blockquote>
+<p>然而在现实系统开发中，随着业务的变化，分层架构也不是那么好把控的，主要在于以下几点</p>
+<ul>
+<li>
+<p>分层会增加，而新加的分层边界往往又不是很明确，这样就形成了一个模糊层</p>
+</li>
+<li>
+<p>模糊层可能会形成隐藏的循环依赖</p>
+</li>
+</ul>
+<p><img src="img/image-20191223184015238.png" alt="image-20191223184015238"></p>
+<h2 id="演进之路">演进之路</h2>
+<p>下面以我们常见的三层架构来看看，分层是如何演进成为六边形架构的。</p>
+<p>我想 controller =&gt; service =&gt; dao 是每个后端同学都很熟悉的架构了，这是一个很典型的分层架构，并没有什么多说的</p>
+<p><img src="img%5Cimage-20191223223045496.png" alt="image-20191223223936531"></p>
+<p>当分层和 DIP (依赖倒置原则) 相遇时，会产生另外的化学反应。</p>
+<p>controller 和 service 都依赖于 interface，dao 和 service 也都依赖于 interface。</p>
+<p>这是一个非常典型的 DIP：抽象不应该依赖于细节，细节应该依赖于抽象</p>
+<p><img src="img%5Cimage-20191223224351615.png" alt="image-20191223224351615"></p>
+<p>当我们再将这个依赖关系平铺开，就成了这个样子了。多层次关系被拍平了，只剩下内外两层。</p>
+<p><img src="img%5Cimage-20191223224700123.png" alt="image-20191223224700123"></p>
+<p>这其实就是一个典型的六边形架构了，是不是感觉被糊弄了？</p>
+<p>然而这就是事实，当分层架构和 DIP 结合起来的时候，我们已经在使用六边形架构的风格了。</p>
+<p>那么难道 <strong>DIP + 分层 = 六边形架构</strong> 吗？，关于这个问题 Vaughn Vernon 在其著作《实现领域驱动设计》中有过解答：</p>
+<blockquote>
+<p>很多声称使用分层架构的团队实际使用的是六边形架构。</p>
+<p>这是因为很多项目都是用了某种形式的依赖注入，并不是说依赖注入天生就是六边形架构，而是依赖注入的架构自然的就有了六边形架构风格。</p>
+</blockquote>
+<h2 id="六边形架构">六边形架构</h2>
+<p>六边形架构是由 Alistair Cockburn 博士提出的，与分层架构按层级（从上至下或从左至右）看待系统不一样，六边形架构提倡用外部和内部的视角来看待系统。</p>
+<p><img src="img/image-20191206174116021.png" alt="image-20191206174116021"></p>
+<p>这样的视角使得内部可以平等的对待所有外部的依赖，多个分层直接被简化为了内外两层。</p>
+<p>你可能会认为这还是一个分层架构，只不过是内层和外层，而这样理解也没错。</p>
+<p>下面来看一下六边形架构图</p>
+<p><img src="img/image-20191223174150630.png" alt="image-20191223174150630"></p>
+<p>六边形架构中的核心概念是 port 和 adapter （端口和适配器），所以六边形架构又被称为<strong>端口与适配器架构</strong>。</p>
+<p>port 要么处理输入，要么处理输出，它提供了一种与应用交互的入口，并且每个 port 都有一个对应的 adapter。</p>
+<p>比如 HTTP、AMQP、RESP（redis 协议）等协议就是 port 。</p>
+<p>那么核心领域为什么不直接与 port 进行交互，而需要一个 adapter 来做适配呢？</p>
+<p>实则还是为了解耦，使得核心领域外的细节决策可以延迟，直到我们拥有更多的信息来做出合理的决策。</p>
+<h2 id="参考">参考</h2>
+<ol>
+<li>
+<p><a href="https://www.infoq.cn/article/dXbG-kxrO4KNYD7vKUiZ">端口和适配器架构——DDD 好帮手</a></p>
+</li>
+<li>
+<p><a href="https://book.douban.com/subject/30333919/">《架构整洁之道》</a></p>
+</li>
+</ol>
+
+                </section>
+            </article>
+
+            
+
+            
+
+            
+                <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/java-biased-locking/"> 你知道为什么 Java 会放弃偏向锁吗？ <aside class="dates">Feb 1 2021</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">Nov 22 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">Aug 18 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">Aug 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">Jul 25 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-2/">真的学不动了：Scala3 与 Type classes<aside class="dates">Jul 19 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/typeclasses-1/">真的学不动了：除了 class , 也该了解 Type classes 了<aside class="dates">Jul 15 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/polymorphism/">多态都不知道，谈什么对象<aside class="dates">May 27 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/xingren-wx-service-refactor/">一次微服务重构总结 <aside class="dates">May 10 2020</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/spring-ant-matcher-note/">Spring Ant-Style Matcher 笔记<aside class="dates">May 4 2020</aside></a>
+        </li>
+    
+</ul>
+
+            
+ <script src="https://utteranc.es/client.js"
+           repo="vran-dev/vran-dev.github.io"
+          issue-term="pathname"
+           label="Comment"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
+
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://github.com/vran-dev">
+        github
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
+    
+    </p>
+    <p class="small">
+        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
+<script src="https://blog.cc1234.cc/js/main.js"></script>
+<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+    </body>
+</html>

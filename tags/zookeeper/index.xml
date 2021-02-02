@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zookeeper on 且徐行</title>
+    <link>https://blog.cc1234.cc/tags/zookeeper/</link>
+    <description>Recent content in Zookeeper on 且徐行</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 22 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/zookeeper/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>我是如何开发了一款‘有人用’的开源软件</title>
+      <link>https://blog.cc1234.cc/posts/how-to-develop-prettyzoo/</link>
+      <pubDate>Sun, 22 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/how-to-develop-prettyzoo/</guid>
+      <description>我是如何开发了一款“有人用”的开源软件 背景 PrettyZoo 是在去年国庆（2019 年）时开发的一个用于管理 Zookeeper 的桌面图形化工具，当时是因为在学习 Elastic-Job-Lite 框架的源码时涉及到了 Zookeeper，想着借助图形化工具去更直观的了解整个框架的设计，但在市面上却找不到一款符合自己期望的产品，那就只能自己动手丰衣足食了，这算是 PrettyZoo 诞生的初衷了。
+其实我已经写过一篇文章来简单介绍过这个产品的研发历程（从 Java8 到 Java11 ： PrettyZoo 开发回顾（模块化在 GUI 中的实践））, 不过那篇文章主要侧重于产品的技术演进过程，这一篇文章是基于国庆重构后的全新版本来写的，记录了自己在这个重构的过程中各个阶段所做的事情，主要包括以下内容
+ 需求分析 原型设计 技术选型 架构设计 成品展示  需求分析 上一节的背景描述了我为什么要开发这样一款软件，而这一节的主要内容则是分析我想要开发的软件应该有的功能点。
+该产品是用于管理 Zookeeper 数据，那么需求其实也需要围绕着 Zookeeper 的功能来分析，这就像为人作肖像画一样，得先去分析目标的特性。
+我将分析后的需求整理成了下面的一个表格，并对功能的优先级、必要性做了标注
+   需求 优先级 是否必须     连接创建 高 √   连接删除 高 √   节点展示 高 √   节点创建 高 √   节点删除 高 √   节点数据更新 高 √   递归操作支持 中 √   节点数据格式化（JSON、YAML） 低 ×   SSH Tunnel 支持 中 ×   ACL 支持 中 √   配置导入/导出 中 ×         当然实际的产品开发中还会去调查类同类产品，去参考它们的功能、设计等， 这方面我就略过了。</description>
+    </item>
+    
+  </channel>
+</rss>
