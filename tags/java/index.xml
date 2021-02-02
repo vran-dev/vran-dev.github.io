@@ -6,14 +6,38 @@
     <description>Recent content in Java on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 22 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 01 Feb 2021 23:45:00 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title> 你知道为什么 Java 会放弃偏向锁吗？ </title>
+      <link>https://blog.cc1234.cc/posts/java-biased-locking/</link>
+      <pubDate>Mon, 01 Feb 2021 23:45:00 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/java-biased-locking/</guid>
+      <description>前言 随着 JDK15 的 Release，大量的新特性也和开发者们正式见面了（虽然不一定能用上&amp;hellip;&amp;hellip;），最引入注目的应该是 Text Block、Pattern Matching for instanceof (Second Preview) 等语法，因为这些特性是实实在在的影响了大家的开发体验。
+而本文要讨论的却不是这些特性，而是关于废弃偏向锁的特性
+ Disable and Deprecate Biased Locking（禁用和废弃偏向锁）  什么是偏向锁？ 在 Java 中，synchronized 关键字可以确保同一时间内只有一个线程进入临界区
+ 临界区：可以是整个方法体，也可以是方法的局部块
+ 在 JDK1.6 以后，JVM 特地针对 synchronized 进行了优化，引入了锁升级的概念，锁状态只可升级不可降级。
+无锁 -&amp;gt; 偏向锁 -&amp;gt; 轻量级锁 -&amp;gt; 重量级锁 这里面我们主要关注偏向锁，它是 HotSpot VM 提供的一种用于减少锁开销的优化技术。
+它的原理其实很简单：当线程进入第一次同步块以后，锁持有的对象头的偏向锁标记会被置为 1 ，如果未来一段时间内都是同一个线程访问该同步快的话就不用执行加锁操作了。
+如果有另一个线程进入同步快的话，偏向锁就会升级到轻量级锁。
+由此可以看出来如果同步块只有一个线程访问的话，偏向锁是可以带来显著的性能提升的。
+既然如此，为何要废弃掉呢？
+为什么要废弃？ 偏向锁带来的性能收益降低 在现今，偏向锁带来的性能提升远不如过去那么明显了。
+在过去，旧的 Java 应用通常使用的都是比较老的集合库，比如 HashTable、Vector 等，这些集合库对应的方法都被 synchronized 修饰了。
+如果在单线程使用这些集合库就会造成不必要的加锁操作，导致性能下降。
+而新的无锁集合库，如 HashMap、ArrayList 等就没有这样的问题，如果是在多线程情况下，也有 ConcurrentHashMap、CopyOnWriteArrayList 等性能更好的线程安全的集合库。
+所以在使用了新的集合库的情况下，偏向锁带来的收益会降低。
+在多线程情况下，经常会使用到线程池，关闭偏向锁反而更好。</description>
+    </item>
+    
     <item>
       <title>我是如何开发了一款‘有人用’的开源软件</title>
       <link>https://blog.cc1234.cc/posts/how-to-develop-prettyzoo/</link>
       <pubDate>Sun, 22 Nov 2020 00:00:00 +0000</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/how-to-develop-prettyzoo/</guid>
-      <description>我是如何开发了一款“有人用”的开源软件 背景 PrettyZoo 是在去年国庆（2019 年）时开发的一个用于管理 Zookeeper 的桌面图形化工具，当时是因为在学习 Elastic-Job-Lite 框架的源码时涉及到了 Zookeeper，想着借助图形化工具去更直观的了解整个框架的设计，但在市面上却找不到一款符合自己期望的产品，那就只能自己动手丰衣足食了，这算是 PrettyZoo 诞生的初衷了。
+      <description>背景 PrettyZoo 是在去年国庆（2019 年）时开发的一个用于管理 Zookeeper 的桌面图形化工具，当时是因为在学习 Elastic-Job-Lite 框架的源码时涉及到了 Zookeeper，想着借助图形化工具去更直观的了解整个框架的设计，但在市面上却找不到一款符合自己期望的产品，那就只能自己动手丰衣足食了，这算是 PrettyZoo 诞生的初衷了。
 其实我已经写过一篇文章来简单介绍过这个产品的研发历程（从 Java8 到 Java11 ： PrettyZoo 开发回顾（模块化在 GUI 中的实践））, 不过那篇文章主要侧重于产品的技术演进过程，这一篇文章是基于国庆重构后的全新版本来写的，记录了自己在这个重构的过程中各个阶段所做的事情，主要包括以下内容
  需求分析 原型设计 技术选型 架构设计 成品展示  需求分析 上一节的背景描述了我为什么要开发这样一款软件，而这一节的主要内容则是分析我想要开发的软件应该有的功能点。
 该产品是用于管理 Zookeeper 数据，那么需求其实也需要围绕着 Zookeeper 的功能来分析，这就像为人作肖像画一样，得先去分析目标的特性。
@@ -22,12 +46,65 @@
     </item>
     
     <item>
+      <title> VAVR：颠覆你的 Java 体验 </title>
+      <link>https://blog.cc1234.cc/posts/vavr-1/</link>
+      <pubDate>Sat, 25 Jul 2020 09:50:00 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/vavr-1/</guid>
+      <description>何方神圣？ 众所周知， Java8 在一定程度上支持了函数式编程，但标准库提供的函数式 API 不是很完备和友好。
+为了更好的进行函数式编程，我们就不得不借助于第三方库，而 VAVR 就是这方面的佼佼者，它可以有效减少代码量并提高代码质量。
+VAVR 可不是默默无闻之辈，它的前身是发布于 2014 年的 Javaslang，目前在 github 上有着近 4k 的 star。
+看到这儿，很多人就说我标题党了，一个 Java 库还来颠覆 Java ？
+这可不不是我玩震惊体，打开 VAVR 的官网 ，它的首页就用加粗字体写着 「vavr - turns java™ upside down」
+这翻译过来不就是颠覆 Java 吗？
+食用指南 阅读本文需要读者对 Java8 的 lambda 语法和常用 API 有一定的了解。
+由于是一篇框架的介绍文（地推 ing），为了避免写成官方文档的翻译，本文会有一些约束
+ 不会穷尽所有特性和 API，仅做抛砖引玉 不会深入到源码细节  关于示例代码，基本会以单元测试的形式给出并保证运行通过
+ 注：本文使用的 VAVR 版本为 0.10.3，JDK 版本为 11。
+ 先来个概览
+集合，全新的开始 不得不说 Java8 的集合库引入 Stream 以后确实很好用，但也正是因为使用了 Stream，不得不写很多样板代码，反而降低了不少体验。
+// of 方法是 Java9 开始提供的静态工厂 java.</description>
+    </item>
+    
+    <item>
+      <title>真的学不动了：除了 class , 也该了解 Type classes 了</title>
+      <link>https://blog.cc1234.cc/posts/typeclasses-1/</link>
+      <pubDate>Wed, 15 Jul 2020 18:45:00 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/typeclasses-1/</guid>
+      <description>前言 作为一个 Java 开发者， class 的概念肯定是耳熟能详了，可是在山的另一边还有拥有别样风情的 type classes，但不翻过 Java 这座山，它就始终隔着一层纱。
+一个经典的问题 在编程中，经常需要判断两个值是否相等，这就是判等问题， 然而在很长的一段时间内这个问题都没有一个标准的解决方案。
+ 我这里统一使用 “值” 来代替对象、基本类型等等概念，以便于简化沟通
+ 在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
+public void test() { boolean res = &amp;#34;hello&amp;#34; == &amp;#34;world&amp;#34;; boolean res2 = &amp;#34;hello&amp;#34;.equals(&amp;#34;hello&amp;#34;); boolean res3 = 3 == 3; boolean res4 = 5 == 9; } 熟悉 Java 的同学都知道对于非基础类型， equals 方法的默认实现其实就是调用 == 操作符，而 == 操作比较的是对象的引用地址
+public class Object { // ......  public boolean equals(Object obj) { return (this == obj); } // .</description>
+    </item>
+    
+    <item>
+      <title>多态都不知道，谈什么对象</title>
+      <link>https://blog.cc1234.cc/posts/polymorphism/</link>
+      <pubDate>Wed, 27 May 2020 23:40:26 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/polymorphism/</guid>
+      <description>前言 封装、继承、多态作为 OOP 世界的老三样，几乎是必背的关键词。
+而在刚学习 Java 的很长一段时间，我对多态的理解一直处理很迷糊的状态，重载是多态吗？泛型是多态吗？继承关系是多态吗？
+实际上都是，无论重载、泛型，还是继承关系都是多态的一个具体体现，也被归属为不同的多态分类
+ Ad hoc polymorphism（特定多态，也译作特设多态） Parametric polymorphism（参数化多态） Subtyping（子类型多态）  当然不止上面三种分类，像 Scala 就还有另外一种多态分类
+ Row polymorphism（行多态）  别被这些名词概念唬住，下面我们就通过代码实例来一一过一遍。
+Ad hoc polymorphism（特定多态） 特定多态是由 Christopher Strachey 在 1967 年提出来的，从它的取名我们可以大概猜到，它是针对于特定问题的多态方案，比如：
+ 函数重载 操作符重载  函数重载指的是多个函数拥有相同的名称，但却拥有不同的实现。
+比如下面的函数重载示例，展示了两个名为 print 的 函数，一个打印字符串，一个打印图像。
+public void print(String word) { ... } public void print(Image image) { ... } 操作符重载本质上是一个语法糖，实际的体验与函数重载相似，以 Java 中的 + 操作符为例：
+ 实际上 Java 的 + 不完全算是操作符重载，因为它针对于字符串的操作其实是将 + 转译成了 StringBuilder 来处理的，算是语法糖。</description>
+    </item>
+    
+    <item>
       <title>Spring Ant-Style Matcher 笔记</title>
       <link>https://blog.cc1234.cc/posts/spring-ant-matcher-note/</link>
       <pubDate>Mon, 04 May 2020 11:40:46 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/spring-ant-matcher-note/</guid>
-      <description>Spring Ant-Style Matcher 笔记 在使用 Spring 的时候经常会写路径相关的配置，比如
+      <description>在使用 Spring 的时候经常会写路径相关的配置，比如
  @RequestMapping 中配置请求路径 @ComponentScan 中配置包路径 为 Interceptor 配置规则 &amp;hellip;&amp;hellip;  而这些路径的配置规则中，我们经常会看见 、* 等类似于正则表达式的符号，这实际上就是 Spring 的路径匹配规则。
 Spring 默认有一个 AntPathMatcher 类用于处理这类路径的规则匹配， 它借鉴了 Ant 的实现（如果你感兴趣的话，可以在点击这里进行了解），这也是为什么称之为 Ant-Style 的原因。
  题外话：Ant 是一个自动化构建工具，最开始是为了解决 Tomcat 的构建问题而诞生的
@@ -41,7 +118,7 @@ Spring 默认有一个 AntPathMatcher 类用于处理这类路径的规则匹配
       <pubDate>Mon, 27 Apr 2020 21:19:45 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/hashmap-some-detail/</guid>
-      <description>HashMap 的细节笔记 HashMap 的节点转为红黑树以后，树形节点之间是基于什么来比较的呢？ 首先会根据 key 的 Hash 值来进行比较，如果相等的话，会再判断 key 是否实现了 Comparable 接口，如果是的话，可以直接通过 compareTo 方法进行比较。
+      <description>HashMap 的节点转为红黑树以后，树形节点之间是基于什么来比较的呢？ 首先会根据 key 的 Hash 值来进行比较，如果相等的话，会再判断 key 是否实现了 Comparable 接口，如果是的话，可以直接通过 compareTo 方法进行比较。
 如果 hash 值相等，而且也没有实现Comparable 接口呢？此时会对 key 对象使用 System.identityHashCode(key) 进行再次 hash 运算，最后再根据新的 hash 值进行比较。
 那么 System.identityHashCode 又是什么操作呢？
 这是一个 native 的方法，实现的原理也很简单，就是不管你对象有没重写 hashCode 函数，它都只返回对象默认的 hashCode 值。
@@ -58,7 +135,7 @@ Spring 默认有一个 AntPathMatcher 类用于处理这类路径的规则匹配
       <pubDate>Sun, 12 Apr 2020 12:30:37 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/java-gui-experience/</guid>
-      <description>从 Java8 到 Java11 ： PrettyZoo 开发回顾（模块化在 GUI 中的实践） 起因 elastic-job-lite 是公司使用的一款定时任务调度框架，该框架将所有的任务调度信息都注册进了 zookeeper 中。
+      <description>起因 elastic-job-lite 是公司使用的一款定时任务调度框架，该框架将所有的任务调度信息都注册进了 zookeeper 中。
 为了方便定位相关的问题，我去网上搜了 zookeeper 相关的图形化客户端，结果没有一款符合自己的需求，于是就干脆自己写一个算了。
  该客户端是去年国庆假期写的，经历了从 Java8 到 Java11 的重构（主要是模块化），该文章主要是对整个过程的一个回顾
  从需求分析到实现 面向用户：zookeeper 用户
@@ -69,7 +146,55 @@ Spring 默认有一个 AntPathMatcher 类用于处理这类路径的规则匹配
 ​	技术方案：
  语言采用 Java UI 框架采用 Swing 采用传统的分层架构 Zookeeper Client 采用 Apache Curator  最终实现：
 ​	不足：
- 受限于交互流程，一次只能管理一个 zookeeper server 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面 颜值不足 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom  界面与架构的重构规划 重构主要是为了解决上一版的不足，而第一步就是分析产生这些问题的根本原因，再提出对应的解决方案</description>
+ 受限于交互流程，一次只能管理一个 zookeeper server 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面 颜值不足 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom  界面与架构的重构规划 重构主要是为了解决上一版的不足，而第一步就是分析产生这些问题的根本原因，再提出对应的解决方案
+  一次只能管理一个 server
+这是因为交互和设计上导致的，要解决该问题需要重新思考交互和软件的布局。
+经过网上的调研，最终决定采用 “三栏布局”，即解决了以前交互模式的分割感，又满足了一次性管理多个 server 的需求。</description>
+    </item>
+    
+    <item>
+      <title>Java 模块化系统 Jigsaw</title>
+      <link>https://blog.cc1234.cc/posts/java-jigsaw/</link>
+      <pubDate>Thu, 24 Oct 2019 21:18:00 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/java-jigsaw/</guid>
+      <description>历史 2017年9月21日 Java9 正式发布，其中最大的变化就是引入了代号为 Jigsaw 的模块化系统（Java Platform Module System，简称 JPMS）。
+Java 的模块化系统可以说是一波三折，在 2005 年（Java7） 就已经有提案了（ JSR277 ），但是因为种种历史原因，在一年多后该提案又被取消掉了
+直到 2014年，新的提案 JSR376 被提出，Java 的模块化系统才得以重新步入正轨，虽然它迟到了（原计划于 Java8 发布），但并没有缺席。
+下图展示了从 JSR376 被提出到实现的各个阶段：
+目标 在 JSR376 中，对模块化系统的目标是有非常明确的描述的：
+ 使用更可靠的配置来描述程序组件之间的依赖关系，并以此替代问题频出的 class-path 组件可以控制其 API 被其他组件的访问性，提供一个更强的封装能力 增加 JavaSE 平台的扩展性，开发人员可以只将他需要的功能模块组装到一个自定义的配置中去 增强平台的完整性，确保平台内部 API 不会被访问 性能提升  实际上最核心的目标是最前面的两点，替代 class-path 和 增强封装性。
+ 在 Project Jigsaw: Goals &amp;amp; Requirements DRAFT 3 里对于实现目标的描述可能更加通俗易懂一些。
+ 初次接触 Java9 的模块化系统时，会不自觉的和 Maven、Gradle 等构建工具进行对比，但是实际上两者关注的核心点是不一样的。
+模块化系统更注重模块之间的封装性，而构建工具更注重的是依赖管理和项目构建。
+也就是说构建工具可以决定依赖某个第三方库，而模块系统则决定你能使用该第三方库的哪些包或类，两者并不是对立的。
+这也恰好解释了为什么 Java 的模块化系统没有版本管理</description>
+    </item>
+    
+    <item>
+      <title>Spring的循环依赖</title>
+      <link>https://blog.cc1234.cc/posts/spring-circle-reference/</link>
+      <pubDate>Thu, 22 Aug 2019 13:30:06 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/spring-circle-reference/</guid>
+      <description>前言  本文最耗时间的点就在于想一个好的标题， 既要灿烂夺目，又要光华内敛，事实证明这比砍需求还要难！
+ 由于对象之间的依赖关系经常是错综复杂，使用不当会引发很多意想不到的问题， 一个很典型的问题就是循环依赖 （也可以称之为循环引用）。
+Spring 为我们提供了依赖注入，并且在某些情景（单例 Bean 的注入）下支持循环依赖的注入
+本文的主要目的是分析 Spring 在 Bean 的创建中是如何处理循环依赖的。
+我会从循环依赖是什么，以及它的坏处，到最后通过Spring的源码来看它是如何处理这个问题的。
+ 循环依赖不仅仅是 Spring 的 Bean 之间会产生， 往大了看，系统模块之间会产生循环依赖， 系统与系统之间也会产生循环依赖，这是一个典型的坏味道，我们应该尽量避免。
+ 什么是循环依赖 循环依赖指的是多个对象之间的依赖关系形成一个闭环。
+下图展示了两个对象 A 和 B 形成的一个循环依赖
+下图展示了多个对象形成的一个循环依赖
+现实中由于依赖层次深、关系复杂等因素， 导致循环依赖可能并不是那么一目了然。
+为什么要避免循环依赖 循环依赖会为系统带来很多意想不到的问题，下面我们来简单讨论一下
+一、循环依赖会产生多米诺骨牌效应
+换句话说就是牵一发而动全身，想象一下平静的湖面落入一颗石子，涟漪会瞬间向周围扩散。
+循环依赖形成了一个环状依赖关系， 这个环中的某一点产生不稳定变化，都会导致整个环产生不稳定变化
+实际的体验就是
+ 难以为代码编写测试，因为易变导致写的测试也不稳定 难以重构，因为互相依赖，你改动一个自然会影响其他依赖对象 难以维护，你根本不敢想象你的改动会造成什么样的后果 &amp;hellip;&amp;hellip;  二、循环依赖会导致内存溢出
+参考下面的代码
+public class AService { private BService bService = new BService(); } public class BService { private AService aService = new AService(); } 当你通过 new AService() 创建一个对象时你会获得一个栈溢出的错误。</description>
     </item>
     
   </channel>

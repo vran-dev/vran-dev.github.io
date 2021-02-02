@@ -13,7 +13,7 @@
       <pubDate>Tue, 17 Sep 2019 00:00:00 +0000</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/sbt-update-optimize/</guid>
-      <description>从30分钟到1分钟 - SBT的update耗时优化记录 前言 公司有项目是基于 Scala 编写的，与之配套的构建工具是 SBT , 它是 Simple Build Tool 的缩写，虽然我觉得它一点也不简单。
+      <description>前言 公司有项目是基于 Scala 编写的，与之配套的构建工具是 SBT , 它是 Simple Build Tool 的缩写，虽然我觉得它一点也不简单。
 这个项目有一个很大的痛点就是刷新依赖 （对应 SBT 的 update）非常之耗时，可以参见下图：
 注意图中红框部分，耗时1266秒，近半个小时。在刷新期间资源占用也很高，导致电脑很卡 （风扇还呼呼呼的转，温度蹭蹭蹭的长）。
 最关键的是由于依赖的很多服务升级很快 （几乎每天都有升级），所以这个操作每天也会持续很多次，难以想象耗费在这方面的时间是何其之多。

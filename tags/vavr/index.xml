@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>VAVR on 且徐行</title>
+    <link>https://blog.cc1234.cc/tags/vavr/</link>
+    <description>Recent content in VAVR on 且徐行</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 25 Jul 2020 09:50:00 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/vavr/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title> VAVR：颠覆你的 Java 体验 </title>
+      <link>https://blog.cc1234.cc/posts/vavr-1/</link>
+      <pubDate>Sat, 25 Jul 2020 09:50:00 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/vavr-1/</guid>
+      <description>何方神圣？ 众所周知， Java8 在一定程度上支持了函数式编程，但标准库提供的函数式 API 不是很完备和友好。
+为了更好的进行函数式编程，我们就不得不借助于第三方库，而 VAVR 就是这方面的佼佼者，它可以有效减少代码量并提高代码质量。
+VAVR 可不是默默无闻之辈，它的前身是发布于 2014 年的 Javaslang，目前在 github 上有着近 4k 的 star。
+看到这儿，很多人就说我标题党了，一个 Java 库还来颠覆 Java ？
+这可不不是我玩震惊体，打开 VAVR 的官网 ，它的首页就用加粗字体写着 「vavr - turns java™ upside down」
+这翻译过来不就是颠覆 Java 吗？
+食用指南 阅读本文需要读者对 Java8 的 lambda 语法和常用 API 有一定的了解。
+由于是一篇框架的介绍文（地推 ing），为了避免写成官方文档的翻译，本文会有一些约束
+ 不会穷尽所有特性和 API，仅做抛砖引玉 不会深入到源码细节  关于示例代码，基本会以单元测试的形式给出并保证运行通过
+ 注：本文使用的 VAVR 版本为 0.10.3，JDK 版本为 11。
+ 先来个概览
+集合，全新的开始 不得不说 Java8 的集合库引入 Stream 以后确实很好用，但也正是因为使用了 Stream，不得不写很多样板代码，反而降低了不少体验。
+// of 方法是 Java9 开始提供的静态工厂 java.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -13,7 +13,7 @@
       <pubDate>Sun, 12 Apr 2020 12:30:37 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/java-gui-experience/</guid>
-      <description>从 Java8 到 Java11 ： PrettyZoo 开发回顾（模块化在 GUI 中的实践） 起因 elastic-job-lite 是公司使用的一款定时任务调度框架，该框架将所有的任务调度信息都注册进了 zookeeper 中。
+      <description>起因 elastic-job-lite 是公司使用的一款定时任务调度框架，该框架将所有的任务调度信息都注册进了 zookeeper 中。
 为了方便定位相关的问题，我去网上搜了 zookeeper 相关的图形化客户端，结果没有一款符合自己的需求，于是就干脆自己写一个算了。
  该客户端是去年国庆假期写的，经历了从 Java8 到 Java11 的重构（主要是模块化），该文章主要是对整个过程的一个回顾
  从需求分析到实现 面向用户：zookeeper 用户
@@ -24,7 +24,10 @@
 ​	技术方案：
  语言采用 Java UI 框架采用 Swing 采用传统的分层架构 Zookeeper Client 采用 Apache Curator  最终实现：
 ​	不足：
- 受限于交互流程，一次只能管理一个 zookeeper server 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面 颜值不足 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom  界面与架构的重构规划 重构主要是为了解决上一版的不足，而第一步就是分析产生这些问题的根本原因，再提出对应的解决方案</description>
+ 受限于交互流程，一次只能管理一个 zookeeper server 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面 颜值不足 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom  界面与架构的重构规划 重构主要是为了解决上一版的不足，而第一步就是分析产生这些问题的根本原因，再提出对应的解决方案
+  一次只能管理一个 server
+这是因为交互和设计上导致的，要解决该问题需要重新思考交互和软件的布局。
+经过网上的调研，最终决定采用 “三栏布局”，即解决了以前交互模式的分割感，又满足了一次性管理多个 server 的需求。</description>
     </item>
     
   </channel>

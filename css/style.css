@@ -132,11 +132,12 @@ h1 {
 h2 {
     font: italic 19px/1.3em Georgia, serif;
     color: #bbb;
+    font-weight: bold;
 }
 
 .profile #wrapper {
     padding: 60px 40px 0px;
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
 }
 
@@ -172,10 +173,9 @@ h2 {
 
 nav.main-nav {
     padding: 20px 20px 0;
-    background: #fff;
     background: rgba(255, 255, 255, .90);
     margin: 0 auto;
-    text-align: right;
+    text-align: center;
     z-index: 100;
 }
 
@@ -183,8 +183,8 @@ nav.main-nav a {
     top: 8px;
     right: 6px;
     padding: 8px 12px;
-    color: #5badf0;
-    font-size: 13px;
+    color: #000;
+    font-size: 15px;
     line-height: 1.35;
     border-radius: 3px;
 }
@@ -220,13 +220,13 @@ nav.main-nav a.cta {
 }
 
 #wrapper {
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
     padding: 60px 20px 100px 20px;
 }
 
 #wrapper.home {
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
     padding: 0px 40px 20px 40px;
 }
@@ -342,13 +342,14 @@ em, i {
     margin-top: 20px;
     margin-bottom: 10px;
     font: 300 24px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: #111;
+    color: #000;
+    font-weight: bold;
 }
 
 .post h2.headline {
     font: normal 13px/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;
     margin: -5px 0 0 0;
-    color: #b2b9be;
+    color: #676b6d;
     font-size: 13px;
     letter-spacing: 1px;
     display: inline-block;
@@ -507,8 +508,8 @@ Post List
     float: right;
     position: relative;
     top: 1px;
-    font: 300 17px/1.8 "Helvetica Neue", helvetica, Arial, sans-serif;
-    color: #bbb;
+    font: 300 15px/1.5 "Helvetica Neue", helvetica, Arial, sans-serif;
+    color: rgb(56, 54, 54);
 }
 
 #post-list-footer {
@@ -548,7 +549,7 @@ Post List
 #header {
 }
 #wrapper.post {
-    max-width: 670px;
+    max-width: 770px;
 }
 .post {
     margin: auto;
@@ -819,7 +820,7 @@ h2.month {
 }
 
 .archive .post-link {
-    color: #8a8a8a;
+    color: #575757;
 }
 
 .archive .post-item:hover {

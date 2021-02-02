@@ -13,12 +13,38 @@
       <pubDate>Mon, 04 May 2020 11:40:46 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/spring-ant-matcher-note/</guid>
-      <description>Spring Ant-Style Matcher 笔记 在使用 Spring 的时候经常会写路径相关的配置，比如
+      <description>在使用 Spring 的时候经常会写路径相关的配置，比如
  @RequestMapping 中配置请求路径 @ComponentScan 中配置包路径 为 Interceptor 配置规则 &amp;hellip;&amp;hellip;  而这些路径的配置规则中，我们经常会看见 、* 等类似于正则表达式的符号，这实际上就是 Spring 的路径匹配规则。
 Spring 默认有一个 AntPathMatcher 类用于处理这类路径的规则匹配， 它借鉴了 Ant 的实现（如果你感兴趣的话，可以在点击这里进行了解），这也是为什么称之为 Ant-Style 的原因。
  题外话：Ant 是一个自动化构建工具，最开始是为了解决 Tomcat 的构建问题而诞生的
  Ant 本身是定义了三种匹配规则，而 spring 在此基础之上额外扩展了一种，参考下面的表格
          ? 匹配单个字符   * 匹配 0 个或多个字符   ** 匹配 0 个或多个目录   {spring: [a-z]+} 匹配正则表达式 [a-z]+, 将匹配后的路径作为 spring 的变量    下面的表格展示了一个具体的实例</description>
+    </item>
+    
+    <item>
+      <title>Spring的循环依赖</title>
+      <link>https://blog.cc1234.cc/posts/spring-circle-reference/</link>
+      <pubDate>Thu, 22 Aug 2019 13:30:06 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/spring-circle-reference/</guid>
+      <description>前言  本文最耗时间的点就在于想一个好的标题， 既要灿烂夺目，又要光华内敛，事实证明这比砍需求还要难！
+ 由于对象之间的依赖关系经常是错综复杂，使用不当会引发很多意想不到的问题， 一个很典型的问题就是循环依赖 （也可以称之为循环引用）。
+Spring 为我们提供了依赖注入，并且在某些情景（单例 Bean 的注入）下支持循环依赖的注入
+本文的主要目的是分析 Spring 在 Bean 的创建中是如何处理循环依赖的。
+我会从循环依赖是什么，以及它的坏处，到最后通过Spring的源码来看它是如何处理这个问题的。
+ 循环依赖不仅仅是 Spring 的 Bean 之间会产生， 往大了看，系统模块之间会产生循环依赖， 系统与系统之间也会产生循环依赖，这是一个典型的坏味道，我们应该尽量避免。
+ 什么是循环依赖 循环依赖指的是多个对象之间的依赖关系形成一个闭环。
+下图展示了两个对象 A 和 B 形成的一个循环依赖
+下图展示了多个对象形成的一个循环依赖
+现实中由于依赖层次深、关系复杂等因素， 导致循环依赖可能并不是那么一目了然。
+为什么要避免循环依赖 循环依赖会为系统带来很多意想不到的问题，下面我们来简单讨论一下
+一、循环依赖会产生多米诺骨牌效应
+换句话说就是牵一发而动全身，想象一下平静的湖面落入一颗石子，涟漪会瞬间向周围扩散。
+循环依赖形成了一个环状依赖关系， 这个环中的某一点产生不稳定变化，都会导致整个环产生不稳定变化
+实际的体验就是
+ 难以为代码编写测试，因为易变导致写的测试也不稳定 难以重构，因为互相依赖，你改动一个自然会影响其他依赖对象 难以维护，你根本不敢想象你的改动会造成什么样的后果 &amp;hellip;&amp;hellip;  二、循环依赖会导致内存溢出
+参考下面的代码
+public class AService { private BService bService = new BService(); } public class BService { private AService aService = new AService(); } 当你通过 new AService() 创建一个对象时你会获得一个栈溢出的错误。</description>
     </item>
     
   </channel>
