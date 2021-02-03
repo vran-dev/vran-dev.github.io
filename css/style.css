@@ -190,7 +190,7 @@ nav.main-nav a {
 }
 
 nav.main-nav a.cta {
-    background: #5badf0;
+    background: #000;
     color: #fff;
     margin-left: 12px;
 }
@@ -198,16 +198,15 @@ nav.main-nav a.cta {
   nav.main-nav {
       padding: 20px 10px 0 0;
       background: #fff;
-      background: rgba(255, 255, 255, .90);
       margin: 0 auto;
-      text-align: right;
+      text-align: center;
       z-index: 100;
   }
   nav.main-nav a {
       top: 8px;
       right: 6px;
       padding: 8px 8px;
-      color: #5badf0;
+      color: #000;
       font-size: 13px;
       line-height: 1.35;
       border-radius: 3px;
@@ -247,7 +246,6 @@ nav.main-nav a.cta {
 a, #title, #post-list a:hover, #title:hover {
     text-decoration: none;
     color: #5badf0;
-    color: #5694f1;
 }
 
 p a {
@@ -359,7 +357,6 @@ em, i {
     font: normal 13px/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;
     margin: -5px 0 40px 0;
     color: #b2b9be;
-    font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-top: 5px;
@@ -462,7 +459,7 @@ thead th, th {
 }
 
 img {
-    width: 100%;
+    width: 80%;
     max-width: 100%;
     border-radius: 3px;
 }
@@ -501,7 +498,8 @@ Post List
 #post-list a {
     color: #333;
     display: block;
-    font: bold 19px/1.7 "Helvetica Neue", helvetica, Arial, sans-serif;
+    font: 19px/1.7 "Helvetica Neue", helvetica, Arial, sans-serif;
+    font-weight:normal;
 }
 
 #post-list .dates {

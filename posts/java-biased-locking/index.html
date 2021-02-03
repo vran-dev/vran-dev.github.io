@@ -76,7 +76,7 @@
 <p>在 JDK1.6 以后，JVM 特地针对 <code>synchronized</code> 进行了优化，引入了锁升级的概念，锁状态只可升级不可降级。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">无锁 <span style="color:#f92672">-&gt;</span> 偏向锁 <span style="color:#f92672">-&gt;</span> 轻量级锁 <span style="color:#f92672">-&gt;</span> 重量级锁
 </code></pre></div><p>这里面我们主要关注<strong>偏向锁</strong>，它是 HotSpot VM 提供的一种用于减少锁开销的优化技术。</p>
-<p>它的原理其实很简单：当线程进入第一次同步块以后，锁持有的对象头的偏向锁标记会被置为 1 ，如果未来一段时间内都是同一个线程访问该同步快的话就不用执行加锁操作了。</p>
+<p>它的原理其实很简单：当线程第一次进入同步块以后，锁持有的对象头的偏向锁标记会被置为 1 ，如果未来一段时间内都是同一个线程访问该同步快的话就不用执行加锁操作了。</p>
 <p>如果有另一个线程进入同步快的话，偏向锁就会升级到轻量级锁。</p>
 <p>由此可以看出来如果同步块只有一个线程访问的话，偏向锁是可以带来显著的性能提升的。</p>
 <p>既然如此，为何要废弃掉呢？</p>
