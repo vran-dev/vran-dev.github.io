@@ -8,27 +8,21 @@
     <language>en-us</language>
     <lastBuildDate>Mon, 01 Feb 2021 23:45:00 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/java/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title> 你知道为什么 Java 会放弃偏向锁吗？ </title>
+      <title>  你知道 Java 的偏向锁要被废弃掉了吗？ </title>
       <link>https://blog.cc1234.cc/posts/java-biased-locking/</link>
       <pubDate>Mon, 01 Feb 2021 23:45:00 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/java-biased-locking/</guid>
-      <description>前言 随着 JDK15 的 Release，大量的新特性也和开发者们正式见面了（虽然不一定能用上&amp;hellip;&amp;hellip;），最引入注目的应该是 Text Block、Pattern Matching for instanceof (Second Preview) 等语法，因为这些特性是实实在在的影响了大家的开发体验。
-而本文要讨论的却不是这些特性，而是关于废弃偏向锁的特性
- Disable and Deprecate Biased Locking（禁用和废弃偏向锁）  什么是偏向锁？ 在 Java 中，synchronized 关键字可以确保同一时间内只有一个线程进入临界区
- 临界区：可以是整个方法体，也可以是方法的局部块
- 在 JDK1.6 以后，JVM 特地针对 synchronized 进行了优化，引入了锁升级的概念，锁状态只可升级不可降级。
-无锁 -&amp;gt; 偏向锁 -&amp;gt; 轻量级锁 -&amp;gt; 重量级锁 这里面我们主要关注偏向锁，它是 HotSpot VM 提供的一种用于减少锁开销的优化技术。
-它的原理其实很简单：当线程第一次进入同步块以后，锁持有的对象头的偏向锁标记会被置为 1 ，如果未来一段时间内都是同一个线程访问该同步快的话就不用执行加锁操作了。
-如果有另一个线程进入同步快的话，偏向锁就会升级到轻量级锁。
-由此可以看出来如果同步块只有一个线程访问的话，偏向锁是可以带来显著的性能提升的。
-既然如此，为何要废弃掉呢？
-为什么要废弃？ 偏向锁带来的性能收益降低 在现今，偏向锁带来的性能提升远不如过去那么明显了。
-在过去，旧的 Java 应用通常使用的都是比较老的集合库，比如 HashTable、Vector 等，这些集合库对应的方法都被 synchronized 修饰了。
-如果在单线程使用这些集合库就会造成不必要的加锁操作，导致性能下降。
-而新的无锁集合库，如 HashMap、ArrayList 等就没有这样的问题，如果是在多线程情况下，也有 ConcurrentHashMap、CopyOnWriteArrayList 等性能更好的线程安全的集合库。
-所以在使用了新的集合库的情况下，偏向锁带来的收益会降低。
-在多线程情况下，经常会使用到线程池，关闭偏向锁反而更好。</description>
+      <description>前言 偏向锁是从 JDK1.6 引入的一种针对 synchronized 的锁优化技术，然而从 JDK 15 开始，这一特性被官方标记为废弃状态，如果还想继续使用的话需要通过 JVM 参数手动启用。
+XX:+UseBiasedLocking 那么问题来了，JDK15 为什么要废弃偏向锁呢？
+什么是偏向锁？ 在回答 Why 之前要先明白 What：什么是偏向锁？
+在 Java 中可以使用 synchronized 来保证代码块同一时间只被一个线程访问（互斥），它是基于 Monitor Object 模式来实现的。
+int i; public synchronized void mutex() { i++; } public void mutext2() { synchronized(this) { i++; } } 当线程请求进入临界区时都需要先获取一个 monitor 对象（类似于准入许可证），获取 monitor 对象是通过 compare-and-swap (CAS) 操作来实现的。
+从 CPU 的角度来看，CAS 其实是一个开销很昂贵的操作，有没有什么方法可以避免呢？
+我们先看一个 JAVA 团队观察到的现象：
+ 在大多数对象的生命周期内，基本上只会有一个线程访问临界区
+ 基于此可以得出一个优化方案：当某个线程首次访问临界区时记录下该线程的信息，当再有线程访问该临界区时判断是否是首次访问的线程
+ 如果是：就直接放行，这样就避免了通过 CAS 获取 monitor 的操作 如果不是：就升级为轻量级锁  这个优化方案其实就是偏向锁了，在 JVM 的实际实现中，锁升级其实有 4 个状态，并且是只可升级不可降级。</description>
     </item>
     
     <item>
