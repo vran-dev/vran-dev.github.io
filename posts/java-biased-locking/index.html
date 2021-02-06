@@ -94,15 +94,14 @@
 <p>这个优化方案其实就是<strong>偏向锁</strong>了，在 JVM 的实际实现中，锁升级其实有 4 个状态，并且是只可升级不可降级。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">无锁 <span style="color:#f92672">-&gt;</span> 偏向锁 <span style="color:#f92672">-&gt;</span> 轻量级锁 <span style="color:#f92672">-&gt;</span> 重量级锁
 </code></pre></div><h2 id="为什么要废弃">为什么要废弃？</h2>
-<p>那为什么时隔多年后，Java 团队又要废弃这个优化呢？</p>
-<h4 id="大人时代变了">大人，时代变了</h4>
+<h3 id="大人时代变了">大人，时代变了</h3>
 <p>在过去，Java 应用通常使用的都是 HashTable、Vector 等比较老的集合库，这类集合库大量使用了 synchronized  来保证线程安全。</p>
 <p>如果在单线程的情景下使用这些集合库就会有不必要的加锁操作，从而导致性能下降。</p>
 <p>而偏向锁可以保证即使是使用了这些老的集合库，也不会产生很大的性能损耗，因为 JVM 知道访问临界区的线程始终是同一个，也就避免了加锁操作。</p>
 <p>这一切都很美好，但是随着时代的变化，新的 Java 应用基本都已经使用了无锁的集合库，比如  HashMap、ArrayList 等，这些集合库在单线程场景下比老的集合库性能更好。</p>
 <p>即使是在多线程场景下，Java 也提供了 ConcurrentHashMap、CopyOnWriteArrayList 等性能更好的线程安全的集合库。</p>
 <p>综上，<strong>对于使用了新类库的 Java 应用来说，偏向锁带来的收益已不如过去那么明显，而且在当下多线程应用越来越普遍的情况下，偏向锁带来的锁升级操作反而会影响应用的性能</strong>。</p>
-<h4 id="时代变了成本却还在增加">时代变了，成本却还在增加</h4>
+<h3 id="时代变了成本却还在增加">时代变了，成本却还在增加</h3>
 <p>在废弃偏向锁的提案 <a href="https://openjdk.java.net/jeps/374">JEP374</a> 中还提到了与 HotSpot 相关的一点</p>
 <blockquote>
 <p>Biased locking introduced a lot of complex code into the synchronization subsystem and is invasive to other HotSpot components as well.</p>
