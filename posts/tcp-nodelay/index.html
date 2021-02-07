@@ -3,66 +3,53 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+
 		<meta name="author" content="vran">
-		<meta name="description" content="且徐行">
+		
 		<meta name="generator" content="Hugo 0.80.0" />
 		<title>TCP之TCP_NODELAY &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
 
-		
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
-		
 
-		
+<body>
+    <section id="single" class="wrapper">
+    
 
-		
-	</head>
 
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://blog.cc1234.cc/'> Home</a>
-	
-	<a href='https://blog.cc1234.cc/posts'>Archive</a>
-	<a href='https://blog.cc1234.cc/tags'>Tags</a>
-	<a href='https://blog.cc1234.cc/about'>About</a>
+<nav class="nav-main">
+         
+         <a href='https://blog.cc1234.cc/'> Home</a>
+         <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+         <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+         <a href='https://blog.cc1234.cc/about'>About</a>
 
-	
-
-	
+        
+        
 </nav>
 
 
-        <section id="wrapper" class="post">
-            <article>
-                <header>
-                    <h1>
-                        TCP之TCP_NODELAY
-                    </h1>
-                    <h2 class="headline">
-                    2019/03/26 14:08
-                    · By vran
-                      <span class="tags">
-                      
-                      
-                          
-                              <a href="https://blog.cc1234.cc/tags/tcp">TCP</a>&nbsp;
-                          
-                              <a href="https://blog.cc1234.cc/tags/%E7%BD%91%E7%BB%9C">网络</a>&nbsp;
-                          
-                      
-                      
-                      </span>
-                    </h2>
-                </header>
-                
-                <section id="post-body">
-                    <h2 id="0x00-前言">0X00 前言</h2>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    
+                </div>
+                <div class = title>
+                    TCP之TCP_NODELAY
+                </div>
+                <div class="meta">
+                2019/03/26
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="0x00-前言">0X00 前言</h2>
 <p>我们在使用socket（TCP）进行编程时会有很多配置选项, 而<code>TCP_NODEPLAY</code>也正是其中之一， 本文的目的就是研究<code>TCP_NODELAY</code>产生的效果以及其背后的原理。</p>
 <h2 id="0x01-tcp_delay与nagle">0X01 TCP_DELAY与Nagle</h2>
 <p><code>TCP_NODELAY</code>的值为0或1（在有的语言中为true或false）， 当设置为1（true)时即代表着关闭<strong>Nagle</strong>算法， 反之则代表打开<strong>Nagle</strong>算法。</p>
@@ -72,22 +59,22 @@
 <p>应用不断的提交小单为的数据， 经常只有<strong>1byte</strong>大小，而为了发送这<strong>1byte</strong>的数据， 还需要传输<strong>40byte</strong>的数据首部包(TCP首部 20byte + IPV4首部 20byte),  从而对网络造成了巨大的开销</p>
 </blockquote>
 <p>为了解决这个问题，Nagle算法就应运而生了， 下面是该算法的伪码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># MSS代表最大分段大小， 可以理解为TCP愿意接受的数据的字节数最大值</span>
-<span style="color:#75715e"># the window size代表接收窗口的大小</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#177500"># MSS代表最大分段大小， 可以理解为TCP愿意接受的数据的字节数最大值</span>
+<span style="color:#177500"># the window size代表接收窗口的大小</span>
 
-<span style="color:#66d9ef">if</span> there is new data to send
-  <span style="color:#66d9ef">if</span> the window size &gt;<span style="color:#f92672">=</span> MSS and available data is &gt;<span style="color:#f92672">=</span> MSS
-    send complete MSS segment now
-  <span style="color:#66d9ef">else</span>
-    <span style="color:#75715e"># 如果存在未被确认的数据</span>
-    <span style="color:#66d9ef">if</span> there is unconfirmed data still in the pipe
-      <span style="color:#75715e"># 将该数据加入缓冲， 当接收方一个确认保文返回时就发送该缓冲内的数据</span>
-      enqueue data in the buffer <span style="color:#66d9ef">until</span> an acknowledge is received
-    <span style="color:#66d9ef">else</span>
+<span style="color:#a90d91">if</span> there is new data to send
+  <span style="color:#a90d91">if</span> the window size &gt;<span style="color:#000">=</span> MSS and available data is &gt;<span style="color:#000">=</span> MSS
+    send <span style="color:#a90d91">complete</span> MSS segment now
+  <span style="color:#a90d91">else</span>
+    <span style="color:#177500"># 如果存在未被确认的数据</span>
+    <span style="color:#a90d91">if</span> there is unconfirmed data still in the pipe
+      <span style="color:#177500"># 将该数据加入缓冲， 当接收方一个确认保文返回时就发送该缓冲内的数据</span>
+      enqueue data in the buffer <span style="color:#a90d91">until</span> an acknowledge is received
+    <span style="color:#a90d91">else</span>
       send data immediately
-    end <span style="color:#66d9ef">if</span>
-  end <span style="color:#66d9ef">if</span>
-end <span style="color:#66d9ef">if</span>
+    end <span style="color:#a90d91">if</span>
+  end <span style="color:#a90d91">if</span>
+end <span style="color:#a90d91">if</span>
 </code></pre></div><p>我们主要关注Nagle算法对数据合并的方式和时机，以及发送合并数据的时机， 参考下图</p>
 <p><img src="img/nagle-1.png" alt="1553603838528"></p>
 <p>该算法还是很容易理解的， 根据上面的图可能有人会提出疑问</p>
@@ -121,91 +108,38 @@ end <span style="color:#66d9ef">if</span>
 <li><a href="https://en.wikipedia.org/wiki/TCP_delayed_acknowledgment">https://en.wikipedia.org/wiki/TCP_delayed_acknowledgment</a> TCP延迟确认</li>
 </ol>
 
-                </section>
-            </article>
-           
-            <hr/> 
-            
+            </section>
 
-            
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
 
-            
-                <ul id="post-list" class="archive readmore">
-    <h3>也许还有您感兴趣的文章</h3>
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
 
-    
-    
-    
-        <li>
-            <a href="/posts/java-biased-locking/">  你知道 Java 的偏向锁要被废弃掉了吗？ <aside class="dates">2021 / 02 / 01</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">2020 / 11 / 22</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">2020 / 08 / 18</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">2020 / 08 / 15</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">2020 / 07 / 25</aside></a>
-        </li>
-    
-</ul>
+</script>
+        </div>
+        
 
-            
- <script src="https://utteranc.es/client.js"
-           repo="vran-dev/vran-dev.github.io"
-          issue-term="pathname"
-           label="Comment"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
-
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://github.com/vran-dev">
-        github
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
-    
-    </p>
-    <p class="small">
-        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </section>
+    <footer id="footer">
+    <p>
+        
+        © 2021 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/ZenHo">ZenHo</a>
     </p>
 </footer>
 
-        </section>
 
-        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
-<script src="https://blog.cc1234.cc/js/main.js"></script>
-<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-
-
-    </body>
-</html>
+</body>

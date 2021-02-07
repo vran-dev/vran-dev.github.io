@@ -3,70 +3,53 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+
 		<meta name="author" content="vran">
-		<meta name="description" content="且徐行">
+		
 		<meta name="generator" content="Hugo 0.80.0" />
 		<title>真的学不动了：除了 class , 也该了解 Type classes 了 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
 
-		
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
-		
 
-		
+<body>
+    <section id="single" class="wrapper">
+    
 
-		
-	</head>
 
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://blog.cc1234.cc/'> Home</a>
-	
-	<a href='https://blog.cc1234.cc/posts'>Archive</a>
-	<a href='https://blog.cc1234.cc/tags'>Tags</a>
-	<a href='https://blog.cc1234.cc/about'>About</a>
+<nav class="nav-main">
+         
+         <a href='https://blog.cc1234.cc/'> Home</a>
+         <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+         <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+         <a href='https://blog.cc1234.cc/about'>About</a>
 
-	
-
-	
+        
+        
 </nav>
 
 
-        <section id="wrapper" class="post">
-            <article>
-                <header>
-                    <h1>
-                        真的学不动了：除了 class , 也该了解 Type classes 了
-                    </h1>
-                    <h2 class="headline">
-                    2020/07/15 18:45
-                    · By vran
-                      <span class="tags">
-                      
-                      
-                          
-                              <a href="https://blog.cc1234.cc/tags/java">Java</a>&nbsp;
-                          
-                              <a href="https://blog.cc1234.cc/tags/scala">Scala</a>&nbsp;
-                          
-                              <a href="https://blog.cc1234.cc/tags/haskell">Haskell</a>&nbsp;
-                          
-                              <a href="https://blog.cc1234.cc/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80">编程语言</a>&nbsp;
-                          
-                      
-                      
-                      </span>
-                    </h2>
-                </header>
-                
-                <section id="post-body">
-                    <h2 id="前言">前言</h2>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    
+                </div>
+                <div class = title>
+                    真的学不动了：除了 class , 也该了解 Type classes 了
+                </div>
+                <div class="meta">
+                2020/07/15
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="前言">前言</h2>
 <p>作为一个 Java 开发者， <code>class</code> 的概念肯定是耳熟能详了，可是在山的另一边还有拥有别样风情的 <code>type classes</code>，但不翻过 Java 这座山，它就始终隔着一层纱。</p>
 <h2 id="一个经典的问题">一个经典的问题</h2>
 <p>在编程中，经常需要判断两个值是否相等，这就是<strong>判等问题</strong>， 然而在很长的一段时间内这个问题都没有一个标准的解决方案。</p>
@@ -74,25 +57,25 @@
 <p>我这里统一使用  “值” 来代替对象、基本类型等等概念，以便于简化沟通</p>
 </blockquote>
 <p>在 Java 中，我们可以用 <code>==</code> ，也可以用 <code>equals</code> 来判断值是否相等</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">test</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">boolean</span> res <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello&#34;</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">;</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">void</span> <span style="color:#000">test</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">boolean</span> <span style="color:#000">res</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;hello&#34;</span> <span style="color:#000">==</span> <span style="color:#c41a16">&#34;world&#34;</span><span style="color:#000">;</span>
 
-    <span style="color:#66d9ef">boolean</span> res2 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#a90d91">boolean</span> <span style="color:#000">res2</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;hello&#34;</span><span style="color:#000">.</span><span style="color:#836c28">equals</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;hello&#34;</span><span style="color:#000">);</span>
 
-    <span style="color:#66d9ef">boolean</span> res3 <span style="color:#f92672">=</span> 3 <span style="color:#f92672">==</span> 3<span style="color:#f92672">;</span>
+    <span style="color:#a90d91">boolean</span> <span style="color:#000">res3</span> <span style="color:#000">=</span> <span style="color:#000">3</span> <span style="color:#000">==</span> <span style="color:#000">3</span><span style="color:#000">;</span>
 
-    <span style="color:#66d9ef">boolean</span> res4 <span style="color:#f92672">=</span> 5 <span style="color:#f92672">==</span> 9<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+    <span style="color:#a90d91">boolean</span> <span style="color:#000">res4</span> <span style="color:#000">=</span> <span style="color:#000">5</span> <span style="color:#000">==</span> <span style="color:#000">9</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>熟悉  Java 的同学都知道对于非基础类型， <code>equals</code> 方法的默认实现其实就是调用  <code>==</code>  操作符，而 <code>==</code> 操作比较的是对象的引用地址</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Object</span> <span style="color:#f92672">{</span>
-  <span style="color:#75715e">// ......
-</span><span style="color:#75715e"></span>  
-  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>Object obj<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-  	<span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">this</span> <span style="color:#f92672">==</span> obj<span style="color:#f92672">);</span>
-  <span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Object</span> <span style="color:#000">{</span>
+  <span style="color:#177500">// ......
+</span><span style="color:#177500"></span>  
+  <span style="color:#a90d91">public</span> <span style="color:#a90d91">boolean</span> <span style="color:#000">equals</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+  	<span style="color:#a90d91">return</span> <span style="color:#000">(</span><span style="color:#a90d91">this</span> <span style="color:#000">==</span> <span style="color:#000">obj</span><span style="color:#000">);</span>
+  <span style="color:#000">}</span>
   
-  <span style="color:#75715e">// ......
-</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+  <span style="color:#177500">// ......
+</span><span style="color:#177500"></span><span style="color:#000">}</span>
 </code></pre></div><p>所有类都会有 <code>equals</code> 方法，这是因为在 Java 中默认所有类型都是 Object 的子类。</p>
 <p>其实这也是 Java 语言处理<strong>判等问题</strong>的解决方案，即<strong>统一从 Object 中继承判等方法</strong>。</p>
 <p><img src="img/java-object-structure.png" alt="image-20200715144724027"></p>
@@ -109,15 +92,15 @@
 <li>
 <p><code>ad-hoc polymorphism</code> （特设多态） 指的是函数应用不同类型的参数时，会有不同的行为（或者说实现）</p>
 <p>最典型的就是算术重载</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>  <span style="color:#75715e">// 代表两个整形的乘法
-</span><span style="color:#75715e"></span>  
-<span style="color:#ae81ff">3.14</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">3.14</span> <span style="color:#75715e">// 代表两个浮点数的乘法
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#1c01ce">3</span> <span style="color:#000">*</span> <span style="color:#1c01ce">3</span>  <span style="color:#177500">// 代表两个整形的乘法
+</span><span style="color:#177500"></span>  
+<span style="color:#1c01ce">3.14</span> <span style="color:#000">*</span> <span style="color:#1c01ce">3.14</span> <span style="color:#177500">// 代表两个浮点数的乘法
 </span></code></pre></div></li>
 <li>
 <p><code>Parametric polymorphism</code> （参数化多态） 指的是函数被定义在<strong>某一些类型</strong>之上，对于这些类型来说函数的实现都是一样的。</p>
 <p>比如 List[T] 的 <code>size()</code> 函数，无论 T 的类型是 String、还是 Int,  <code>size()</code> 的实现都一样</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a6e22e">List</span><span style="color:#f92672">[</span><span style="color:#66d9ef">String</span><span style="color:#f92672">].</span>size<span style="color:#f92672">()</span>
-<span style="color:#a6e22e">List</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span><span style="color:#f92672">].</span>size<span style="color:#f92672">()</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#3f6e75">List</span><span style="color:#000">[</span><span style="color:#a90d91">String</span><span style="color:#000">].</span><span style="color:#000">size</span><span style="color:#000">()</span>
+<span style="color:#3f6e75">List</span><span style="color:#000">[</span><span style="color:#a90d91">Int</span><span style="color:#000">].</span><span style="color:#000">size</span><span style="color:#000">()</span>
 </code></pre></div></li>
 </ul>
 <p>虽然 Type classes 结合了两种多态类型，但它本身却被归到特设多态（ad-hoc polymorphism）这一分类下。</p>
@@ -126,9 +109,9 @@
 <p><strong>Type classes</strong> 一般译作类型类，最开始是由 haskell 引入并实现，所以我们很有必要先了解一下 haskell 中的 Type classes。</p>
 <p>以最开始提到的判等问题为例，来看看在 Haskell 中怎么用 Type classes 去解决。</p>
 <p>首先我们得用关键字 <code>class</code> 定义一个 Type class，千万不要和 Java 的 class 混为一谈。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#66d9ef">class</span> <span style="color:#66d9ef">Eq</span> a <span style="color:#66d9ef">where</span>
-	(<span style="color:#f92672">==</span>) <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Bool</span>
-	(<span style="color:#f92672">/=</span>) <span style="color:#f92672">::</span> a <span style="color:#f92672">-&gt;</span> a <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">Bool</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#a90d91">class</span> <span style="color:#a90d91">Eq</span> <span style="color:#000">a</span> <span style="color:#a90d91">where</span>
+	(<span style="color:#000">==</span>) <span style="color:#000">::</span> <span style="color:#000">a</span> <span style="color:#000">-&gt;</span> <span style="color:#000">a</span> <span style="color:#000">-&gt;</span> <span style="color:#a90d91">Bool</span>
+	(<span style="color:#000">/=</span>) <span style="color:#000">::</span> <span style="color:#000">a</span> <span style="color:#000">-&gt;</span> <span style="color:#000">a</span> <span style="color:#000">-&gt;</span> <span style="color:#a90d91">Bool</span>
 </code></pre></div><p>注：/= 其实就是 !=</p>
 <p>haskell 的 Type class 与 Java 的 Interface 类似，上面的 Eq 类型类就定义了 <code>==</code> 和 <code>/=</code> 两个抽象函数，其中的 a 是类型变量，类似于 Java 中的 List<!-- raw HTML omitted --> 中的 T。</p>
 <p>由此看来，Type classes 只是抽象了一些共同的行为，而这些行为的具体实现会根据类型的不同而不同，具体的实现会由<strong>类型类实例</strong>来定义。</p>
@@ -143,13 +126,13 @@ instance Eq Float where
 
 </code></pre><p>注：我们假设 eqInt、neInt、eqFloat、neFloat 都已经由标准库实现了</p>
 <p>这样就可以直接用 <code>==</code> 和<code>/=</code> 函数对 Int 和 Float 进行判等了</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#75715e">-- 判断 Int 的相等性</span>
-<span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span>
-<span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">4</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-haskell" data-lang="haskell"><span style="color:#177500">-- 判断 Int 的相等性</span>
+<span style="color:#000">==</span> <span style="color:#1c01ce">1</span> <span style="color:#1c01ce">2</span>
+<span style="color:#000">/=</span> <span style="color:#1c01ce">2</span> <span style="color:#1c01ce">4</span>
 
-<span style="color:#75715e">-- 判断 Float 的相等性</span>
-<span style="color:#f92672">==</span> <span style="color:#ae81ff">1.2</span> <span style="color:#ae81ff">1.2</span>
-<span style="color:#f92672">/=</span> <span style="color:#ae81ff">2.4</span> <span style="color:#ae81ff">2.1</span>
+<span style="color:#177500">-- 判断 Float 的相等性</span>
+<span style="color:#000">==</span> <span style="color:#1c01ce">1.2</span> <span style="color:#1c01ce">1.2</span>
+<span style="color:#000">/=</span> <span style="color:#1c01ce">2.4</span> <span style="color:#1c01ce">2.1</span>
 </code></pre></div><p>在调用 <code>==</code> 或 <code>/=</code> 函数时，编译器会根据参数类型自动找到类型类实例，然后调用类型类实例的函数执行调用。</p>
 <p>如果用户需要自定义判等函数，只需要实现自己的类型类实例即可。</p>
 <p>此时你可能会不自觉的和最开始提到的继承方案做一个对比，我画了两个图，可以参考一下</p>
@@ -176,23 +159,23 @@ instance Eq Float where
 <blockquote>
 <p>trait 也类似于 Java 的 interface，不过更加强大</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">Eq</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">def</span> eq<span style="color:#f92672">(</span>a<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">,</span> b<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">trait</span> <span style="color:#3f6e75">Eq</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">]</span> <span style="color:#000">{</span>
+  <span style="color:#a90d91">def</span> <span style="color:#000">eq</span><span style="color:#000">(</span><span style="color:#000">a</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Boolean</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>接着我们针对 String、Int 来实现两个类型类实例</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">object</span> <span style="color:#a6e22e">EqInstances</span> <span style="color:#f92672">{</span>
-  <span style="color:#75715e">// 处理 Int 类型的类型类实例
-</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> intEq <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Eq</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Int</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> eq<span style="color:#f92672">(</span>a<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">,</span> b<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=</span> a <span style="color:#f92672">==</span> b
-  <span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">object</span> <span style="color:#3f6e75">EqInstances</span> <span style="color:#000">{</span>
+  <span style="color:#177500">// 处理 Int 类型的类型类实例
+</span><span style="color:#177500"></span>  <span style="color:#a90d91">implicit</span> <span style="color:#a90d91">val</span> <span style="color:#000">intEq</span> <span style="color:#a90d91">=</span> <span style="color:#a90d91">new</span> <span style="color:#3f6e75">Eq</span><span style="color:#000">[</span><span style="color:#a90d91">Int</span><span style="color:#000">]</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">override</span> <span style="color:#a90d91">def</span> <span style="color:#000">eq</span><span style="color:#000">(</span><span style="color:#000">a</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">)</span> <span style="color:#a90d91">=</span> <span style="color:#000">a</span> <span style="color:#000">==</span> <span style="color:#000">b</span>
+  <span style="color:#000">}</span>
   
-  <span style="color:#75715e">// 处理 String 类型的类型类实例
-</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> stringEq <span style="color:#66d9ef">=</span> instance<span style="color:#f92672">[</span><span style="color:#66d9ef">String</span><span style="color:#f92672">]((</span>a<span style="color:#f92672">,</span> b<span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> a<span style="color:#f92672">.</span>equals<span style="color:#f92672">(</span>b<span style="color:#f92672">))</span>
+  <span style="color:#177500">// 处理 String 类型的类型类实例
+</span><span style="color:#177500"></span>  <span style="color:#a90d91">implicit</span> <span style="color:#a90d91">val</span> <span style="color:#000">stringEq</span> <span style="color:#a90d91">=</span> <span style="color:#000">instance</span><span style="color:#000">[</span><span style="color:#a90d91">String</span><span style="color:#000">]((</span><span style="color:#000">a</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#000">)</span> <span style="color:#a90d91">=&gt;</span> <span style="color:#000">a</span><span style="color:#000">.</span><span style="color:#000">equals</span><span style="color:#000">(</span><span style="color:#000">b</span><span style="color:#000">))</span>
 
-  <span style="color:#66d9ef">def</span> instance<span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">](</span>func<span style="color:#66d9ef">:</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">T</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=&gt;</span> <span style="color:#a6e22e">Boolean</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Eq</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Eq</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">def</span> eq<span style="color:#f92672">(</span>a<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">,</span> b<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#f92672">=</span> func<span style="color:#f92672">(</span>a<span style="color:#f92672">,</span> b<span style="color:#f92672">)</span>
-  <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+  <span style="color:#a90d91">def</span> <span style="color:#000">instance</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">](</span><span style="color:#000">func</span><span style="color:#a90d91">:</span> <span style="color:#000">(</span><span style="color:#a90d91">T</span><span style="color:#000">,</span> <span style="color:#a90d91">T</span><span style="color:#000">)</span> <span style="color:#a90d91">=&gt;</span> <span style="color:#3f6e75">Boolean</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Eq</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">]</span> <span style="color:#a90d91">=</span> <span style="color:#a90d91">new</span> <span style="color:#3f6e75">Eq</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">]</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">override</span> <span style="color:#a90d91">def</span> <span style="color:#000">eq</span><span style="color:#000">(</span><span style="color:#000">a</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Boolean</span> <span style="color:#000">=</span> <span style="color:#000">func</span><span style="color:#000">(</span><span style="color:#000">a</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#000">)</span>
+  <span style="color:#000">}</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>stringEq 和 intEq 采用了不同的构造方式</p>
 <ul>
 <li>stringEq 实例我采用的是类似于 Java 的匿名类进行构造</li>
@@ -200,23 +183,23 @@ instance Eq Float where
 </ul>
 <p>两个实例都被 <code>implicit</code> 关键字修饰，一般称之为<strong>隐式值</strong>，作用会在后面讲到。</p>
 <p>最后一步，来实现一个带隐式参数的 <code>same</code> 函数，就是调用类型类实例来判断两个值是否相等</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">object</span> <span style="color:#a6e22e">Same</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">def</span> same<span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">](</span>a<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">,</span> b<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)(</span><span style="color:#66d9ef">implicit</span> eq<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Eq</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">])</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#f92672">=</span> eq<span style="color:#f92672">.</span>eq<span style="color:#f92672">(</span>a<span style="color:#f92672">,</span> b<span style="color:#f92672">)</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">object</span> <span style="color:#3f6e75">Same</span> <span style="color:#000">{</span>
+  <span style="color:#a90d91">def</span> <span style="color:#000">same</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">](</span><span style="color:#000">a</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">)(</span><span style="color:#a90d91">implicit</span> <span style="color:#000">eq</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Eq</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">])</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Boolean</span> <span style="color:#000">=</span> <span style="color:#000">eq</span><span style="color:#000">.</span><span style="color:#000">eq</span><span style="color:#000">(</span><span style="color:#000">a</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#000">)</span>
+<span style="color:#000">}</span>
 
 </code></pre></div><ul>
 <li><code>implicit eq: Eq[T]</code>  就是隐式参数， <strong>调用方可以不用主动传入，编译器会在作用域内查找匹配的隐式值传入</strong>（这就是为什么前面的实例需要被 implicit 修饰）</li>
 </ul>
 <p>通过实际的调用来验证一下，在调用时我们需要先在当前作用域内通过 <code>import</code> 关键字导入<strong>类型类实例</strong>（主要是为了让编译器能找到这些实例）</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala">
-<span style="color:#66d9ef">import</span> EqInstances._
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala">
+<span style="color:#a90d91">import</span> <span style="color:#000">EqInstances._</span>
 
-<span style="color:#a6e22e">Same</span><span style="color:#f92672">.</span>same<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">)</span>
+<span style="color:#3f6e75">Same</span><span style="color:#000">.</span><span style="color:#000">same</span><span style="color:#000">(</span><span style="color:#1c01ce">1</span><span style="color:#000">,</span> <span style="color:#1c01ce">2</span><span style="color:#000">)</span>
 
-<span style="color:#a6e22e">Same</span><span style="color:#f92672">.</span>same<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">)</span>
+<span style="color:#3f6e75">Same</span><span style="color:#000">.</span><span style="color:#000">same</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;ok&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;ok&#34;</span><span style="color:#000">)</span>
 
-<span style="color:#75715e">// 编译错误：no implicits found for parameter eq: Eq[Float]
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">Same</span><span style="color:#f92672">.</span>same<span style="color:#f92672">(</span><span style="color:#ae81ff">1.0F</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">2.4F</span><span style="color:#f92672">)</span>
+<span style="color:#177500">// 编译错误：no implicits found for parameter eq: Eq[Float]
+</span><span style="color:#177500"></span><span style="color:#3f6e75">Same</span><span style="color:#000">.</span><span style="color:#000">same</span><span style="color:#000">(</span><span style="color:#1c01ce">1.0F</span><span style="color:#000">,</span> <span style="color:#1c01ce">2.4F</span><span style="color:#000">)</span>
 </code></pre></div><p>可以看见，针对 Int 和 String 类型的 <code>same</code> 函数调用能通过编译， 而当参数是 Float 时调用就会提示编译错误，这就是因为编译器在作用域内没有找到可以处理 Float 类型的 Eq 实例。</p>
 <blockquote>
 <p>关于 Scala 隐式查找的更多规则可以查看  <a href="https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html">https://docs.scala-lang.org/tutorials/FAQ/finding-implicits.html</a></p>
@@ -230,46 +213,46 @@ instance Eq Float where
 <p>使用 context bound 优化隐式参数，别慌，context bound 实际就是个语法糖而已</p>
 </li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">object</span> <span style="color:#a6e22e">Same</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">def</span> apply<span style="color:#f92672">[</span><span style="color:#66d9ef">T:</span> <span style="color:#66d9ef">Eq</span><span style="color:#f92672">](</span>a<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">,</span> b<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Boolean</span> <span style="color:#f92672">=</span> implicitly<span style="color:#f92672">[</span><span style="color:#66d9ef">Eq</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]].</span>eq<span style="color:#f92672">(</span>a<span style="color:#f92672">,</span> b<span style="color:#f92672">)</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">object</span> <span style="color:#3f6e75">Same</span> <span style="color:#000">{</span>
+  <span style="color:#a90d91">def</span> <span style="color:#000">apply</span><span style="color:#000">[</span><span style="color:#a90d91">T:</span> <span style="color:#a90d91">Eq</span><span style="color:#000">](</span><span style="color:#000">a</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Boolean</span> <span style="color:#000">=</span> <span style="color:#000">implicitly</span><span style="color:#000">[</span><span style="color:#a90d91">Eq</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">]].</span><span style="color:#000">eq</span><span style="color:#000">(</span><span style="color:#000">a</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#000">)</span>
+<span style="color:#000">}</span>
 
-<span style="color:#75715e">// 使用 apply 作为函数， 调用时可以不用写函数名
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">Same</span><span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">)</span>
-<span style="color:#a6e22e">Same</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">)</span>
+<span style="color:#177500">// 使用 apply 作为函数， 调用时可以不用写函数名
+</span><span style="color:#177500"></span><span style="color:#3f6e75">Same</span><span style="color:#000">(</span><span style="color:#1c01ce">1</span><span style="color:#000">,</span> <span style="color:#1c01ce">1</span><span style="color:#000">)</span>
+<span style="color:#3f6e75">Same</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;hello&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;world&#34;</span><span style="color:#000">)</span>
 </code></pre></div><p>简单说一下  context bund，首先泛型的定义 由 <code>T</code> 变成了 <code>[T: Eq]</code>，这样就可以用 <code>implicitly</code>[Eq[T]] 让编译器在作用域内找到一个 Eq[T]  的隐式实例，context bound 可以让函数的签名更加简洁。</p>
 <p>在 Scala 中，类型类的设计其实随处可见，典型的就有 <code>Ordered</code> 。</p>
 <h2 id="回望-java">回望 Java</h2>
 <p>以判等问题引出 Type classes 有一些不足，我们只意识到了与 OOP 的继承是一个不一样的判等解决方案，不妨再回到 Java 做一些其他的比较。</p>
 <p>以 <code>Comparator[T]</code> 接口为例，在 Java 中我们经常在集合框架中这样使用</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">List<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;();</span>
-list<span style="color:#f92672">.</span><span style="color:#a6e22e">sort</span><span style="color:#f92672">(</span>Comparator<span style="color:#f92672">.</span><span style="color:#a6e22e">naturalOrder</span><span style="color:#f92672">())</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">Integer</span><span style="color:#000">&gt;</span> <span style="color:#000">list</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">ArrayList</span><span style="color:#000">&lt;&gt;();</span>
+<span style="color:#000">list</span><span style="color:#000">.</span><span style="color:#836c28">sort</span><span style="color:#000">(</span><span style="color:#000">Comparator</span><span style="color:#000">.</span><span style="color:#836c28">naturalOrder</span><span style="color:#000">())</span>
 </code></pre></div><p>如果将其改造成为 Type classes 的话</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#66d9ef">trait</span> <span style="color:#a6e22e">Comparator</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">def</span> compare<span style="color:#f92672">(</span>o1<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">,</span> o2<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">T</span><span style="color:#f92672">)</span><span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">trait</span> <span style="color:#3f6e75">Comparator</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">]</span> <span style="color:#000">{</span>
+  <span style="color:#a90d91">def</span> <span style="color:#000">compare</span><span style="color:#000">(</span><span style="color:#000">o1</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">,</span> <span style="color:#000">o2</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">T</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span>
+<span style="color:#000">}</span>
 
-<span style="color:#66d9ef">object</span> <span style="color:#a6e22e">Instances</span> <span style="color:#f92672">{</span> 
-  <span style="color:#66d9ef">implicit</span> <span style="color:#66d9ef">val</span> intComprator <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Comparator</span><span style="color:#f92672">[</span><span style="color:#66d9ef">T</span><span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">def</span> compare<span style="color:#f92672">(</span>o1<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">,</span> o2<span style="color:#66d9ef">:</span> <span style="color:#66d9ef">Int</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">=</span> o1<span style="color:#f92672">.</span>compareTo<span style="color:#f92672">(</span>o2<span style="color:#f92672">)</span>
-	<span style="color:#f92672">}</span>
+<span style="color:#a90d91">object</span> <span style="color:#3f6e75">Instances</span> <span style="color:#000">{</span> 
+  <span style="color:#a90d91">implicit</span> <span style="color:#a90d91">val</span> <span style="color:#000">intComprator</span> <span style="color:#a90d91">=</span> <span style="color:#a90d91">new</span> <span style="color:#3f6e75">Comparator</span><span style="color:#000">[</span><span style="color:#a90d91">T</span><span style="color:#000">]</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">compare</span><span style="color:#000">(</span><span style="color:#000">o1</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">,</span> <span style="color:#000">o2</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">)</span> <span style="color:#a90d91">=</span> <span style="color:#000">o1</span><span style="color:#000">.</span><span style="color:#000">compareTo</span><span style="color:#000">(</span><span style="color:#000">o2</span><span style="color:#000">)</span>
+	<span style="color:#000">}</span>
   
-  <span style="color:#75715e">//... other instances
-</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+  <span style="color:#177500">//... other instances
+</span><span style="color:#177500"></span><span style="color:#000">}</span>
 </code></pre></div><p>List 的 sort 方法也需要改为带隐式参数的方法前面，这样我们就不需要显示的传 Compartor 实例了</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#75715e">// 编译期会自动找到 Comparator[Integer] 实例
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">List</span><span style="color:#f92672">[</span><span style="color:#66d9ef">Integer</span><span style="color:#f92672">]</span> list <span style="color:#66d9ef">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ArrayList</span><span style="color:#f92672">&lt;&gt;();</span>
-list<span style="color:#f92672">.</span>sort<span style="color:#f92672">()</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#177500">// 编译期会自动找到 Comparator[Integer] 实例
+</span><span style="color:#177500"></span><span style="color:#3f6e75">List</span><span style="color:#000">[</span><span style="color:#a90d91">Integer</span><span style="color:#000">]</span> <span style="color:#000">list</span> <span style="color:#a90d91">=</span> <span style="color:#a90d91">new</span> <span style="color:#3f6e75">ArrayList</span><span style="color:#000">&lt;&gt;();</span>
+<span style="color:#000">list</span><span style="color:#000">.</span><span style="color:#000">sort</span><span style="color:#000">()</span>
 </code></pre></div><blockquote>
 <p>可以认为上面的 Type classes 是基于 Scala 语法的伪代码</p>
 </blockquote>
 <p>相信你也看出来了，与 Type classes 方案相比，最大的差别就是 Java 需要手动传入 Comparator 实例，也许你会疑惑：就这？</p>
 <p>不要小看这两者的区别，这两者的区别就像用 var 定义类型一样</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// Java8
-</span><span style="color:#75715e"></span>Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> map2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// Java8
+</span><span style="color:#177500"></span><span style="color:#000">Map</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">,</span> <span style="color:#000">String</span><span style="color:#000">&gt;</span> <span style="color:#000">map2</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">HashMap</span><span style="color:#000">&lt;&gt;();</span>
 
-<span style="color:#75715e">// Java10
-</span><span style="color:#75715e"></span>var map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;();</span>
+<span style="color:#177500">// Java10
+</span><span style="color:#177500"></span><span style="color:#000">var</span> <span style="color:#000">map</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">HashMap</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">,</span> <span style="color:#000">String</span><span style="color:#000">&gt;();</span>
 </code></pre></div><p>如果类型系统能帮你完成的事情，就让它帮你做吧！</p>
 <h2 id="总结一下">总结一下</h2>
 <p>看了 Haskell 和 Scala 的例子，还是得总结一下：<strong>Type classes 就是抽象了某一些类型的共同行为，当某个类型需要用到这些行为时，由类型系统去找到这些行为的具体实现</strong>。</p>
@@ -286,91 +269,38 @@ list<span style="color:#f92672">.</span>sort<span style="color:#f92672">()</span
 <li><a href="https://typelevel.org/cats/typeclasses.html">Cats: Type classes</a></li>
 </ol>
 
-                </section>
-            </article>
-           
-            <hr/> 
-            
+            </section>
 
-            
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
 
-            
-                <ul id="post-list" class="archive readmore">
-    <h3>也许还有您感兴趣的文章</h3>
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
 
-    
-    
-    
-        <li>
-            <a href="/posts/java-biased-locking/">  你知道 Java 的偏向锁要被废弃掉了吗？ <aside class="dates">2021 / 02 / 01</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">2020 / 11 / 22</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">2020 / 08 / 18</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">2020 / 08 / 15</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">2020 / 07 / 25</aside></a>
-        </li>
-    
-</ul>
+</script>
+        </div>
+        
 
-            
- <script src="https://utteranc.es/client.js"
-           repo="vran-dev/vran-dev.github.io"
-          issue-term="pathname"
-           label="Comment"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
-
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://github.com/vran-dev">
-        github
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
-    
-    </p>
-    <p class="small">
-        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </section>
+    <footer id="footer">
+    <p>
+        
+        © 2021 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/ZenHo">ZenHo</a>
     </p>
 </footer>
 
-        </section>
 
-        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
-<script src="https://blog.cc1234.cc/js/main.js"></script>
-<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-
-
-    </body>
-</html>
+</body>

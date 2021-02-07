@@ -3,58 +3,53 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+
 		<meta name="author" content="vran">
-		<meta name="description" content="且徐行">
+		
 		<meta name="generator" content="Hugo 0.80.0" />
 		<title>一次微服务重构总结  &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
 
-		
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
-		
 
-		
+<body>
+    <section id="single" class="wrapper">
+    
 
-		
-	</head>
 
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://blog.cc1234.cc/'> Home</a>
-	
-	<a href='https://blog.cc1234.cc/posts'>Archive</a>
-	<a href='https://blog.cc1234.cc/tags'>Tags</a>
-	<a href='https://blog.cc1234.cc/about'>About</a>
+<nav class="nav-main">
+         
+         <a href='https://blog.cc1234.cc/'> Home</a>
+         <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+         <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+         <a href='https://blog.cc1234.cc/about'>About</a>
 
-	
-
-	
+        
+        
 </nav>
 
 
-        <section id="wrapper" class="post">
-            <article>
-                <header>
-                    <h1>
-                        一次微服务重构总结 
-                    </h1>
-                    <h2 class="headline">
-                    2020/05/10 23:48
-                    · By vran
-                      <span class="tags">
-                      
-                      </span>
-                    </h2>
-                </header>
-                
-                <section id="post-body">
-                    <h1 id="一次微服务的技术重构总结">一次微服务的技术重构总结</h1>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    
+                </div>
+                <div class = title>
+                    一次微服务重构总结 
+                </div>
+                <div class="meta">
+                2020/05/10
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h1 id="一次微服务的技术重构总结">一次微服务的技术重构总结</h1>
 <h2 id="为什么要重构">为什么要重构</h2>
 <p>前段时间接手了一个新的服务，该服务的主要职责是封装「微信公众号」相关的 API ，然后提供整合后的能力给其他业务使用，算是一个很基础的服务。</p>
 <p>该服务诞生已有些年头，陆陆续续的功能叠加使得该服务的设计已经背离了初衷，就像下图一样，虽然在努力奔跑着，但早已不堪重负&hellip;&hellip;</p>
@@ -104,32 +99,32 @@
 <p><img src="img/berak-circle.png" alt="image-20200726232550747"></p>
 <h3 id="方法语义不清晰">方法语义不清晰</h3>
 <p>在 <code>WX-API</code> 组件中，很多与微信官方接口交互的类中有着如下的方法定义</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@POST</span><span style="color:#f92672">(</span>WxServiceConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">URL_SEND</span><span style="color:#f92672">)</span>
-Call<span style="color:#f92672">&lt;</span>ApiResult<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">sendMessage</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Query</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;access_token&#34;</span><span style="color:#f92672">)</span> String token<span style="color:#f92672">,</span>
-                            <span style="color:#a6e22e">@Body</span> JSONObject object<span style="color:#f92672">);</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@POST</span><span style="color:#000">(</span><span style="color:#000">WxServiceConfig</span><span style="color:#000">.</span><span style="color:#836c28">URL_SEND</span><span style="color:#000">)</span>
+<span style="color:#000">Call</span><span style="color:#000">&lt;</span><span style="color:#000">ApiResult</span><span style="color:#000">&gt;</span> <span style="color:#000">sendMessage</span><span style="color:#000">(</span><span style="color:#000">@Query</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;access_token&#34;</span><span style="color:#000">)</span> <span style="color:#000">String</span> <span style="color:#000">token</span><span style="color:#000">,</span>
+                            <span style="color:#000">@Body</span> <span style="color:#000">JSONObject</span> <span style="color:#000">object</span><span style="color:#000">);</span>
 
-<span style="color:#a6e22e">@POST</span><span style="color:#f92672">(</span>WxServiceConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">URL_SEND_TEMPLATE</span><span style="color:#f92672">)</span>
-Call<span style="color:#f92672">&lt;</span>ApiResult<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">sendTemplateMessage</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Query</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;access_token&#34;</span><span style="color:#f92672">)</span> String token<span style="color:#f92672">,</span>
-                                    <span style="color:#a6e22e">@Body</span> JSONObject object<span style="color:#f92672">);</span>
+<span style="color:#000">@POST</span><span style="color:#000">(</span><span style="color:#000">WxServiceConfig</span><span style="color:#000">.</span><span style="color:#836c28">URL_SEND_TEMPLATE</span><span style="color:#000">)</span>
+<span style="color:#000">Call</span><span style="color:#000">&lt;</span><span style="color:#000">ApiResult</span><span style="color:#000">&gt;</span> <span style="color:#000">sendTemplateMessage</span><span style="color:#000">(</span><span style="color:#000">@Query</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;access_token&#34;</span><span style="color:#000">)</span> <span style="color:#000">String</span> <span style="color:#000">token</span><span style="color:#000">,</span>
+                                    <span style="color:#000">@Body</span> <span style="color:#000">JSONObject</span> <span style="color:#000">object</span><span style="color:#000">);</span>
 </code></pre></div><p>方法的参数直接使用了 fastJson 提供的 JSONObject 类，这有什么问题呢？</p>
 <p>JSONObject 是对 JSON 值的抽象，用作业务参数会使得该方法缺乏描述性，换句话说就是它承载的信息量不够具体，随着时间的流逝，这个问题会越发的明显。</p>
 <p>另外一个问题就是前面提到的单一职责了，JSONObject 的变更原因很显然与该方法的变更原因是不一致的。</p>
 <p>所以非常有必要针对参数建模，而不要用过于抽象的类型替代</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@POST</span><span style="color:#f92672">(</span>WxServiceConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">URL_SEND</span><span style="color:#f92672">)</span>
-Call<span style="color:#f92672">&lt;</span>ApiResponse<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">sendMessage</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Query</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;access_token&#34;</span><span style="color:#f92672">)</span> String token<span style="color:#f92672">,</span>
-                              <span style="color:#a6e22e">@Body</span> VoiceMessage message<span style="color:#f92672">);</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@POST</span><span style="color:#000">(</span><span style="color:#000">WxServiceConfig</span><span style="color:#000">.</span><span style="color:#836c28">URL_SEND</span><span style="color:#000">)</span>
+<span style="color:#000">Call</span><span style="color:#000">&lt;</span><span style="color:#000">ApiResponse</span><span style="color:#000">&gt;</span> <span style="color:#000">sendMessage</span><span style="color:#000">(</span><span style="color:#000">@Query</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;access_token&#34;</span><span style="color:#000">)</span> <span style="color:#000">String</span> <span style="color:#000">token</span><span style="color:#000">,</span>
+                              <span style="color:#000">@Body</span> <span style="color:#000">VoiceMessage</span> <span style="color:#000">message</span><span style="color:#000">);</span>
 
-<span style="color:#a6e22e">@POST</span><span style="color:#f92672">(</span>WxServiceConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">URL_SEND</span><span style="color:#f92672">)</span>
-Call<span style="color:#f92672">&lt;</span>ApiResponse<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">sendMessage</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Query</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;access_token&#34;</span><span style="color:#f92672">)</span> String token<span style="color:#f92672">,</span>
-                              <span style="color:#a6e22e">@Body</span> ImageMessage message<span style="color:#f92672">);</span>
+<span style="color:#000">@POST</span><span style="color:#000">(</span><span style="color:#000">WxServiceConfig</span><span style="color:#000">.</span><span style="color:#836c28">URL_SEND</span><span style="color:#000">)</span>
+<span style="color:#000">Call</span><span style="color:#000">&lt;</span><span style="color:#000">ApiResponse</span><span style="color:#000">&gt;</span> <span style="color:#000">sendMessage</span><span style="color:#000">(</span><span style="color:#000">@Query</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;access_token&#34;</span><span style="color:#000">)</span> <span style="color:#000">String</span> <span style="color:#000">token</span><span style="color:#000">,</span>
+                              <span style="color:#000">@Body</span> <span style="color:#000">ImageMessage</span> <span style="color:#000">message</span><span style="color:#000">);</span>
 
-<span style="color:#a6e22e">@POST</span><span style="color:#f92672">(</span>WxServiceConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">URL_SEND</span><span style="color:#f92672">)</span>
-Call<span style="color:#f92672">&lt;</span>ApiResponse<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">sendMessage</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Query</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;access_token&#34;</span><span style="color:#f92672">)</span> String token<span style="color:#f92672">,</span>
-                              <span style="color:#a6e22e">@Body</span> ArticleMessage message<span style="color:#f92672">);</span>
+<span style="color:#000">@POST</span><span style="color:#000">(</span><span style="color:#000">WxServiceConfig</span><span style="color:#000">.</span><span style="color:#836c28">URL_SEND</span><span style="color:#000">)</span>
+<span style="color:#000">Call</span><span style="color:#000">&lt;</span><span style="color:#000">ApiResponse</span><span style="color:#000">&gt;</span> <span style="color:#000">sendMessage</span><span style="color:#000">(</span><span style="color:#000">@Query</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;access_token&#34;</span><span style="color:#000">)</span> <span style="color:#000">String</span> <span style="color:#000">token</span><span style="color:#000">,</span>
+                              <span style="color:#000">@Body</span> <span style="color:#000">ArticleMessage</span> <span style="color:#000">message</span><span style="color:#000">);</span>
 
-<span style="color:#a6e22e">@POST</span><span style="color:#f92672">(</span>WxServiceConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">URL_SEND_TEMPLATE</span><span style="color:#f92672">)</span>
-Call<span style="color:#f92672">&lt;</span>ApiResponse<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">sendTemplateMessage</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Query</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;access_token&#34;</span><span style="color:#f92672">)</span> String token<span style="color:#f92672">,</span>
-                                      <span style="color:#a6e22e">@Body</span> TemplateMessageRequest request<span style="color:#f92672">);</span>
+<span style="color:#000">@POST</span><span style="color:#000">(</span><span style="color:#000">WxServiceConfig</span><span style="color:#000">.</span><span style="color:#836c28">URL_SEND_TEMPLATE</span><span style="color:#000">)</span>
+<span style="color:#000">Call</span><span style="color:#000">&lt;</span><span style="color:#000">ApiResponse</span><span style="color:#000">&gt;</span> <span style="color:#000">sendTemplateMessage</span><span style="color:#000">(</span><span style="color:#000">@Query</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;access_token&#34;</span><span style="color:#000">)</span> <span style="color:#000">String</span> <span style="color:#000">token</span><span style="color:#000">,</span>
+                                      <span style="color:#000">@Body</span> <span style="color:#000">TemplateMessageRequest</span> <span style="color:#000">request</span><span style="color:#000">);</span>
 </code></pre></div><h2 id="总结">总结</h2>
 <p>Martin 在 《架构整洁之道》中提到软件的两个价值：行为价值和架构价值。</p>
 <ul>
@@ -140,91 +135,38 @@ Call<span style="color:#f92672">&lt;</span>ApiResponse<span style="color:#f92672
 <p>好像也谈不上提升，只是回到了该有的样子</p>
 <p><img src="img/last.jpg" alt=""></p>
 
-                </section>
-            </article>
-           
-            <hr/> 
-            
+            </section>
 
-            
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
 
-            
-                <ul id="post-list" class="archive readmore">
-    <h3>也许还有您感兴趣的文章</h3>
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
 
-    
-    
-    
-        <li>
-            <a href="/posts/java-biased-locking/">  你知道 Java 的偏向锁要被废弃掉了吗？ <aside class="dates">2021 / 02 / 01</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">2020 / 11 / 22</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">2020 / 08 / 18</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">2020 / 08 / 15</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">2020 / 07 / 25</aside></a>
-        </li>
-    
-</ul>
+</script>
+        </div>
+        
 
-            
- <script src="https://utteranc.es/client.js"
-           repo="vran-dev/vran-dev.github.io"
-          issue-term="pathname"
-           label="Comment"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
-
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://github.com/vran-dev">
-        github
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
-    
-    </p>
-    <p class="small">
-        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </section>
+    <footer id="footer">
+    <p>
+        
+        © 2021 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/ZenHo">ZenHo</a>
     </p>
 </footer>
 
-        </section>
 
-        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
-<script src="https://blog.cc1234.cc/js/main.js"></script>
-<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-
-
-    </body>
-</html>
+</body>

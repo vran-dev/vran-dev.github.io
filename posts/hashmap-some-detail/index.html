@@ -3,66 +3,53 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+
 		<meta name="author" content="vran">
-		<meta name="description" content="且徐行">
+		
 		<meta name="generator" content="Hugo 0.80.0" />
 		<title>HashMap 的细节笔记 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
 
-		
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
-		
 
-		
+<body>
+    <section id="single" class="wrapper">
+    
 
-		
-	</head>
 
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://blog.cc1234.cc/'> Home</a>
-	
-	<a href='https://blog.cc1234.cc/posts'>Archive</a>
-	<a href='https://blog.cc1234.cc/tags'>Tags</a>
-	<a href='https://blog.cc1234.cc/about'>About</a>
+<nav class="nav-main">
+         
+         <a href='https://blog.cc1234.cc/'> Home</a>
+         <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+         <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+         <a href='https://blog.cc1234.cc/about'>About</a>
 
-	
-
-	
+        
+        
 </nav>
 
 
-        <section id="wrapper" class="post">
-            <article>
-                <header>
-                    <h1>
-                        HashMap 的细节笔记
-                    </h1>
-                    <h2 class="headline">
-                    2020/04/27 21:19
-                    · By vran
-                      <span class="tags">
-                      
-                      
-                          
-                              <a href="https://blog.cc1234.cc/tags/java">Java</a>&nbsp;
-                          
-                              <a href="https://blog.cc1234.cc/tags/hashmap">HashMap</a>&nbsp;
-                          
-                      
-                      
-                      </span>
-                    </h2>
-                </header>
-                
-                <section id="post-body">
-                    <h3 id="hashmap-的节点转为红黑树以后树形节点之间是基于什么来比较的呢"><strong>HashMap 的节点转为红黑树以后，树形节点之间是基于什么来比较的呢？</strong></h3>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    
+                </div>
+                <div class = title>
+                    HashMap 的细节笔记
+                </div>
+                <div class="meta">
+                2020/04/27
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h3 id="hashmap-的节点转为红黑树以后树形节点之间是基于什么来比较的呢"><strong>HashMap 的节点转为红黑树以后，树形节点之间是基于什么来比较的呢？</strong></h3>
 <p>首先会根据 key 的 Hash 值来进行比较，如果相等的话，会再判断 key 是否实现了 <code>Comparable</code> 接口，如果是的话，可以直接通过 <code>compareTo</code> 方法进行比较。</p>
 <p>如果 hash 值相等，而且也没有实现Comparable 接口呢？此时会对 key 对象使用 <code>System.identityHashCode(key)</code> 进行再次 hash 运算，最后再根据新的 hash 值进行比较。</p>
 <p>那么 <code>System.identityHashCode</code> 又是什么操作呢？</p>
@@ -123,14 +110,14 @@
 <p>节点数大于 8 的概率少于一千万分之一</p>
 <h3 id="hashmap-的-capacity-为什么是-2-的次幂"><strong>HashMap 的 capacity 为什么是 2 的次幂？</strong></h3>
 <p>我们都知道在构造 HashMap 的时候可以指定初始容量</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">HashMap</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> initialCapacity<span style="color:#f92672">)</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">HashMap</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">initialCapacity</span><span style="color:#000">)</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">HashMap</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> initialCapacity<span style="color:#f92672">,</span> <span style="color:#66d9ef">float</span> loadFactor<span style="color:#f92672">)</span>
+<span style="color:#a90d91">public</span> <span style="color:#000">HashMap</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">initialCapacity</span><span style="color:#000">,</span> <span style="color:#a90d91">float</span> <span style="color:#000">loadFactor</span><span style="color:#000">)</span>
 </code></pre></div><p>如果传入的 initialCapacity 不是 2 的 n 次方的话，HashMap 会调用 <code>tableSizeFor</code> 方法，该方法会返回大于 cap 的最小 2 次幂的值</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tableSizeFor</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> cap<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">int</span> n <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>1 <span style="color:#f92672">&gt;&gt;&gt;</span> Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">numberOfLeadingZeros</span><span style="color:#f92672">(</span>cap <span style="color:#f92672">-</span> 1<span style="color:#f92672">);</span>
-  <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>n <span style="color:#f92672">&lt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">?</span> 1 <span style="color:#f92672">:</span> <span style="color:#f92672">(</span>n <span style="color:#f92672">&gt;=</span> MAXIMUM_CAPACITY<span style="color:#f92672">)</span> <span style="color:#f92672">?</span> MAXIMUM_CAPACITY <span style="color:#f92672">:</span> n <span style="color:#f92672">+</span> 1<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">int</span> <span style="color:#000">tableSizeFor</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">cap</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+  <span style="color:#a90d91">int</span> <span style="color:#000">n</span> <span style="color:#000">=</span> <span style="color:#000">-</span><span style="color:#000">1</span> <span style="color:#000">&gt;&gt;&gt;</span> <span style="color:#000">Integer</span><span style="color:#000">.</span><span style="color:#836c28">numberOfLeadingZeros</span><span style="color:#000">(</span><span style="color:#000">cap</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">);</span>
+  <span style="color:#a90d91">return</span> <span style="color:#000">(</span><span style="color:#000">n</span> <span style="color:#000">&lt;</span> <span style="color:#000">0</span><span style="color:#000">)</span> <span style="color:#000">?</span> <span style="color:#000">1</span> <span style="color:#000">:</span> <span style="color:#000">(</span><span style="color:#000">n</span> <span style="color:#000">&gt;=</span> <span style="color:#000">MAXIMUM_CAPACITY</span><span style="color:#000">)</span> <span style="color:#000">?</span> <span style="color:#000">MAXIMUM_CAPACITY</span> <span style="color:#000">:</span> <span style="color:#000">n</span> <span style="color:#000">+</span> <span style="color:#000">1</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>为什么需要这样做呢？</p>
 <ul>
 <li>在计算索引时，可以用 &amp; 来替代 %</li>
@@ -138,21 +125,21 @@
 </ul>
 <p>先来看第一点</p>
 <p>我们指的 capacity 实际就是 bucket.length，每一个 key 对应的索引是根据下面的公式进行计算的</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-matlab" data-lang="matlab">   index = (bucket.length <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">&amp;</span> hash(key)
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-matlab" data-lang="matlab">   <span style="color:#000">index</span> = (<span style="color:#000">bucket</span>.<span style="color:#a90d91">length</span> <span style="color:#000">-</span> <span style="color:#1c01ce">1</span>) <span style="color:#000">&amp;</span> <span style="color:#000">hash</span>(<span style="color:#000">key</span>)
 </code></pre></div><p>假设 capacity 保证为 2 的次幂，那么 <code>capacity - 1</code> 就可以保证该数的二进制低位全部为 1</p>
 <p>比如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">(</span>16 <span style="color:#f92672">-</span> 1<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> 0000_0000_0000_1111
-<span style="color:#f92672">(</span>32 <span style="color:#f92672">-</span> 1<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> 0000_0000_0001_1111
-<span style="color:#f92672">(</span>64 <span style="color:#f92672">-</span> 1<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> 0000_0000_0011_1111
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">(</span><span style="color:#000">16</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0000_1111</span>
+<span style="color:#000">(</span><span style="color:#000">32</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0001_1111</span>
+<span style="color:#000">(</span><span style="color:#000">64</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0011_1111</span>
 </code></pre></div><p>那么 在与 <code>hash(key) </code> 进行 <code>&amp;</code> 运算，可以保证最终得到的结果范围符合 [0, buket.length - 1]，即</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> 0 <span style="color:#f92672">&lt;=</span> index <span style="color:#f92672">&lt;=</span> buket<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> 1
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#000">0</span> <span style="color:#000">&lt;=</span> <span style="color:#000">index</span> <span style="color:#000">&lt;=</span> <span style="color:#000">buket</span><span style="color:#000">.</span><span style="color:#836c28">length</span> <span style="color:#000">-</span> <span style="color:#000">1</span>
 </code></pre></div><p>再来看 resize</p>
 <p>众所周知，HashMap 在节点达到阈值时，会按当前容量的两倍进行扩容，也就是相当于当前容量值左移一位。</p>
 <p>比如当前容量为 16，向左移位 1 位就是 32，对应的二进制位</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">16 <span style="color:#f92672">=</span> 0000_0000_0001_0000
-32 <span style="color:#f92672">=</span> 0000_0000_0010_0000  
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">16</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0001_0000</span>
+<span style="color:#000">32</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0010_0000</span>  
 </code></pre></div><p>扩容以后，节点需要进行 REHASH，结合前面提到的 hash 算法</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> index <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>bucket<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> 1<span style="color:#f92672">)</span> <span style="color:#f92672">&amp;</span> hash<span style="color:#f92672">(</span>key<span style="color:#f92672">)</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#000">index</span> <span style="color:#000">=</span> <span style="color:#000">(</span><span style="color:#000">bucket</span><span style="color:#000">.</span><span style="color:#836c28">length</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">&amp;</span> <span style="color:#000">hash</span><span style="color:#000">(</span><span style="color:#000">key</span><span style="color:#000">)</span>
 </code></pre></div><p>由于低位不变，只是高位变成了 1，这样的话，就可以把一段冲突的链表节点分为两部分，高位为 1 与 高位为 0。</p>
 <p>假设新的容量为 32，两个节点 A 和 B 的 Hash 值如下</p>
 <pre><code class="language-properties" data-lang="properties">A = 0000_0000_0000_1011
@@ -163,91 +150,38 @@ index(B) = 11111 &amp; B = 11011 即 27
 </code></pre><p>很明显如果 index(B) = (old capacity - 1) + old index =  (16 - 1) + 11</p>
 <p>而这个也是得益于 capacity 是 2 的 n 次方这一特性</p>
 
-                </section>
-            </article>
-           
-            <hr/> 
-            
+            </section>
 
-            
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
 
-            
-                <ul id="post-list" class="archive readmore">
-    <h3>也许还有您感兴趣的文章</h3>
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
 
-    
-    
-    
-        <li>
-            <a href="/posts/java-biased-locking/">  你知道 Java 的偏向锁要被废弃掉了吗？ <aside class="dates">2021 / 02 / 01</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">2020 / 11 / 22</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">2020 / 08 / 18</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">2020 / 08 / 15</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">2020 / 07 / 25</aside></a>
-        </li>
-    
-</ul>
+</script>
+        </div>
+        
 
-            
- <script src="https://utteranc.es/client.js"
-           repo="vran-dev/vran-dev.github.io"
-          issue-term="pathname"
-           label="Comment"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
-
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://github.com/vran-dev">
-        github
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
-    
-    </p>
-    <p class="small">
-        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </section>
+    <footer id="footer">
+    <p>
+        
+        © 2021 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/ZenHo">ZenHo</a>
     </p>
 </footer>
 
-        </section>
 
-        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
-<script src="https://blog.cc1234.cc/js/main.js"></script>
-<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-
-
-    </body>
-</html>
+</body>

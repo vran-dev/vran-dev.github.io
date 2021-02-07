@@ -3,64 +3,53 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+
 		<meta name="author" content="vran">
-		<meta name="description" content="且徐行">
+		
 		<meta name="generator" content="Hugo 0.80.0" />
 		<title>Java 模块化系统 Jigsaw &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
 
-		
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
-		
 
-		
+<body>
+    <section id="single" class="wrapper">
+    
 
-		
-	</head>
 
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://blog.cc1234.cc/'> Home</a>
-	
-	<a href='https://blog.cc1234.cc/posts'>Archive</a>
-	<a href='https://blog.cc1234.cc/tags'>Tags</a>
-	<a href='https://blog.cc1234.cc/about'>About</a>
+<nav class="nav-main">
+         
+         <a href='https://blog.cc1234.cc/'> Home</a>
+         <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+         <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+         <a href='https://blog.cc1234.cc/about'>About</a>
 
-	
-
-	
+        
+        
 </nav>
 
 
-        <section id="wrapper" class="post">
-            <article>
-                <header>
-                    <h1>
-                        Java 模块化系统 Jigsaw
-                    </h1>
-                    <h2 class="headline">
-                    2019/10/24 21:18
-                    · By vran
-                      <span class="tags">
-                      
-                      
-                          
-                              <a href="https://blog.cc1234.cc/tags/java">Java</a>&nbsp;
-                          
-                      
-                      
-                      </span>
-                    </h2>
-                </header>
-                
-                <section id="post-body">
-                    <h2 id="历史">历史</h2>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    
+                </div>
+                <div class = title>
+                    Java 模块化系统 Jigsaw
+                </div>
+                <div class="meta">
+                2019/10/24
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="历史">历史</h2>
 <p>2017年9月21日  Java9  正式发布，其中最大的变化就是引入了代号为 Jigsaw 的模块化系统（Java Platform Module System，简称 JPMS）。</p>
 <p>Java 的模块化系统可以说是一波三折，在 2005 年（Java7） 就已经有提案了（ <a href="https://jcp.org/en/jsr/detail?id=277">JSR277</a> ），但是因为种种历史原因，在一年多后该提案又被取消掉了</p>
 <p><img src="img/jsr277.png" alt="image-20191017092549901"></p>
@@ -104,47 +93,47 @@
 </li>
 </ul>
 <p>下面是摘自 <code>《 Java 语言规范 》</code> 的 模块定义语法：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// 以大括号标注的是占位符
-</span><span style="color:#75715e">// 以中括号标注的是可选项
-</span><span style="color:#75715e">// module, requires, exports, opens, provides..with, transitive, static 等都是关键字
-</span><span style="color:#75715e"></span>    
-<span style="color:#f92672">{</span>Annotation<span style="color:#f92672">}</span> <span style="color:#f92672">[</span>open<span style="color:#f92672">]</span> module Identifier <span style="color:#f92672">{.</span> Identifier<span style="color:#f92672">}</span> <span style="color:#f92672">{</span> 
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 以大括号标注的是占位符
+</span><span style="color:#177500">// 以中括号标注的是可选项
+</span><span style="color:#177500">// module, requires, exports, opens, provides..with, transitive, static 等都是关键字
+</span><span style="color:#177500"></span>    
+<span style="color:#000">{</span><span style="color:#000">Annotation</span><span style="color:#000">}</span> <span style="color:#000">[</span><span style="color:#000">open</span><span style="color:#000">]</span> <span style="color:#000">module</span> <span style="color:#000">Identifier</span> <span style="color:#000">{.</span> <span style="color:#000">Identifier</span><span style="color:#000">}</span> <span style="color:#000">{</span> 
   
-  <span style="color:#f92672">{</span>ModuleDirective<span style="color:#f92672">}</span>
+  <span style="color:#000">{</span><span style="color:#000">ModuleDirective</span><span style="color:#000">}</span>
   
-<span style="color:#f92672">}</span>
-
-ModuleDirective:
-  requires <span style="color:#f92672">{</span>RequiresModifier<span style="color:#f92672">}</span> ModuleName <span style="color:#f92672">;</span>
-  exports PackageName <span style="color:#f92672">[</span>to ModuleName <span style="color:#f92672">{,</span> ModuleName<span style="color:#f92672">}]</span> <span style="color:#f92672">;</span>
-  opens PackageName <span style="color:#f92672">[</span>to ModuleName <span style="color:#f92672">{,</span> ModuleName<span style="color:#f92672">}]</span> <span style="color:#f92672">;</span>
-  uses TypeName <span style="color:#f92672">;</span>
-  provides TypeName with TypeName <span style="color:#f92672">{,</span> TypeName<span style="color:#f92672">}</span> <span style="color:#f92672">;</span>
-
-RequiresModifier:
-  <span style="color:#f92672">(</span>one of<span style="color:#f92672">)</span>
-  transitive <span style="color:#66d9ef">static</span>
+<span style="color:#000">}</span>
+<span style="color:#000">
+</span><span style="color:#000">ModuleDirective:</span>
+  <span style="color:#000">requires</span> <span style="color:#000">{</span><span style="color:#000">RequiresModifier</span><span style="color:#000">}</span> <span style="color:#000">ModuleName</span> <span style="color:#000">;</span>
+  <span style="color:#000">exports</span> <span style="color:#000">PackageName</span> <span style="color:#000">[</span><span style="color:#000">to</span> <span style="color:#000">ModuleName</span> <span style="color:#000">{,</span> <span style="color:#000">ModuleName</span><span style="color:#000">}]</span> <span style="color:#000">;</span>
+  <span style="color:#000">opens</span> <span style="color:#000">PackageName</span> <span style="color:#000">[</span><span style="color:#000">to</span> <span style="color:#000">ModuleName</span> <span style="color:#000">{,</span> <span style="color:#000">ModuleName</span><span style="color:#000">}]</span> <span style="color:#000">;</span>
+  <span style="color:#000">uses</span> <span style="color:#000">TypeName</span> <span style="color:#000">;</span>
+  <span style="color:#000">provides</span> <span style="color:#000">TypeName</span> <span style="color:#000">with</span> <span style="color:#000">TypeName</span> <span style="color:#000">{,</span> <span style="color:#000">TypeName</span><span style="color:#000">}</span> <span style="color:#000">;</span>
+<span style="color:#000">
+</span><span style="color:#000">RequiresModifier:</span>
+  <span style="color:#000">(</span><span style="color:#000">one</span> <span style="color:#000">of</span><span style="color:#000">)</span>
+  <span style="color:#000">transitive</span> <span style="color:#a90d91">static</span>
 </code></pre></div><p>下面来简单的过一遍</p>
 <h3 id="module">Module</h3>
 <p><strong>module</strong>  与 <code>class</code> 、<code>interface</code> 等关键词类似，只不过它是专门用来定义模块的</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// 定义一个名称为 MyModule 的模块
-</span><span style="color:#75715e"></span>module MyModule <span style="color:#f92672">{</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 定义一个名称为 MyModule 的模块
+</span><span style="color:#177500"></span><span style="color:#000">module</span> <span style="color:#000">MyModule</span> <span style="color:#000">{</span>
   
-<span style="color:#f92672">}</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>注意，一个 <strong>module-info.java</strong> 文件中只能出现一次 <strong>module</strong> 的定义， 它并不能像 class 或 interface 一样能在单个文件中多次定义。</p>
 <p>为了让注解能作用于 <strong>module</strong> 之上，Java 9 特地为 <code>ElementType</code> 扩展了一个 <strong>MODULE</strong> 类型</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
-</span><span style="color:#75715e">* 一个可以修饰 module 的注解
-</span><span style="color:#75715e">*/</span>
-<span style="color:#a6e22e">@Target</span><span style="color:#f92672">({</span>ElementType<span style="color:#f92672">.</span><span style="color:#a6e22e">MODULE</span><span style="color:#f92672">})</span>
-<span style="color:#a6e22e">@Retention</span><span style="color:#f92672">(</span>RetentionPolicy<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNTIME</span><span style="color:#f92672">)</span>
-<span style="color:#a6e22e">@interface</span> ModuleAnnotation <span style="color:#f92672">{</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">/**
+</span><span style="color:#177500">* 一个可以修饰 module 的注解
+</span><span style="color:#177500">*/</span>
+<span style="color:#000">@Target</span><span style="color:#000">({</span><span style="color:#000">ElementType</span><span style="color:#000">.</span><span style="color:#836c28">MODULE</span><span style="color:#000">})</span>
+<span style="color:#000">@Retention</span><span style="color:#000">(</span><span style="color:#000">RetentionPolicy</span><span style="color:#000">.</span><span style="color:#836c28">RUNTIME</span><span style="color:#000">)</span>
+<span style="color:#000">@interface</span> <span style="color:#000">ModuleAnnotation</span> <span style="color:#000">{</span>
 
-<span style="color:#f92672">}</span>
+<span style="color:#000">}</span>
 </code></pre></div><p><strong>module</strong> 前有一个可选关键字 open</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">open module MyModule <span style="color:#f92672">{</span>
-  <span style="color:#75715e">//......
-</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">open</span> <span style="color:#000">module</span> <span style="color:#000">MyModule</span> <span style="color:#000">{</span>
+  <span style="color:#177500">//......
+</span><span style="color:#177500"></span><span style="color:#000">}</span>
 </code></pre></div><p>在 <code>《Java 语言规范》</code> 中，将被 <strong>open</strong> 修饰的模块定义为 <strong>开放模块</strong>，否则就是 <strong>标准模块</strong>。</p>
 <p>两种模块之间的区别主要在于类的访问性上</p>
 <ul>
@@ -158,24 +147,24 @@ RequiresModifier:
 <h3 id="exports"><strong>Exports</strong></h3>
 <p>前面说开放模块和标准模块的区别时提到了 <strong>exports</strong> 关键字，**exports ** 是 module 结构体内的一个指令，后面会跟上一个包名，表示该包下的所有类可以在编译期和运行时被其他模块访问。</p>
 <p>比如下面的代码就是开放 <strong>MyExportModule</strong> 下 <strong>com.sample</strong> 包下所有的类的访问权限给第三方模块</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module MyExportsModule <span style="color:#f92672">{</span>
-  exports com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span><span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">MyExportsModule</span> <span style="color:#000">{</span>
+  <span style="color:#000">exports</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>有时候我们还想更细粒度的 <strong>exports</strong>，就可以通过  <code> exports...to...</code>  明确指定允许访问的第三方组件， 相当于从群聊变成了私聊。</p>
 <p>如下， <strong>com.sample</strong> 下的类只能被模块 <strong>B</strong> 访问。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module A <span style="color:#f92672">{</span>
-  exports com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span> to B<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">A</span> <span style="color:#000">{</span>
+  <span style="color:#000">exports</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span> <span style="color:#000">to</span> <span style="color:#000">B</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><h3 id="opens">Opens</h3>
 <p><strong>opens</strong> 与 <strong>exports</strong> 类似，主要区别在于 <strong>opens</strong> 是只针对于<strong>运行时访问能力</strong>的一个指令。</p>
 <p><strong>opens</strong> 后面仍然是指定包名，该包下的类第三方组件是不可以直接引用的（即无法通过 import 使用），但是却可以通过反射进行调用。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module MyOpensModule <span style="color:#f92672">{</span>
-  opens com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">MyOpensModule</span> <span style="color:#000">{</span>
+  <span style="color:#000">opens</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>与 <strong>exports</strong> 一样， <strong>opens</strong> 也可以通过  <strong>to</strong> 关键字指定具体的模块：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module A <span style="color:#f92672">{</span>
-	opens com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span> to B<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">A</span> <span style="color:#000">{</span>
+	<span style="color:#000">opens</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span> <span style="color:#000">to</span> <span style="color:#000">B</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>需要注意一点就是，如果你的模块是开放模块，就不需要再使用 <strong>opens</strong> 了，用了也会产生编译错误的。</p>
 <h3 id="requires">Requires</h3>
 <p>前面说的 <strong>exports</strong> 和 <strong>opens</strong> 都是控制模块内部的访问权限的，那么如何依赖第三方模块呢？</p>
@@ -184,9 +173,9 @@ RequiresModifier:
 <p>比如我现在通过 maven 导入了 slf4j 的依赖，当我通过 import 引用 slf4j 包下的类时就会报错</p>
 <p><img src="img/import-error.png" alt="image-20200529102238283"></p>
 <p>IDEA 很友好的提示了需要先 requires 该组件</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module Sample <span style="color:#f92672">{</span>
-  requires org<span style="color:#f92672">.</span><span style="color:#a6e22e">slf4j</span><span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">Sample</span> <span style="color:#000">{</span>
+  <span style="color:#000">requires</span> <span style="color:#000">org</span><span style="color:#000">.</span><span style="color:#836c28">slf4j</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>为了使用方便， 用户定义的模块都会默认 <code>requires java.base</code>，我们自己也可以显示的去覆盖它。</p>
 <p><strong>requires</strong> 后面还可以跟 <strong>transitive</strong> 或 <strong>static</strong> 关键字</p>
 <ul>
@@ -197,60 +186,60 @@ RequiresModifier:
 <p>(1)、A 依赖 B</p>
 <p>(2)、B 依赖 C，并且依赖关系是 transitive，这样的话 A 就隐式依赖了 C</p>
 <p>(3)、C 依赖 lombok，并且依赖关系是 static 的</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module A <span style="color:#f92672">{</span>
-  requires B<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">A</span> <span style="color:#000">{</span>
+  <span style="color:#000">requires</span> <span style="color:#000">B</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 
-module B <span style="color:#f92672">{</span>
-  requires transitive C<span style="color:#f92672">;</span>
-  exports B<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span>
-<span style="color:#f92672">}</span>
+<span style="color:#000">module</span> <span style="color:#000">B</span> <span style="color:#000">{</span>
+  <span style="color:#000">requires</span> <span style="color:#000">transitive</span> <span style="color:#000">C</span><span style="color:#000">;</span>
+  <span style="color:#000">exports</span> <span style="color:#000">B</span><span style="color:#000">.</span><span style="color:#836c28">sample</span>
+<span style="color:#000">}</span>
 
-mobule C <span style="color:#f92672">{</span>
-  requires <span style="color:#66d9ef">static</span> lombok<span style="color:#f92672">;</span>
-  opens C<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span>
-<span style="color:#f92672">}</span>
+<span style="color:#000">mobule</span> <span style="color:#000">C</span> <span style="color:#000">{</span>
+  <span style="color:#000">requires</span> <span style="color:#a90d91">static</span> <span style="color:#000">lombok</span><span style="color:#000">;</span>
+  <span style="color:#000">opens</span> <span style="color:#000">C</span><span style="color:#000">.</span><span style="color:#836c28">sample</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>如果没有使用 transitive，但是模块 A 又需要 模块 C 的话，就必须要再模块 A 中显示的指定依赖关系，否则的话会有编译错误</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module A <span style="color:#f92672">{</span>
-  requires B<span style="color:#f92672">;</span>
-  required C<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">A</span> <span style="color:#000">{</span>
+  <span style="color:#000">requires</span> <span style="color:#000">B</span><span style="color:#000">;</span>
+  <span style="color:#000">required</span> <span style="color:#000">C</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><h3 id="uses--provideswith">Uses &amp; Provides&hellip;with</h3>
 <p>模块化系统对 JAVA 的 <a href="https://docs.oracle.com/javase/9/docs/api/java/util/ServiceLoader.html">SPI</a> 机制也做出了巨大的改变，而 Uses 和 Provides..with 就是针对 SPI 的关键字。</p>
 <blockquote>
 <p>SPI 本质上就是运行时动态的在 class-path 路径下加载对应的实现类的一种技术，它可以解耦<strong>服务消费者</strong>和<strong>服务提供者</strong></p>
 </blockquote>
 <p>我在组件 A 中定义了一个接口 <strong>Serializer</strong>，并创建了一个工厂 <strong>SerializerFactory</strong> 通过 SPI 机制加载接口的实现类</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">Serializer</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> <span style="color:#a6e22e">serialize</span><span style="color:#f92672">(</span>Object target<span style="color:#f92672">);</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SerializerFactory</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> List<span style="color:#f92672">&lt;</span>Serializer<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getSerializers</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> ServiceLoader<span style="color:#f92672">&lt;</span>Serializer<span style="color:#f92672">&gt;</span> loader <span style="color:#f92672">=</span> ServiceLoader<span style="color:#f92672">.</span><span style="color:#a6e22e">load</span><span style="color:#f92672">(</span>Serializer<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">return</span> loader<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>
-          <span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>ServiceLoader<span style="color:#f92672">.</span><span style="color:#a6e22e">Provider</span><span style="color:#f92672">::</span>get<span style="color:#f92672">)</span>
-          <span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">Serializer</span> <span style="color:#000">{</span>
+  <span style="color:#a90d91">byte</span><span style="color:#000">[]</span> <span style="color:#000">serialize</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">target</span><span style="color:#000">);</span>
+<span style="color:#000">}</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">SerializerFactory</span> <span style="color:#000">{</span>
+  <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">Serializer</span><span style="color:#000">&gt;</span> <span style="color:#000">getSerializers</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+        <span style="color:#a90d91">final</span> <span style="color:#000">ServiceLoader</span><span style="color:#000">&lt;</span><span style="color:#000">Serializer</span><span style="color:#000">&gt;</span> <span style="color:#000">loader</span> <span style="color:#000">=</span> <span style="color:#000">ServiceLoader</span><span style="color:#000">.</span><span style="color:#836c28">load</span><span style="color:#000">(</span><span style="color:#000">Serializer</span><span style="color:#000">.</span><span style="color:#836c28">class</span><span style="color:#000">);</span>
+        <span style="color:#a90d91">return</span> <span style="color:#000">loader</span><span style="color:#000">.</span><span style="color:#836c28">stream</span><span style="color:#000">()</span>
+          <span style="color:#000">.</span><span style="color:#836c28">map</span><span style="color:#000">(</span><span style="color:#000">ServiceLoader</span><span style="color:#000">.</span><span style="color:#836c28">Provider</span><span style="color:#000">::</span><span style="color:#000">get</span><span style="color:#000">)</span>
+          <span style="color:#000">.</span><span style="color:#836c28">collect</span><span style="color:#000">(</span><span style="color:#000">Collectors</span><span style="color:#000">.</span><span style="color:#836c28">toList</span><span style="color:#000">());</span>
+    <span style="color:#000">}</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>在组件 B 中定义了定义了实现类 <strong>JdkSerializer</strong> ，并根据 SPI 的规则创建配置文件 com.sample.Serializer 并写入 <strong>JdkSerializer</strong> 的全限定名</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">- resources
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">- resources
 	- META-INF
 		- services
 			com.sample.Serializer
 </code></pre></div><p>这样就完成了 SPI 的整个配置， 但是在模块化系统中接口和实现的配置全部转到了 module-info.java 文件中。</p>
 <p>首先在组件 A 中要用 <strong>uses</strong> 明确指定 Serializer 为服务提供者</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module A <span style="color:#f92672">{</span>
-  <span style="color:#75715e">// Serializer 和 SerializerFactory 都在该包下
-</span><span style="color:#75715e"></span>	exports com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span><span style="color:#f92672">;</span>
-  uses com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span><span style="color:#f92672">.</span><span style="color:#a6e22e">Serializer</span><span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">A</span> <span style="color:#000">{</span>
+  <span style="color:#177500">// Serializer 和 SerializerFactory 都在该包下
+</span><span style="color:#177500"></span>	<span style="color:#000">exports</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span><span style="color:#000">;</span>
+  <span style="color:#000">uses</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span><span style="color:#000">.</span><span style="color:#836c28">Serializer</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>如果不适用 uses 指定的话，SerializerFactory.getSerializers() 就会抛出异常</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">java.util.ServiceConfigurationError: com.sample.SerializerFactory: module A does not declare <span style="color:#e6db74">`</span>uses<span style="color:#e6db74">`</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">java.util.ServiceConfigurationError: com.sample.SerializerFactory: module A does not <span style="color:#a90d91">declare</span> <span style="color:#c41a16">`</span>uses<span style="color:#c41a16">`</span>
 </code></pre></div><p>模块 B 依赖模块 A，并为 Serializer 提供实现类，同样需要通过 <strong>provides&hellip;with</strong>  来指定服务的实现类（不再需要创建 com.sample.Serializer 文件了）</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module B <span style="color:#f92672">{</span>
-  requires A<span style="color:#f92672">;</span>
-  provides Serializer with HessianSerializer<span style="color:#f92672">,</span> JdkSerializer<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">B</span> <span style="color:#000">{</span>
+  <span style="color:#000">requires</span> <span style="color:#000">A</span><span style="color:#000">;</span>
+  <span style="color:#000">provides</span> <span style="color:#000">Serializer</span> <span style="color:#000">with</span> <span style="color:#000">HessianSerializer</span><span style="color:#000">,</span> <span style="color:#000">JdkSerializer</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p><code>provides A with B</code> 可以这样去理解， 为接口 A 提供实现类 B。</p>
 <h2 id="类加载器">类加载器</h2>
 <p>谈完了语法，再来看看模块化系统为<strong>类加载器</strong>带来的变化。</p>
@@ -258,53 +247,53 @@ mobule C <span style="color:#f92672">{</span>
 <p><img src="img/classloader.png" alt="image-20191022144513215"></p>
 <h2 id="实例">实例</h2>
 <p>在只有 class-path 的时代，我们用 <code>javac</code> 命令编译时会通过 classpath 参数指定依赖类路径， 使用 <code>java</code> 命令运行时也会通过 cp 参数指定类路径</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">javac --classpath
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">javac --classpath
 
 java -cp
 </code></pre></div><p>下面通过一个简单的示例来展示这两个命令在模块化系统中的应用</p>
 <p>在项目 module-sample 下，module-A 和 module-B 分别代表两个模块，mods 是用来存放编译输出的目录。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">module-sample/module-A/src
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">module-sample/module-A/src
 module-sample/module-B/src
 module-sample/mods
 </code></pre></div><p>模块 A 的目录结构如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">module-A/src/com/sample/Test.java
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">module-A/src/com/sample/Test.java
 module-A/src/module-info.java
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">pakcage com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span><span style="color:#f92672">;</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">pakcage</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span><span style="color:#000">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Test</span> <span style="color:#f92672">{</span>
-	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">say</span><span style="color:#f92672">(</span>String word<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-    	System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>word<span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>  
-<span style="color:#f92672">}</span>
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Test</span> <span style="color:#000">{</span>
+	<span style="color:#a90d91">public</span> <span style="color:#a90d91">void</span> <span style="color:#000">say</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">word</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+    	<span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">word</span><span style="color:#000">);</span>
+    <span style="color:#000">}</span>  
+<span style="color:#000">}</span>
 
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module A <span style="color:#f92672">{</span>
-  exports com<span style="color:#f92672">.</span><span style="color:#a6e22e">sample</span><span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">A</span> <span style="color:#000">{</span>
+  <span style="color:#000">exports</span> <span style="color:#000">com</span><span style="color:#000">.</span><span style="color:#836c28">sample</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>编译模块 A</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">javac -d mods/A module-a/src/module-info.java module-a/src/com/sample/Test.java
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">javac -d mods/A module-a/src/module-info.java module-a/src/com/sample/Test.java
 </code></pre></div><p>模块 B 的解构如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">module-B/src/com/test/MyTest.java
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">module-B/src/com/test/MyTest.java
 module-B/src/module-info.java
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.test<span style="color:#f92672">;</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">package</span> <span style="color:#000">com.test</span><span style="color:#000">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyTest</span> <span style="color:#f92672">{</span>
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">MyTest</span> <span style="color:#000">{</span>
   
-  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello world&#34;</span><span style="color:#f92672">);</span>
-  <span style="color:#f92672">}</span>
+  <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">main</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+    <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;hello world&#34;</span><span style="color:#000">);</span>
+  <span style="color:#000">}</span>
   
-<span style="color:#f92672">}</span>
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module B <span style="color:#f92672">{</span>
-  requires A<span style="color:#f92672">;</span>
-<span style="color:#f92672">}</span>
+<span style="color:#000">}</span>
+</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">module</span> <span style="color:#000">B</span> <span style="color:#000">{</span>
+  <span style="color:#000">requires</span> <span style="color:#000">A</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
 </code></pre></div><p>编译模块 B ，由于当前模块依赖了模块 A，所以需要指定 module-path，从而使得编译期可以找到 模块A。</p>
 <blockquote>
 <p><code>-d</code> 参数指定编译文件的输出目录</p>
 <p><code>-p</code> 指定 module-path</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">javac -p mods -d mods/B module-b/src/module-info.java module-b/src/com/b/MyTest.java
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">javac -p mods -d mods/B module-b/src/module-info.java module-b/src/com/b/MyTest.java
 </code></pre></div><p>运行 main 方法</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">java --module-path mods -m B/com.b.MyTest
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">java --module-path mods -m B/com.b.MyTest
 </code></pre></div><h2 id="兼容性">兼容性</h2>
 <p>虽然 Java9 发布已经有一段时间了，但即使是现在很多第三方库也还没有模块化，为了保证兼容性，当 module-path 下存在没有定义 module-info.java 文件的依赖时，JAVA 会自动将其转为 <strong>automatic-module</strong></p>
 <ul>
@@ -345,91 +334,38 @@ module-B/src/module-info.java
 <li><a href="https://github.com/vran-dev/PrettyZoo">PrettyZoo</a></li>
 </ol>
 
-                </section>
-            </article>
-           
-            <hr/> 
-            
+            </section>
 
-            
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
 
-            
-                <ul id="post-list" class="archive readmore">
-    <h3>也许还有您感兴趣的文章</h3>
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
 
-    
-    
-    
-        <li>
-            <a href="/posts/java-biased-locking/">  你知道 Java 的偏向锁要被废弃掉了吗？ <aside class="dates">2021 / 02 / 01</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">2020 / 11 / 22</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">2020 / 08 / 18</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">2020 / 08 / 15</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">2020 / 07 / 25</aside></a>
-        </li>
-    
-</ul>
+</script>
+        </div>
+        
 
-            
- <script src="https://utteranc.es/client.js"
-           repo="vran-dev/vran-dev.github.io"
-          issue-term="pathname"
-           label="Comment"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
-
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://github.com/vran-dev">
-        github
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
-    
-    </p>
-    <p class="small">
-        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </section>
+    <footer id="footer">
+    <p>
+        
+        © 2021 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/ZenHo">ZenHo</a>
     </p>
 </footer>
 
-        </section>
 
-        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
-<script src="https://blog.cc1234.cc/js/main.js"></script>
-<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-
-
-    </body>
-</html>
+</body>

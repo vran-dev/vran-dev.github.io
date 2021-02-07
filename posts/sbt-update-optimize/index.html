@@ -3,66 +3,53 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+
 		<meta name="author" content="vran">
-		<meta name="description" content="且徐行">
+		
 		<meta name="generator" content="Hugo 0.80.0" />
 		<title>从30分钟到1分钟 - SBT的update耗时优化记录 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
 
-		
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
-		
 
-		
+<body>
+    <section id="single" class="wrapper">
+    
 
-		
-	</head>
 
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://blog.cc1234.cc/'> Home</a>
-	
-	<a href='https://blog.cc1234.cc/posts'>Archive</a>
-	<a href='https://blog.cc1234.cc/tags'>Tags</a>
-	<a href='https://blog.cc1234.cc/about'>About</a>
+<nav class="nav-main">
+         
+         <a href='https://blog.cc1234.cc/'> Home</a>
+         <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+         <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+         <a href='https://blog.cc1234.cc/about'>About</a>
 
-	
-
-	
+        
+        
 </nav>
 
 
-        <section id="wrapper" class="post">
-            <article>
-                <header>
-                    <h1>
-                        从30分钟到1分钟 - SBT的update耗时优化记录
-                    </h1>
-                    <h2 class="headline">
-                    2019/09/17 00:00
-                    · By vran
-                      <span class="tags">
-                      
-                      
-                          
-                              <a href="https://blog.cc1234.cc/tags/scala">Scala</a>&nbsp;
-                          
-                              <a href="https://blog.cc1234.cc/tags/sbt">SBT</a>&nbsp;
-                          
-                      
-                      
-                      </span>
-                    </h2>
-                </header>
-                
-                <section id="post-body">
-                    <h1 id="前言">前言</h1>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    
+                </div>
+                <div class = title>
+                    从30分钟到1分钟 - SBT的update耗时优化记录
+                </div>
+                <div class="meta">
+                2019/09/17
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h1 id="前言">前言</h1>
 <p>公司有项目是基于 Scala 编写的，与之配套的构建工具是 SBT , 它是 <strong>Simple Build Tool</strong> 的缩写，虽然我觉得它一点也不简单。</p>
 <p>这个项目有一个很大的痛点就是刷新依赖 （对应 SBT 的 update）非常之耗时，可以参见下图：</p>
 <p><img src="img/image-20190916164031838.png" alt="image-20190916164031838"></p>
@@ -85,15 +72,15 @@
 <p>翻了几页，没有满意的答案，也试了几个方案，也没啥用。</p>
 <p>看来还是得自己从问题的根源开始找起啊&hellip;&hellip;</p>
 <p>为了保险起见， 我还是先排查一下是不是镜像问题， 项目的 <code>build.sbt</code> 配置文件中是有私有仓库的相关配置项的：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
-lazy val commonSettings <span style="color:#f92672">=</span> Seq<span style="color:#f92672">(</span>
-	<span style="color:#75715e">//....
-</span><span style="color:#75715e"></span>
-  <span style="color:#75715e">// ... 私有仓库
-</span><span style="color:#75715e"></span>  resolvers <span style="color:#f92672">:=</span> <span style="color:#f92672">{</span>Resolver<span style="color:#f92672">.</span><span style="color:#a6e22e">url</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;xr-ivy-releasez&#34;</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> URL<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;http://nexus.xxxx.com/repository/ivy-releases/&#34;</span><span style="color:#f92672">))(</span>Resolver<span style="color:#f92672">.</span><span style="color:#a6e22e">ivyStylePatterns</span><span style="color:#f92672">)</span> <span style="color:#f92672">+:</span> resolvers<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">},</span>
-  resolvers <span style="color:#f92672">:=</span> <span style="color:#f92672">{</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;xr-maven-public&#34;</span> at <span style="color:#e6db74">&#34;http://nexus.xxxx.com/repository/public/&#34;</span><span style="color:#f92672">}</span> <span style="color:#f92672">+:</span> resolvers<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">},</span>
-  <span style="color:#75715e">// ....
-</span><span style="color:#75715e"></span><span style="color:#f92672">)</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
+<span style="color:#000">lazy</span> <span style="color:#000">val</span> <span style="color:#000">commonSettings</span> <span style="color:#000">=</span> <span style="color:#000">Seq</span><span style="color:#000">(</span>
+	<span style="color:#177500">//....
+</span><span style="color:#177500"></span>
+  <span style="color:#177500">// ... 私有仓库
+</span><span style="color:#177500"></span>  <span style="color:#000">resolvers</span> <span style="color:#000">:=</span> <span style="color:#000">{</span><span style="color:#000">Resolver</span><span style="color:#000">.</span><span style="color:#836c28">url</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;xr-ivy-releasez&#34;</span><span style="color:#000">,</span> <span style="color:#a90d91">new</span> <span style="color:#000">URL</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;http://nexus.xxxx.com/repository/ivy-releases/&#34;</span><span style="color:#000">))(</span><span style="color:#000">Resolver</span><span style="color:#000">.</span><span style="color:#836c28">ivyStylePatterns</span><span style="color:#000">)</span> <span style="color:#000">+:</span> <span style="color:#000">resolvers</span><span style="color:#000">.</span><span style="color:#836c28">value</span><span style="color:#000">},</span>
+  <span style="color:#000">resolvers</span> <span style="color:#000">:=</span> <span style="color:#000">{</span> <span style="color:#000">{</span><span style="color:#c41a16">&#34;xr-maven-public&#34;</span> <span style="color:#000">at</span> <span style="color:#c41a16">&#34;http://nexus.xxxx.com/repository/public/&#34;</span><span style="color:#000">}</span> <span style="color:#000">+:</span> <span style="color:#000">resolvers</span><span style="color:#000">.</span><span style="color:#836c28">value</span><span style="color:#000">},</span>
+  <span style="color:#177500">// ....
+</span><span style="color:#177500"></span><span style="color:#000">)</span>
 
 </code></pre></div><p>此时我忽然想到一种情况：难道是默认走的公共库，在公共库找不到依赖才会走私有库 ？</p>
 <p>为了验证猜想，我使用 wireshark 抓包进行分析，过滤器指定协议 http (因为仓库是走的http)</p>
@@ -222,8 +209,8 @@ lazy val commonSettings <span style="color:#f92672">=</span> Seq<span style="col
 <p>要不，我把这个问题留给你们了？</p>
 <h2 id="写在最后">写在最后</h2>
 <p>最后从30分钟到1分钟实际上就是在 <code>build.sbt</code> 加了两行配置</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala">offline <span style="color:#66d9ef">:</span><span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">,</span>
-updateOptions <span style="color:#66d9ef">:</span><span style="color:#f92672">=</span> updateOptions<span style="color:#f92672">.</span>value<span style="color:#f92672">.</span>withCachedResolution<span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">).</span>withLatestSnapshots<span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">)</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#000">offline</span> <span style="color:#a90d91">:</span><span style="color:#000">=</span> <span style="color:#a90d91">true</span><span style="color:#000">,</span>
+<span style="color:#000">updateOptions</span> <span style="color:#a90d91">:</span><span style="color:#000">=</span> <span style="color:#000">updateOptions</span><span style="color:#000">.</span><span style="color:#000">value</span><span style="color:#000">.</span><span style="color:#000">withCachedResolution</span><span style="color:#000">(</span><span style="color:#a90d91">true</span><span style="color:#000">).</span><span style="color:#000">withLatestSnapshots</span><span style="color:#000">(</span><span style="color:#a90d91">false</span><span style="color:#000">)</span>
 </code></pre></div><p>整个分析问题的思路也很简单，就是先找到问题根源，再去找解决方案。</p>
 <p>在寻找解决方案的时候一般都是搜索引擎，文档或者源码，正常情况下文档应该都能解决问题了，这期间我就绕了不少弯路，我甚至曾去看了 SBT 的  <strong>Resolver</strong> 的源码， 现在看来，绝对是跑偏了。</p>
 <p>整个解决过程并没有多么高深莫测甚至可以说是无聊至极，因为大部分时间都是看文档并验证其配置。</p>
@@ -237,91 +224,38 @@ updateOptions <span style="color:#66d9ef">:</span><span style="color:#f92672">=<
 <li><a href="https://github.com/sbt/sbt/wiki/User-Stories:--Offline-mode-and-Dependency-Locking">Offline mode and Dependency Locking</a></li>
 </ol>
 
-                </section>
-            </article>
-           
-            <hr/> 
-            
+            </section>
 
-            
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
 
-            
-                <ul id="post-list" class="archive readmore">
-    <h3>也许还有您感兴趣的文章</h3>
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
 
-    
-    
-    
-        <li>
-            <a href="/posts/java-biased-locking/">  你知道 Java 的偏向锁要被废弃掉了吗？ <aside class="dates">2021 / 02 / 01</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">2020 / 11 / 22</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">2020 / 08 / 18</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">2020 / 08 / 15</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">2020 / 07 / 25</aside></a>
-        </li>
-    
-</ul>
+</script>
+        </div>
+        
 
-            
- <script src="https://utteranc.es/client.js"
-           repo="vran-dev/vran-dev.github.io"
-          issue-term="pathname"
-           label="Comment"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
-
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://github.com/vran-dev">
-        github
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
-    
-    </p>
-    <p class="small">
-        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </section>
+    <footer id="footer">
+    <p>
+        
+        © 2021 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/ZenHo">ZenHo</a>
     </p>
 </footer>
 
-        </section>
 
-        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
-<script src="https://blog.cc1234.cc/js/main.js"></script>
-<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-
-
-    </body>
-</html>
+</body>

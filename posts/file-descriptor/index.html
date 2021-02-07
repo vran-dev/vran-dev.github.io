@@ -3,64 +3,53 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+
 		<meta name="author" content="vran">
-		<meta name="description" content="且徐行">
+		
 		<meta name="generator" content="Hugo 0.80.0" />
 		<title>带你破案：文件描述符到底是什么？ &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
 
-		
-		<link rel="stylesheet" href="https://blog.cc1234.cc/css/monosocialiconsfont.css">
-		
 
-		
+<body>
+    <section id="single" class="wrapper">
+    
 
-		
-	</head>
 
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://blog.cc1234.cc/'> Home</a>
-	
-	<a href='https://blog.cc1234.cc/posts'>Archive</a>
-	<a href='https://blog.cc1234.cc/tags'>Tags</a>
-	<a href='https://blog.cc1234.cc/about'>About</a>
+<nav class="nav-main">
+         
+         <a href='https://blog.cc1234.cc/'> Home</a>
+         <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+         <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+         <a href='https://blog.cc1234.cc/about'>About</a>
 
-	
-
-	
+        
+        
 </nav>
 
 
-        <section id="wrapper" class="post">
-            <article>
-                <header>
-                    <h1>
-                        带你破案：文件描述符到底是什么？
-                    </h1>
-                    <h2 class="headline">
-                    2019/07/23 23:34
-                    · By vran
-                      <span class="tags">
-                      
-                      
-                          
-                              <a href="https://blog.cc1234.cc/tags/os">OS</a>&nbsp;
-                          
-                      
-                      
-                      </span>
-                    </h2>
-                </header>
-                
-                <section id="post-body">
-                    <h2 id="前言">前言</h2>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    
+                </div>
+                <div class = title>
+                    带你破案：文件描述符到底是什么？
+                </div>
+                <div class="meta">
+                2019/07/23
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="前言">前言</h2>
 <p>文件描述符在unix系统中几乎无处不在</p>
 <ul>
 <li>网络接口 select、poll、epoll 涉及到文件描述符</li>
@@ -71,53 +60,53 @@
 <h2 id="一个获取文件描述符的实例">一个获取文件描述符的实例</h2>
 <p>我们可以通过 <code>open</code> 系统调用得到一个指定文件的文件描述符。</p>
 <p><code>open</code> 函数需要传入一个文件路径和操作模式， 调用会返回一个整型的文件描述符， 具体方法签名如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
-</span><span style="color:#75715e">* path 代表文件路径
-</span><span style="color:#75715e">* oflag 代表文件的打开模式，比如读，写等
-</span><span style="color:#75715e">*/</span>
-<span style="color:#66d9ef">int</span> open(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path,  <span style="color:#66d9ef">int</span> oflag, ...)
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#177500">/**
+</span><span style="color:#177500">* path 代表文件路径
+</span><span style="color:#177500">* oflag 代表文件的打开模式，比如读，写等
+</span><span style="color:#177500">*/</span>
+<span style="color:#a90d91">int</span> <span style="color:#000">open</span>(<span style="color:#a90d91">char</span> <span style="color:#000">*</span><span style="color:#000">path</span>,  <span style="color:#a90d91">int</span> <span style="color:#000">oflag</span>, ...)
 </code></pre></div><p>我们写一段简单的代码来验证一下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> argv[]) {
-	<span style="color:#75715e">// 以只读模式打开 demo.txt 文件
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">int</span> fd <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
-	<span style="color:#66d9ef">if</span> (fd <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
-		perror(<span style="color:#e6db74">&#34;open demo.txt error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-		<span style="color:#66d9ef">return</span> EXIT_FAILURE;
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdio.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdlib.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;fcntl.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820"></span>
+<span style="color:#a90d91">int</span> <span style="color:#000">main</span>(<span style="color:#a90d91">int</span> <span style="color:#000">argc</span>, <span style="color:#a90d91">char</span><span style="color:#000">*</span> <span style="color:#000">argv</span>[]) {
+	<span style="color:#177500">// 以只读模式打开 demo.txt 文件
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">int</span> <span style="color:#000">fd</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
+	<span style="color:#a90d91">if</span> (<span style="color:#000">fd</span> <span style="color:#000">==</span> <span style="color:#000">-</span><span style="color:#1c01ce">1</span>) {
+		<span style="color:#000">perror</span>(<span style="color:#c41a16">&#34;open demo.txt error</span><span style="color:#c41a16">\n</span><span style="color:#c41a16">&#34;</span>);
+		<span style="color:#a90d91">return</span> <span style="color:#000">EXIT_FAILURE</span>;
 	}
-	<span style="color:#75715e">// 打印获取到的文件描述符
-</span><span style="color:#75715e"></span>	printf(<span style="color:#e6db74">&#34;demo.txt fd = %d </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, fd);
-	<span style="color:#66d9ef">return</span> EXIT_SUCCESS;
+	<span style="color:#177500">// 打印获取到的文件描述符
+</span><span style="color:#177500"></span>	<span style="color:#000">printf</span>(<span style="color:#c41a16">&#34;demo.txt fd = %d </span><span style="color:#c41a16">\n</span><span style="color:#c41a16">&#34;</span>, <span style="color:#000">fd</span>);
+	<span style="color:#a90d91">return</span> <span style="color:#000">EXIT_SUCCESS</span>;
 }
 
 </code></pre></div><p>然后使用 GCC 编译，执行编译后的程序，我们就可以得到 <code>demo.txt</code> 的文件描述符了。</p>
 <p>不出意外你将得到以下的执行结果：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ echo hello&gt;&gt;demo.txt
-$ gcc test.c -o test
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ <span style="color:#a90d91">echo</span> hello&gt;&gt;demo.txt
+$ gcc test.c -o <span style="color:#a90d91">test</span>
 $ ./test
-$ demo.txt fd <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+$ demo.txt <span style="color:#000">fd</span> <span style="color:#000">=</span> <span style="color:#1c01ce">3</span>
 </code></pre></div><p>和方法签名一致，文件描述符是一个整型数。</p>
 <p>你可以尝试多次执行该程序， 你会发现打印的文件描述符始终都是 <strong>3</strong>。</p>
 <p>难道每个文件的文件描述符都是固定的？</p>
 <h2 id="每个文件的描述符是固定的吗">每个文件的描述符是固定的吗？</h2>
 <p>为了验证前面的猜想，我在程序里面连续调用两次 <code>open</code> 函数，并打印两次返回的文件描述符， 代码如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> argv[]) {
-	<span style="color:#66d9ef">int</span> fd_a <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
-	<span style="color:#66d9ef">int</span> fd_b <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
-	printf(<span style="color:#e6db74">&#34;fd_a = %d, fd_b = %d </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, fd_a, fd_b);
-	<span style="color:#66d9ef">return</span> EXIT_SUCCESS;
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdio.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdlib.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;fcntl.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820"></span>
+<span style="color:#a90d91">int</span> <span style="color:#000">main</span>(<span style="color:#a90d91">int</span> <span style="color:#000">argc</span>, <span style="color:#a90d91">char</span><span style="color:#000">*</span> <span style="color:#000">argv</span>[]) {
+	<span style="color:#a90d91">int</span> <span style="color:#000">fd_a</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
+	<span style="color:#a90d91">int</span> <span style="color:#000">fd_b</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
+	<span style="color:#000">printf</span>(<span style="color:#c41a16">&#34;fd_a = %d, fd_b = %d </span><span style="color:#c41a16">\n</span><span style="color:#c41a16">&#34;</span>, <span style="color:#000">fd_a</span>, <span style="color:#000">fd_b</span>);
+	<span style="color:#a90d91">return</span> <span style="color:#000">EXIT_SUCCESS</span>;
 }
 </code></pre></div><p>下面是最终的执行结果：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ gcc test.c -o test
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ gcc test.c -o <span style="color:#a90d91">test</span>
 $ ./test
-$ fd_a <span style="color:#f92672">=</span> 3, fd_b <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>
+$ <span style="color:#000">fd_a</span> <span style="color:#000">=</span> 3, <span style="color:#000">fd_b</span> <span style="color:#000">=</span> <span style="color:#1c01ce">4</span>
 </code></pre></div><p>尽管是同一个文件， 得到的文件描述符却并不一样，说明每个文件的描述符并不是固定的。</p>
 <p>可是文件描述符每次都是从 3 开始的，这是为什么呢 ？</p>
 <p>熟悉UNIX系统的同学应该知道，系统创建的每个进程默认会打开3个文件：</p>
@@ -141,31 +130,31 @@ $ fd_a <span style="color:#f92672">=</span> 3, fd_b <span style="color:#f92672">
 </ol>
 <p>如果文件描述符的规则是递增的，第 3 步返回的结果就应该是 5 。</p>
 <p>Show me the code：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> argv[]) {
-  <span style="color:#75715e">// 第一次打开
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
-  <span style="color:#75715e">// 第二次打开
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">int</span> b <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdio.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdlib.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;unistd.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;fcntl.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820"></span>
+<span style="color:#a90d91">int</span> <span style="color:#000">main</span>(<span style="color:#a90d91">int</span> <span style="color:#000">argc</span>, <span style="color:#a90d91">char</span><span style="color:#000">*</span> <span style="color:#000">argv</span>[]) {
+  <span style="color:#177500">// 第一次打开
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">int</span> <span style="color:#000">a</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
+  <span style="color:#177500">// 第二次打开
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">int</span> <span style="color:#000">b</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
 
-	printf(<span style="color:#e6db74">&#34;a = %d, b = %d </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, a, b);
-  <span style="color:#75715e">// 关闭a文件描述符
-</span><span style="color:#75715e"></span>	close(a);
+	<span style="color:#000">printf</span>(<span style="color:#c41a16">&#34;a = %d, b = %d </span><span style="color:#c41a16">\n</span><span style="color:#c41a16">&#34;</span>, <span style="color:#000">a</span>, <span style="color:#000">b</span>);
+  <span style="color:#177500">// 关闭a文件描述符
+</span><span style="color:#177500"></span>	<span style="color:#000">close</span>(<span style="color:#000">a</span>);
 
-  <span style="color:#75715e">// 第三次打开
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">int</span> c <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
-	printf(<span style="color:#e6db74">&#34;b = %d, c = %d </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, b, c);
-	<span style="color:#66d9ef">return</span> EXIT_SUCCESS;
+  <span style="color:#177500">// 第三次打开
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">int</span> <span style="color:#000">c</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
+	<span style="color:#000">printf</span>(<span style="color:#c41a16">&#34;b = %d, c = %d </span><span style="color:#c41a16">\n</span><span style="color:#c41a16">&#34;</span>, <span style="color:#000">b</span>, <span style="color:#000">c</span>);
+	<span style="color:#a90d91">return</span> <span style="color:#000">EXIT_SUCCESS</span>;
 }
 </code></pre></div><p>编译执行</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ gcc test.c -o test
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ gcc test.c -o <span style="color:#a90d91">test</span>
 $ ./test
-$ a <span style="color:#f92672">=</span> 3, b <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>
-  b <span style="color:#f92672">=</span> 4, c <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+$ <span style="color:#000">a</span> <span style="color:#000">=</span> 3, <span style="color:#000">b</span> <span style="color:#000">=</span> <span style="color:#1c01ce">4</span>
+  <span style="color:#000">b</span> <span style="color:#000">=</span> 4, <span style="color:#000">c</span> <span style="color:#000">=</span> <span style="color:#1c01ce">3</span>
 </code></pre></div><p>第三次打开的结果是 3 ，这说明<strong>文件描述符不是递增的</strong>。</p>
 <p>而且从结果上来看，文件描述符被回收掉后是可以再次分配的。</p>
 <p>前面讨论的上下文都是在单进程下，如果是多个进程同时打开同一个文件，文件描述符会一样吗？</p>
@@ -173,34 +162,34 @@ $ a <span style="color:#f92672">=</span> 3, b <span style="color:#f92672">=</spa
 <p><code>fork</code> 函数可以创建多个进程， 该函数返回一个 int 值， 当返回值为 0 时代表当前是子进程正在执行，非 0 就为父进程在执行。（为了简化代码，就不考虑进程创建失败的情况了）</p>
 <p>程序很简单，就是父子进程各自打开同一个文件， 并打印该文件的文件描述符：</p>
 <p>PS: 下面的代码并不规范，可能会产生僵尸进程和孤儿进程，但这并不是本文的重点&hellip;&hellip;</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> argv[]) {
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#633820">#include</span> <span style="color:#633820">&lt;unistd.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdio.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;stdlib.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820">#include</span> <span style="color:#633820">&lt;fcntl.h&gt;</span><span style="color:#633820">
+</span><span style="color:#633820"></span>
+<span style="color:#a90d91">int</span> <span style="color:#000">main</span>(<span style="color:#a90d91">int</span> <span style="color:#000">argc</span>, <span style="color:#a90d91">char</span><span style="color:#000">*</span> <span style="color:#000">argv</span>[]) {
 
-	<span style="color:#66d9ef">int</span> npid <span style="color:#f92672">=</span> fork();
+	<span style="color:#a90d91">int</span> <span style="color:#000">npid</span> <span style="color:#000">=</span> <span style="color:#000">fork</span>();
 	
-	<span style="color:#66d9ef">if</span> (npid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ){
-	<span style="color:#75715e">// 子进程
-</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">int</span> child_fd <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
-		pid_t child_pid <span style="color:#f92672">=</span> getpid();
-		printf(<span style="color:#e6db74">&#34;child_pid = %d, child_fd = %d </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, child_pid, child_fd);
-	} <span style="color:#66d9ef">else</span> {
-	<span style="color:#75715e">// 父进程
-</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">int</span> parent_fd <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;demo.txt&#34;</span>, O_RDONLY);
-		pid_t parent_pid <span style="color:#f92672">=</span> getpid();
-		printf(<span style="color:#e6db74">&#34;parent_pid = %d, parent_fd = %d </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, parent_pid, parent_fd);
+	<span style="color:#a90d91">if</span> (<span style="color:#000">npid</span> <span style="color:#000">==</span> <span style="color:#1c01ce">0</span> ){
+	<span style="color:#177500">// 子进程
+</span><span style="color:#177500"></span>		<span style="color:#a90d91">int</span> <span style="color:#000">child_fd</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
+		<span style="color:#000">pid_t</span> <span style="color:#000">child_pid</span> <span style="color:#000">=</span> <span style="color:#000">getpid</span>();
+		<span style="color:#000">printf</span>(<span style="color:#c41a16">&#34;child_pid = %d, child_fd = %d </span><span style="color:#c41a16">\n</span><span style="color:#c41a16">&#34;</span>, <span style="color:#000">child_pid</span>, <span style="color:#000">child_fd</span>);
+	} <span style="color:#a90d91">else</span> {
+	<span style="color:#177500">// 父进程
+</span><span style="color:#177500"></span>		<span style="color:#a90d91">int</span> <span style="color:#000">parent_fd</span> <span style="color:#000">=</span> <span style="color:#000">open</span>(<span style="color:#c41a16">&#34;demo.txt&#34;</span>, <span style="color:#000">O_RDONLY</span>);
+		<span style="color:#000">pid_t</span> <span style="color:#000">parent_pid</span> <span style="color:#000">=</span> <span style="color:#000">getpid</span>();
+		<span style="color:#000">printf</span>(<span style="color:#c41a16">&#34;parent_pid = %d, parent_fd = %d </span><span style="color:#c41a16">\n</span><span style="color:#c41a16">&#34;</span>, <span style="color:#000">parent_pid</span>, <span style="color:#000">parent_fd</span>);
 	}
-	<span style="color:#66d9ef">return</span> EXIT_SUCCESS;
+	<span style="color:#a90d91">return</span> <span style="color:#000">EXIT_SUCCESS</span>;
 }
 
 </code></pre></div><p>编译执行</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ gcc test_process.c -o test_process
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ gcc test_process.c -o test_process
 $ ./test_process
-$ child_pid <span style="color:#f92672">=</span> 28212, child_fd <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
-  parent_pid <span style="color:#f92672">=</span> 28210, child_fd <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+$ <span style="color:#000">child_pid</span> <span style="color:#000">=</span> 28212, <span style="color:#000">child_fd</span> <span style="color:#000">=</span> <span style="color:#1c01ce">3</span>
+  <span style="color:#000">parent_pid</span> <span style="color:#000">=</span> 28210, <span style="color:#000">child_fd</span> <span style="color:#000">=</span> <span style="color:#1c01ce">3</span>
 </code></pre></div><p>每个进程打开的都是同一个文件，而且返回的文件描述符也是一样的。</p>
 <p>前面我们已经得知每个文件的描述符并不是固定的，这样看来，每个进程都单独维护了一个文件描述符的集合啊。</p>
 <p>还记得最开始实验时，我们对编译好的程序多次执行都是打印的 3，但是在代码里对同一个文件 <code>open</code> 两次却是返回的 3 和 4 吗？</p>
@@ -222,42 +211,42 @@ $ child_pid <span style="color:#f92672">=</span> 28212, child_fd <span style="co
 <p>下面就需要在 Linux内核 的源码中去寻找真相了。</p>
 <p>既然实验表明每个进程单独维护了文件描述符集合， 那就从和进程相关的结构体 <code>task_struct</code> 入手，该结构体放在 <code>/include/linux/sched.h</code> 头文件中。</p>
 <p>我将这个结构体的代码精简了一下， 只保留了一些分析需要关注的属性</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> task_struct {
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#a90d91">struct</span> <span style="color:#000">task_struct</span> {
     ...
-  <span style="color:#75715e">/* Filesystem information: */</span>
-	<span style="color:#66d9ef">struct</span> fs_struct		<span style="color:#f92672">*</span>fs;
+  <span style="color:#177500">/* Filesystem information: */</span>
+	<span style="color:#a90d91">struct</span> <span style="color:#000">fs_struct</span>		<span style="color:#000">*</span><span style="color:#000">fs</span>;
 
-	<span style="color:#75715e">/* Open file information: */</span>
-	<span style="color:#66d9ef">struct</span> files_struct		<span style="color:#f92672">*</span>files;
+	<span style="color:#177500">/* Open file information: */</span>
+	<span style="color:#a90d91">struct</span> <span style="color:#000">files_struct</span>		<span style="color:#000">*</span><span style="color:#000">files</span>;
 	
 	...
-	<span style="color:#75715e">/* -1 unrunnable, 0 runnable, &gt;0 stopped: */</span>
-	<span style="color:#66d9ef">volatile</span> <span style="color:#66d9ef">long</span>			state;
-	pid_t				pid;
-	pid_t				tgid;
+	<span style="color:#177500">/* -1 unrunnable, 0 runnable, &gt;0 stopped: */</span>
+	<span style="color:#a90d91">volatile</span> <span style="color:#a90d91">long</span>			<span style="color:#000">state</span>;
+	<span style="color:#000">pid_t</span>				<span style="color:#000">pid</span>;
+	<span style="color:#000">pid_t</span>				<span style="color:#000">tgid</span>;
 	...
 
 };
 </code></pre></div><p>注意 <code>struct files_struct *files</code> ，注释说该属性代表着打开的文件信息，那这就没得跑了。</p>
 <p>继续看 <code>files_struct</code> 结构体，该结构体定义在  <code>/include/linux/fdtable.h</code> 头文件中：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> files_struct {
-  <span style="color:#75715e">// 打开的文件数
-</span><span style="color:#75715e"></span>	atomic_t count;
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#a90d91">struct</span> <span style="color:#000">files_struct</span> {
+  <span style="color:#177500">// 打开的文件数
+</span><span style="color:#177500"></span>	<span style="color:#000">atomic_t</span> <span style="color:#000">count</span>;
 	...
-	<span style="color:#75715e">// fdtable 维护着所有的文件描述符
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">struct</span> fdtable  <span style="color:#f92672">*</span>fdt;
-	<span style="color:#66d9ef">struct</span> fdtable fdtab;
+	<span style="color:#177500">// fdtable 维护着所有的文件描述符
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">struct</span> <span style="color:#000">fdtable</span>  <span style="color:#000">*</span><span style="color:#000">fdt</span>;
+	<span style="color:#a90d91">struct</span> <span style="color:#000">fdtable</span> <span style="color:#000">fdtab</span>;
     ...
-  <span style="color:#75715e">// 下一个可用文件描述符
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> next_fd;
+  <span style="color:#177500">// 下一个可用文件描述符
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">unsigned</span> <span style="color:#a90d91">int</span> <span style="color:#000">next_fd</span>;
 	...
 };
 </code></pre></div><p>相信你也一眼就看见了 <code>fdtable</code> 这个结构体，见名知意，这不就是<strong>文件描述符表</strong>吗？ 那么它是不是维护了所有的文件描述符呢？</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> fdtable {
-  <span style="color:#75715e">// 最大文件描述符
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> max_fds;
-	<span style="color:#75715e">// 所有打开的文件
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">**</span>fd;      <span style="color:#75715e">/* current fd array */</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#a90d91">struct</span> <span style="color:#000">fdtable</span> {
+  <span style="color:#177500">// 最大文件描述符
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">unsigned</span> <span style="color:#a90d91">int</span> <span style="color:#000">max_fds</span>;
+	<span style="color:#177500">// 所有打开的文件
+</span><span style="color:#177500"></span>	<span style="color:#a90d91">struct</span> <span style="color:#000">file</span> <span style="color:#000">**</span><span style="color:#000">fd</span>;      <span style="color:#177500">/* current fd array */</span>
 	...
 };
 </code></pre></div><p>在 <code>fdtable</code> 里面有一个 <code>file</code> 结构体的数组，这个数组代表着该进程打开的所有文件。</p>
@@ -267,26 +256,26 @@ $ child_pid <span style="color:#f92672">=</span> 28212, child_fd <span style="co
 <p>但是我们文件描述符是什么，以及它的生成规则还是没有找到。那只能换个方向，从函数调用去寻找了。</p>
 <p><code>open</code> 和 <code>close</code>  都涉及到对文件描述符的操作，由于 <code>close</code> 函数更加简单，就从 <code>close</code> 为入口进行分析。</p>
 <p>下面是 <code>close</code> 函数的内部系统调用：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">SYSCALL_DEFINE1(close, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span>, fd)
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#000">SYSCALL_DEFINE1</span>(<span style="color:#000">close</span>, <span style="color:#a90d91">unsigned</span> <span style="color:#a90d91">int</span>, <span style="color:#000">fd</span>)
 {
-	<span style="color:#66d9ef">int</span> retval <span style="color:#f92672">=</span> __close_fd(current<span style="color:#f92672">-&gt;</span>files, fd);
+	<span style="color:#a90d91">int</span> <span style="color:#000">retval</span> <span style="color:#000">=</span> <span style="color:#000">__close_fd</span>(<span style="color:#000">current</span><span style="color:#000">-&gt;</span><span style="color:#000">files</span>, <span style="color:#000">fd</span>);
 	...
-	<span style="color:#66d9ef">return</span> retval;
+	<span style="color:#a90d91">return</span> <span style="color:#000">retval</span>;
 }
 </code></pre></div><p><code>close</code> 调用了 <code>__close_fd</code> 函数,  该函数定义在<code>/fs/file.c</code>文件中，下面是简化后的代码：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">__close_fd</span>(<span style="color:#66d9ef">struct</span> files_struct <span style="color:#f92672">*</span>files, <span style="color:#66d9ef">unsigned</span> fd)
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#a90d91">int</span> <span style="color:#000">__close_fd</span>(<span style="color:#a90d91">struct</span> <span style="color:#000">files_struct</span> <span style="color:#000">*</span><span style="color:#000">files</span>, <span style="color:#a90d91">unsigned</span> <span style="color:#000">fd</span>)
 {
-	<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>file;
-	<span style="color:#66d9ef">struct</span> fdtable <span style="color:#f92672">*</span>fdt;
-  <span style="color:#75715e">// 获取fdtable
-</span><span style="color:#75715e"></span>	fdt <span style="color:#f92672">=</span> files_fdtable(files);
-	<span style="color:#75715e">// *** 通过文件描述符获取file结构体指针
-</span><span style="color:#75715e"></span>	file <span style="color:#f92672">=</span> fdt<span style="color:#f92672">-&gt;</span>fd[fd];
-	rcu_assign_pointer(fdt<span style="color:#f92672">-&gt;</span>fd[fd], NULL);
+	<span style="color:#a90d91">struct</span> <span style="color:#000">file</span> <span style="color:#000">*</span><span style="color:#000">file</span>;
+	<span style="color:#a90d91">struct</span> <span style="color:#000">fdtable</span> <span style="color:#000">*</span><span style="color:#000">fdt</span>;
+  <span style="color:#177500">// 获取fdtable
+</span><span style="color:#177500"></span>	<span style="color:#000">fdt</span> <span style="color:#000">=</span> <span style="color:#000">files_fdtable</span>(<span style="color:#000">files</span>);
+	<span style="color:#177500">// *** 通过文件描述符获取file结构体指针
+</span><span style="color:#177500"></span>	<span style="color:#000">file</span> <span style="color:#000">=</span> <span style="color:#000">fdt</span><span style="color:#000">-&gt;</span><span style="color:#000">fd</span>[<span style="color:#000">fd</span>];
+	<span style="color:#000">rcu_assign_pointer</span>(<span style="color:#000">fdt</span><span style="color:#000">-&gt;</span><span style="color:#000">fd</span>[<span style="color:#000">fd</span>], <span style="color:#a90d91">NULL</span>);
 
-<span style="color:#75715e">// 回收文件描述符
-</span><span style="color:#75715e"></span>__put_unused_fd(files, fd);
-	<span style="color:#66d9ef">return</span> filp_close(file, files);
+<span style="color:#177500">// 回收文件描述符
+</span><span style="color:#177500"></span><span style="color:#000">__put_unused_fd</span>(<span style="color:#000">files</span>, <span style="color:#000">fd</span>);
+	<span style="color:#a90d91">return</span> <span style="color:#000">filp_close</span>(<span style="color:#000">file</span>, <span style="color:#000">files</span>);
 }
 </code></pre></div><p>这里面又出现了我们熟悉的结构体 <code>files_struct</code>，注意 <code>file = fdt-&gt;fd[fd]</code> 这一段代码。</p>
 <p><code>fdt</code> 就是 <code>fdtable</code>结构体，它的 fd 属性就是打开的所有文件数组，这样一看也就恍然大悟了。</p>
@@ -306,91 +295,38 @@ $ child_pid <span style="color:#f92672">=</span> 28212, child_fd <span style="co
 <li><a href="https://zh.wikipedia.org/wiki/%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6">文件描述符</a></li>
 </ol>
 
-                </section>
-            </article>
-           
-            <hr/> 
-            
+            </section>
 
-            
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
 
-            
-                <ul id="post-list" class="archive readmore">
-    <h3>也许还有您感兴趣的文章</h3>
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
 
-    
-    
-    
-        <li>
-            <a href="/posts/java-biased-locking/">  你知道 Java 的偏向锁要被废弃掉了吗？ <aside class="dates">2021 / 02 / 01</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件<aside class="dates">2020 / 11 / 22</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/scala-adt/"> Scala 与 Algebraic data type<aside class="dates">2020 / 08 / 18</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/typeclasses-deriving/"> Scala2 如何实现 Type class 派生<aside class="dates">2020 / 08 / 15</aside></a>
-        </li>
-    
-        <li>
-            <a href="/posts/vavr-1/"> VAVR：颠覆你的 Java 体验 <aside class="dates">2020 / 07 / 25</aside></a>
-        </li>
-    
-</ul>
+</script>
+        </div>
+        
 
-            
- <script src="https://utteranc.es/client.js"
-           repo="vran-dev/vran-dev.github.io"
-          issue-term="pathname"
-           label="Comment"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
-
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://github.com/vran-dev">
-        github
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-       © Copyright 2021 <i class="fa fa-heart" aria-hidden="true"></i> vran
-    
-    </p>
-    <p class="small">
-        Powered by <a href="http://www.gohugo.io/">Hugo</a> Theme By <a href="https://github.com/nodejh/hugo-theme-cactus-plus">nodejh</a>
+    </section>
+    <footer id="footer">
+    <p>
+        
+        © 2021 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/ZenHo">ZenHo</a>
     </p>
 </footer>
 
-        </section>
 
-        <script src="https://blog.cc1234.cc/js/jquery-3.3.1.min.js"></script>
-<script src="https://blog.cc1234.cc/js/main.js"></script>
-<script src="https://blog.cc1234.cc/js/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-
-
-    </body>
-</html>
+</body>
