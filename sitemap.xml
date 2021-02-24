@@ -3,12 +3,37 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://blog.cc1234.cc/about/</loc>
-    <lastmod>2021-02-01T23:44:37+02:00</lastmod>
+    <loc>https://blog.cc1234.cc/posts/</loc>
+    <lastmod>2021-02-24T15:50:43+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.cc1234.cc/tags/prettyzoo/</loc>
+    <lastmod>2021-02-24T15:50:43+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.cc1234.cc/tags/</loc>
+    <lastmod>2021-02-24T15:50:43+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.cc1234.cc/tags/zookeeper/</loc>
+    <lastmod>2021-02-24T15:50:43+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.cc1234.cc/posts/prettyzoo-tutorials/</loc>
+    <lastmod>2021-02-24T15:50:43+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://blog.cc1234.cc/</loc>
+    <lastmod>2021-02-24T15:50:43+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.cc1234.cc/about/</loc>
     <lastmod>2021-02-01T23:44:37+02:00</lastmod>
   </url>
   
@@ -25,26 +50,6 @@
   <url>
     <loc>https://blog.cc1234.cc/tags/jvm/</loc>
     <lastmod>2021-02-01T23:45:00+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.cc1234.cc/posts/</loc>
-    <lastmod>2021-02-01T23:45:00+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.cc1234.cc/tags/</loc>
-    <lastmod>2021-02-01T23:45:00+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.cc1234.cc/tags/prettyzoo/</loc>
-    <lastmod>2020-11-22T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.cc1234.cc/tags/zookeeper/</loc>
-    <lastmod>2020-11-22T00:00:00+00:00</lastmod>
   </url>
   
   <url>
