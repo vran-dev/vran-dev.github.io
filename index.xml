@@ -8,17 +8,18 @@
     <language>en-us</language>
     <lastBuildDate>Wed, 24 Feb 2021 15:50:43 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Zookeeper 图形化工具 PrettyZoo 使用教程</title>
+      <title>推荐一款颜值与功能双在线的 Zookeeper 可视化工具</title>
       <link>https://blog.cc1234.cc/posts/prettyzoo-tutorials/</link>
       <pubDate>Wed, 24 Feb 2021 15:50:43 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/prettyzoo-tutorials/</guid>
-      <description>前言 PrettyZoo 是一个基于 JavaFX 和 Apache Curator 实现的 Zookeeper 图形化工具，该项目完全开源，可以通过 Github 查看项目主页。
-PrettyZoo 拥有众多个性化的功能，比如
- 支持 SSH-Tunnel 连接 节点 CRUD （增删改查） 节点数据 pretty format，目前支持 JSON、XML 支持命令行操作（80% 的命令都支持了） 支持 4-letter command &amp;hellip;&amp;hellip;  下面就通过动图的方式来一一展示一下（多图预警）
+      <description>前言 虽然市面上 Zookeeper 的 WEB 管理工具很丰富，但是却很难找到一款满意的图形化客户端。
+鉴于这样的情况，我就自己开发了一款用于管理 Zookeeper 的图形化工具，取名 PrettyZoo，意为：Pretty nice Zookeeper GUI。
+PrettyZoo 是一个基于 JavaFX 和 Apache Curator 实现的 Zookeeper 图形化工具，该项目完全开源，可以通过 Github 主页查看。
+它拥有众多个性化的功能，比如
+ 支持 Mac / WIndows / Linux 多平台 支持 SSH-Tunnel 连接 节点 CRUD （增删改查） 节点数据 pretty format，目前支持 JSON、XML 支持命令行操作（80% 的命令都支持了） 支持 4-letter command &amp;hellip;&amp;hellip;  下面多图预警
 安装 得益于 Java 的跨平台特性， PrettyZoo 天然就支持 Windows / Mac / Linux 等多平台，再加上使用了 Jigsaw（模块化） 和 JPackage 等众多新特性，用户无需再独立安装 JRE 即可运行。
-安装包的下载地址（可能需要梯子）, 记得选择系统匹配的安装包
- Windows：prettyZoo-win.msi Mac: prettyZoo-mac.dmg Linux: prettyZoo-rpm / prettyZoo.deb  注意 1 ：由于当前版本 JPackage 的一个 Bug，软件的安装路径最好是全英文路径，不要有非 Unicode 字符，否则会出现运行无反应的情况</description>
+安装包的下载地址（可能需要梯子）, 记得选择系统匹配的安装包</description>
     </item>
     
     <item>
