@@ -12,7 +12,7 @@
 		<meta name="author" content="vran">
 		
 		<meta name="generator" content="Hugo 0.80.0" />
-		<title>推荐一款颜值与功能双在线的 Zookeeper 可视化工具 &middot; 且徐行</title>
+		<title>用世界上最快的建站工具 Hugo 搭建博客 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
@@ -36,13 +36,13 @@
         <article class = "post">
             <header>
                 <div class = "post-img">
-                    <img src='img/icon.png' alt="" />
+                    <img src='img/hugo.png' alt="" />
                 </div>
                 <div class = "title" >
-                    推荐一款颜值与功能双在线的 Zookeeper 可视化工具
+                    用世界上最快的建站工具 Hugo 搭建博客
                 </div>
                 <div class="meta">
-                2021/02/24
+                2021/02/25
                 · vran
                 </div>
             </header>
@@ -50,171 +50,14 @@
             
             <section class="content">
                 <h2 id="前言">前言</h2>
-<p>虽然市面上 Zookeeper 的 WEB 管理工具很丰富，但是却很难找到一款满意的图形化客户端。</p>
-<p>鉴于这样的情况，我就自己开发了一款用于管理 Zookeeper 的图形化工具，取名 PrettyZoo，意为：Pretty nice Zookeeper GUI。</p>
-<p><a href="https://github.com/vran-dev/prettyZoo">PrettyZoo</a> 是一个基于 JavaFX 和 <a href="https://curator.apache.org/">Apache Curator</a> 实现的 Zookeeper 图形化工具，该项目完全开源，可以通过 <a href="https://github.com/vran-dev/PrettyZoo">Github 主页</a>查看。</p>
-<p><img src="img/prettyZoo.png" alt="prettyZoo"></p>
-<p>它拥有众多个性化的功能，比如</p>
-<ul>
-<li>支持 Mac / WIndows / Linux 多平台</li>
-<li>支持 SSH-Tunnel 连接</li>
-<li>节点 CRUD （增删改查）</li>
-<li>节点数据 pretty format，目前支持 JSON、XML</li>
-<li>支持命令行操作（80% 的命令都支持了）</li>
-<li>支持 4-letter command</li>
-<li>&hellip;&hellip;</li>
-</ul>
-<p>下面多图预警</p>
-<h2 id="安装">安装</h2>
-<p>得益于 Java 的跨平台特性， PrettyZoo 天然就支持 Windows / Mac / Linux 等多平台，再加上使用了 Jigsaw（模块化） 和 JPackage 等众多新特性，用户无需再独立安装 JRE 即可运行。</p>
-<p>安装包的<a href="https://github.com/vran-dev/PrettyZoo/releases">下载地址</a>（可能需要梯子）,  记得选择系统匹配的安装包</p>
-<ul>
-<li>Windows：prettyZoo-win.msi</li>
-<li>Mac: prettyZoo-mac.dmg</li>
-<li>Linux: prettyZoo-rpm / prettyZoo.deb</li>
-</ul>
-<p><strong>注意 1</strong> ：由于当前版本 JPackage 的一个 Bug，软件的安装路径最好是全英文路径，不要有非 Unicode 字符，否则会出现运行无反应的情况</p>
-<p><strong>注意 2</strong> ： MAC 用户安装 dmg 时可能会提示 <code>已损坏，无法打开</code>， 这是因为我没有加入 Apple 的开发者认证（认证需要 99 美元 / 年， 而我毕竟不是专业的 mac 、 ios 开发者），可以参考该<a href="https://www.macwk.com/article/mac-catalina-1015-file-damage">解决方案</a>。</p>
-<h2 id="使用">使用</h2>
-<h3 id="创建连接">创建连接</h3>
-<p>Zookeeper 连接的创建很简单，点击左边菜单的 <code>new</code> 按钮就会跳转到连接配置页面。</p>
-<p>该页面只有 server 这一项是必填的，填写规则是 <code>连接:端口号</code> ，填写完成以后点击右下角的 <code>save</code> 按钮就可以保存了。</p>
-<p>如果填写了别名，那么会以别名在列表里面展示，否则就展示连接地址信息</p>
-<p><img src="img/server.gif" alt="server"></p>
-<h3 id="ssh-tunnel-配置">SSH-Tunnel 配置</h3>
-<p>要配置 SSH-Tunnel 的话，需要先勾选 <code>Use SSH Tunne</code> 复选框，然后再填写配置信息</p>
-<p><img src="img/ssh-tunnel.gif" alt="ssh-tunnel"></p>
-<h3 id="连接和断开">连接和断开</h3>
-<p>连接和断开的操作很简单，这里就直接展示 GIF</p>
-<p><img src="img/connect.gif" alt="connect"></p>
-<h3 id="节点-crud">节点 CRUD</h3>
-<p>连接成功以后就会默认进入节点展示页面，在该页面可以执行 CRUD 操作。</p>
-<p>通过点击 <code>+</code> 号可以进入节点创建页面, 在该页面</p>
-<ul>
-<li>可以选择节点的类型，如 Sequence 或 Ephemeral</li>
-<li>填写节点数据</li>
-</ul>
-<p>如果想递归的创建多层节点，只需要使用 <strong>/</strong> 符号进行分割即可</p>
-<p><img src="img/create-node.gif" alt="create-node"></p>
-<p>Zookeeper 节点元数据中的 mtime / ctime  默认是时间戳格式， PrettyZoo 会将其转换为 <code>yyyy-MM-dd HH:mm:ss</code>  格式， 如果需要切换的话可以通过点击 mtime / ctime 标签进行</p>
-<p><img src="img/time.gif" alt="time"></p>
-<p>删除功能这里就不再演示了，点按钮进行二次确认就可以删除了。</p>
-<p>通常存放在 Zookeeper 节点中的数据都是压缩过了的，为了便于阅读，PrettyZoo 提供了 Json 和 Xml  格式的 Pretty Format 功能。</p>
-<p>如果节点数据出现乱码的话， 还可以通过切换编码修复</p>
-<p><img src="img/data-format.gif" alt="data-format"></p>
-<p>通常框架注册的节点数都很大，所以一个好用的搜索功能是非常有必要的，新版的 PrettyZoo 使用了改造后的 Trie 结构来实现节点搜索，使得查询速度和精准度都比上一个版本有了很大的提升。</p>
-<p>匹配的关键词会高亮显示，双击可以轻松定位到原始位置</p>
-<p><img src="img/search.gif" alt="search"></p>
-<h3 id="命令行操作">命令行操作</h3>
-<p>如果只是在 GUI 的用鼠标点点点，那么机械键盘的存在感将会大打折扣。为此， PrettyZoo 特意支持了命令行操作，基本上覆盖了 80% 的命令参数。</p>
-<p>连接成功后，在节点信息页面点击 命令行 Tab 就会自动启动一个命令行会话，在会话窗口可以输入命令按回车执行。</p>
-<p>如果觉得命令内容过多，可以执行 <strong>clear</strong> 命令清空面板</p>
-<p><img src="img/terminal.gif" alt="terminal"></p>
-<p>对于命令行的高亮的话，这个已经列入了未来规划中了。</p>
-<h3 id="4-letter-command">4 Letter command</h3>
-<p>如果你不了解 4 Letter command 的话，可以先参考一下<a href="https://zookeeper.apache.org/doc/r3.4.8/zookeeperAdmin.html#sc_zkCommands">官方文档</a>。</p>
-<p>如果要使用 4-Letter-Command 的话，需要在配置中加上</p>
-<pre><code class="language-properties" data-lang="properties">4lw.commands.whitelist=*
-</code></pre><p><code>*</code> 代表所有命令都支持，也可以替换为特定的命令，多个用逗号分隔</p>
-<pre><code class="language-properties" data-lang="properties">4lw.commands.whitelist=stat, ruok, conf, isro
-</code></pre><p>在 PrettyZoo 中使用 4-Letter-Command 只需要切换到对应的 Tab 页即可，操作与命令行窗口一致</p>
-<p><img src="img/4-letter.gif" alt="4-letter"></p>
-<p>我官方支持的 command 及其对应的作用收集成了一个表格</p>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>conf</td>
-<td><strong>New in 3.3.0:</strong> Print details about serving configuration.</td>
-</tr>
-<tr>
-<td>cons</td>
-<td><strong>New in 3.3.0:</strong> List full connection/session details for all clients connected to this server. Includes information on numbers of packets received/sent, session id, operation latencies, last operation performed, etc&hellip;</td>
-</tr>
-<tr>
-<td>crst</td>
-<td><strong>New in 3.3.0:</strong> Reset connection/session statistics for all connections.</td>
-</tr>
-<tr>
-<td>dump</td>
-<td>Lists the outstanding sessions and ephemeral nodes. This only works on the leader.</td>
-</tr>
-<tr>
-<td>envi</td>
-<td>Print details about serving environment</td>
-</tr>
-<tr>
-<td>ruok</td>
-<td>Tests if server is running in a non-error state. The server will respond with imok if it is running. Otherwise it will not respond at all.</td>
-</tr>
-<tr>
-<td>srst</td>
-<td>Reset server statistics.</td>
-</tr>
-<tr>
-<td>srvr</td>
-<td><strong>New in 3.3.0:</strong> Lists full details for the server.</td>
-</tr>
-<tr>
-<td>stat</td>
-<td>Lists brief details for the server and connected clients.</td>
-</tr>
-<tr>
-<td>wchs</td>
-<td><strong>New in 3.3.0:</strong> Lists brief information on watches for the server.</td>
-</tr>
-<tr>
-<td>wchc</td>
-<td><strong>New in 3.3.0:</strong> Lists detailed information on watches for the server, by session. This outputs a list of sessions(connections) with associated watches (paths). Note, depending on the number of watches this operation may be expensive (ie impact server performance), use it carefully.</td>
-</tr>
-<tr>
-<td>wchp</td>
-<td><strong>New in 3.3.0:</strong> Lists detailed information on watches for the server, by path. This outputs a list of paths (znodes) with associated sessions. Note, depending on the number of watches this operation may be expensive (ie impact server performance), use it carefully.</td>
-</tr>
-<tr>
-<td>mntr</td>
-<td><strong>New in 3.4.0:</strong> Outputs a list of variables that could be used for monitoring the health of the cluster.</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<h2 id="未来">未来</h2>
-<p>由于我也是初次接触 JavaFX，整个过程也是一边学一边开发，很多细节的地方都还没有处理好，只能都列入未来规划中了</p>
-<ul>
-<li>
-<p><input disabled="" type="checkbox"> 支持国际化</p>
-</li>
-<li>
-<p><input disabled="" type="checkbox"> 支持字体大小的调整</p>
-</li>
-<li>
-<p><input disabled="" type="checkbox"> 支持节点数据高亮展示</p>
-</li>
-<li>
-<p><input disabled="" type="checkbox"> 支持命令行高亮展示</p>
-</li>
-<li>
-<p><input disabled="" type="checkbox"> &hellip;&hellip;</p>
-</li>
-</ul>
-<p>如果你有好的建议或需求，欢迎通过 <a href="https://github.com/vran-dev/PrettyZoo/issues">ISSUE</a> 的方式提给我。</p>
-<p>最后再为自己拉个票吧，开源不易，欢迎到 Github 给个 <a href="https://github.com/vran-dev/PrettyZoo">star</a> 鼓励一下。</p>
-<p><img src="img/qrcode.jpg" alt="qrcode"></p>
+<h2 id="为什么选择-hugo">为什么选择 Hugo</h2>
+<script type="application/javascript" src="https://gist.github.com/spf13/7896402.js"></script>
+
+<h2 id="如何使用-hugo">如何使用 Hugo</h2>
+<h2 id="我的主题-zenho">我的主题 ZenHo</h2>
+<p>Github 地址：https://github.com/vran-dev/hugo-zenHo</p>
+<p><img src="img/screenshot.png" alt="screenshot"></p>
 <h2 id="更多">更多</h2>
-<ol>
-<li><a href="https://mp.weixin.qq.com/s/5inYItpMUmMUsVNOgAh6mA">推荐一款神仙颜值的 ZooKeeper 客户端工具</a>，By 芋道源码</li>
-<li><a href="https://mp.weixin.qq.com/s/tbGpQPcG0coKeXdrQBWFWg">《HelloGitHub》第 57 期</a>, By HelloGithub</li>
-<li><a href="https://blog.cc1234.cc/posts/how-to-develop-prettyzoo/">我是如何开发了一款‘有人用’的开源软件</a>, By Vran</li>
-<li><a href="https://www.oschina.net/p/prettyzoo">高颜值 Zookeeper 图形化客户端</a>, By OSChina</li>
-</ol>
 
             </section>
 
