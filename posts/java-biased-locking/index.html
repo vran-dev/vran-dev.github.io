@@ -51,7 +51,7 @@
             <section class="content">
                 <h2 id="前言">前言</h2>
 <p><strong>偏向锁</strong>是从 JDK1.6 引入的一种针对 <strong>synchronized</strong> 的锁优化技术，然而从 JDK 15 开始，这一特性被官方标记为废弃状态，如果还想继续使用的话需要通过 JVM 参数手动启用。</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">XX:</span><span style="color:#000">+</span><span style="color:#000">UseBiasedLocking</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">-</span><span style="color:#000">XX</span><span style="color:#000">:+</span><span style="color:#000">UseBiasedLocking</span>
 </code></pre></div><p>那么问题来了，JDK15 为什么要废弃偏向锁呢？</p>
 <h2 id="什么是偏向锁">什么是偏向锁？</h2>
 <p>在回答 Why 之前要先明白 What：什么是偏向锁？</p>
@@ -100,7 +100,7 @@
 <p>默认禁用偏向锁可能会导致一些 Java 应用的性能下降，所以 HotSpot 提供了显示开启偏向锁的命令</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#177500"># 在 Java15 后，手动开启偏向锁在启动的时候会收到警告信息</span>
 -XX:+UseBiasedLocking
-</code></pre></div><p>以下和偏向锁相关的命令参数仍然可以使用，但是虚拟机会列出对应的警告信息标示其已被废弃掉</p>
+</code></pre></div><p>以下和偏向锁相关的命令参数仍然可以使用，但是虚拟机会列出对应的警告信息表示其已被废弃掉</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:BiasedLockingStartupDelay<span style="color:#000">=</span>__
 -XX:BiasedLockingBulkRebiasThreshold<span style="color:#000">=</span>__
 -XX:BiasedLockingBulkRevokeThreshold<span style="color:#000">=</span>__

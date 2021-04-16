@@ -49,7 +49,7 @@ PrettyZoo 是一个基于 JavaFX 和 Apache Curator 实现的 Zookeeper 图形�
       
       <guid>https://blog.cc1234.cc/posts/java-biased-locking/</guid>
       <description>前言 偏向锁是从 JDK1.6 引入的一种针对 synchronized 的锁优化技术，然而从 JDK 15 开始，这一特性被官方标记为废弃状态，如果还想继续使用的话需要通过 JVM 参数手动启用。
-XX:+UseBiasedLocking 那么问题来了，JDK15 为什么要废弃偏向锁呢？
+-XX:+UseBiasedLocking 那么问题来了，JDK15 为什么要废弃偏向锁呢？
 什么是偏向锁？ 在回答 Why 之前要先明白 What：什么是偏向锁？
 在 Java 中可以使用 synchronized 来保证代码块同一时间只被一个线程访问（互斥），它是基于 Monitor Object 模式来实现的。
 int i; public synchronized void mutex() { i++; } public void mutext2() { synchronized(this) { i++; } } 当线程请求进入临界区时都需要先获取一个 monitor 对象（类似于准入许可证），获取 monitor 对象是通过 compare-and-swap (CAS) 操作来实现的。
