@@ -12,7 +12,7 @@
 		<meta name="author" content="vran">
 		
 		<meta name="generator" content="Hugo 0.81.0" />
-		<title>我是如何开发了一款‘有人用’的开源软件 &middot; 且徐行</title>
+		<title>这些年来做开源的随笔 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
@@ -36,170 +36,96 @@
         <article class = "post">
             <header>
                 <div class = "post-img">
-                    <img src='img/icon.png' alt="" />
+                    
                 </div>
                 <div class = "title" >
-                    我是如何开发了一款‘有人用’的开源软件
+                    这些年来做开源的随笔
                 </div>
                 <div class="meta">
-                2020/11/22
+                2021/05/26
                 · vran
                 </div>
             </header>
             <div class = "line"></div>
             
             <section class="content">
-                <h2 id="背景">背景</h2>
-<p><a href="https://github.com/vran-dev/PrettyZoo">PrettyZoo</a>  是在去年国庆（2019 年）时开发的一个用于管理 <a href="https://zookeeper.apache.org/">Zookeeper</a> 的桌面图形化工具，当时是因为在学习 Elastic-Job-Lite 框架的源码时涉及到了 Zookeeper，想着借助图形化工具去更直观的了解整个框架的设计，但在市面上却找不到一款符合自己期望的产品，那就只能自己动手丰衣足食了，这算是 PrettyZoo 诞生的初衷了。</p>
-<p>其实我已经写过一篇文章来简单介绍过这个产品的研发历程（<a href="https://blog.cc1234.cc/articles/Java-GUI-experience/Java-GUI-experience.html">从 Java8 到 Java11 ： PrettyZoo 开发回顾（模块化在 GUI 中的实践）</a>）, 不过那篇文章主要侧重于产品的技术演进过程，这一篇文章是基于国庆重构后的全新版本来写的，记录了自己在这个重构的过程中各个阶段所做的事情，主要包括以下内容</p>
+                <p>[埃里克·雷蒙] 在其著作《<a href="https://zh.wikipedia.org/wiki/%E5%A4%A7%E6%95%99%E5%A0%82%E5%92%8C%E5%B8%82%E9%9B%86">大教堂和市集</a>》里面探讨<a href="https://zh.wikipedia.org/wiki/%E9%BB%91%E5%AE%A2">黑客</a>社区与自由软件原则， 这可以算做是开源文化的启蒙。</p>
+<p>时至今日已过去 20 多年了，虽然开源的定义在不断的演化，但是自由和社区仍然是它的基因。</p>
+<p>我忘了我接触开源有多久了（两三年？亦或三四年？），但我认真的发起和参与却是最近一年，这段经历让我对开源产生了不同的认知，甚至也改变了我对软件研发的一些认知。</p>
+<p>难得矫情一次，就做一个随笔，写写自己在开源路上的一些心路历程。</p>
+<blockquote>
+<p>如果你想了解我的开源项目，可以通过最后附录中的 PrettyZoo 链接跳转</p>
+</blockquote>
+<h2 id="开源与梦想">开源与梦想</h2>
+<p>我只知道刚接触开源的时候，就被这种文化给深深的吸引着，也许人的天性就向往自由吧。</p>
+<p>看着那些知名项目的发起者，也幻想着自己也是某个上千 star 项目的 owner，Github 的主页打开就是 lü 油油的一大片。</p>
+<p>对，就像下面这样</p>
+<p><img src="img/git-profile-expect.png" alt="image-20210524222519311"></p>
+<p>那时候也还年轻，愿意为此做出尝试和努力，断断续续的参与了一些知名开源项目的边边角角，不过最终还是没有坚持下去。</p>
+<p>再后来就逐渐遗忘了这件事情，在时间面前，它终是蒙上了一秒又一秒的尘&hellip;&hellip;</p>
+<p>要不是突然的一阵风吹开了这已被尘封的梦想，我大概也不知道我竟然也成了曾经梦想成为的样子：一个上千 star 项目的 owner ,  github 主页是 lü 油油的一大片</p>
+<p><img src="img/git-profile.png" alt="image-20210524222939117"></p>
+<blockquote>
+<p>All good things come to those who wait</p>
+</blockquote>
+<h2 id="开源与开源">开源与开源</h2>
+<p>开源既可以只是开放源代码，也可以不止是开放源代码，而这两个解读也恰好是我做开源经历的两个阶段。</p>
+<p>最开始我也是把项目的源码放在 github 上就不管了，这就像把商品放在一个公共陈列柜里一样，不管有人看或不看，用或不用，我自佛系。</p>
+<p>后来我逐渐理解到开源其实可以不止是开放源代码，开始尝试以更多的角色去做开源</p>
 <ul>
-<li>需求分析</li>
-<li>原型设计</li>
-<li>技术选型</li>
-<li>架构设计</li>
-<li>成品展示</li>
+<li>作为项目研发：去解决 bug，开发新的功能，技术可行性调查，系统架构设计等</li>
+<li>作为项目运营：去写文档，处理社区 issue，去各个平台做推广，关注反馈等</li>
+<li>作为项目 owner ： 去挖掘用户需求，思考交互设计，绘制功能原型，规划迭代等</li>
+<li>&hellip;&hellip;</li>
 </ul>
-<h2 id="需求分析">需求分析</h2>
-<p>上一节的背景描述了我为什么要开发这样一款软件，而这一节的主要内容则是分析我想要开发的软件应该有的功能点。</p>
-<p>该产品是用于管理 Zookeeper 数据，那么需求其实也需要围绕着 Zookeeper 的功能来分析，这就像为人作肖像画一样，得先去分析目标的特性。</p>
-<p>我将分析后的需求整理成了下面的一个表格，并对功能的优先级、必要性做了标注</p>
-<table>
-<thead>
-<tr>
-<th>需求</th>
-<th>优先级</th>
-<th>是否必须</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>连接创建</td>
-<td>高</td>
-<td>√</td>
-</tr>
-<tr>
-<td>连接删除</td>
-<td>高</td>
-<td>√</td>
-</tr>
-<tr>
-<td>节点展示</td>
-<td>高</td>
-<td>√</td>
-</tr>
-<tr>
-<td>节点创建</td>
-<td>高</td>
-<td>√</td>
-</tr>
-<tr>
-<td>节点删除</td>
-<td>高</td>
-<td>√</td>
-</tr>
-<tr>
-<td>节点数据更新</td>
-<td>高</td>
-<td>√</td>
-</tr>
-<tr>
-<td>递归操作支持</td>
-<td>中</td>
-<td>√</td>
-</tr>
-<tr>
-<td>节点数据格式化（JSON、YAML）</td>
-<td>低</td>
-<td>×</td>
-</tr>
-<tr>
-<td>SSH Tunnel 支持</td>
-<td>中</td>
-<td>×</td>
-</tr>
-<tr>
-<td>ACL 支持</td>
-<td>中</td>
-<td>√</td>
-</tr>
-<tr>
-<td>配置导入/导出</td>
-<td>中</td>
-<td>×</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>当然实际的产品开发中还会去调查类同类产品，去参考它们的功能、设计等， 这方面我就略过了。</p>
-<h2 id="原型设计">原型设计</h2>
-<p>在完成了需求分析和同类产品调研以后，软件的基本雏形已经在我的脑海中形成，但此时还不是进入开阶段的时候，我需要以最小的成本来实现下面三件事</p>
+<p>这样一种对开源的认知改变带来的变化非常直观的体现在了项目的各项数据上，比如 star 数， 最开始一年都是不温不火，后面就开始有了明显的增长</p>
+<p><img src="img/star.png" alt="image-20210524215304491"></p>
+<p>社区的 issue 数量也有着类似的增长曲线</p>
+<p><img src="img/issue.png" alt="image-20210526195232330"></p>
+<p>这种感觉就像自己开始创业了，但整个公司就我一人，包揽全职。</p>
+<h2 id="开源与生活">开源与生活</h2>
+<p>在有限的时间面前，投入在开源上多一分钟，那么生活就会被压缩一分钟。</p>
+<blockquote>
+<p>但是当我认真的想在这两者画一条分界线的时候却又做不到，因为做开源其实算事自己选择的一种生活方式，两者并不是泾渭分明的。</p>
+</blockquote>
+<p>最疯狂的一段时间我基本下班后就在做开源相关的事情，也包括很多个周末</p>
+<p><img src="img/code-freq.png" alt="image-20210524214627221"></p>
+<p>后来我开始小心翼翼的进行克制，我得把时间再慢慢分配一些在看书、旅游、玩游戏、工作等其他事情上去。</p>
+<p>时间越发的有限，那我只能尽可能的想办法去提高单位时间所带来的价值，去尝试</p>
+<ul>
+<li>实践 MVP（最简化可实行产品），保证我的原型就是我已经满意的样子了再去写代码</li>
+<li>追求自动化，减少重复的工作</li>
+<li>重视系统设计，保证系统的演进成本足够低</li>
+<li>重视工程管理，尽量减少核心功能之外带来的熵</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<p>事实证明这是非常有效的，也让自己养成了一些良好的习惯。</p>
+<p>这种感觉就像创业了，但我不能 24 小时都创业吧。</p>
+<h2 id="开源与收益">开源与收益</h2>
+<p>那么开源消耗了我这么多的精力和时间，就没有给我带来什么实质的收益吗？</p>
+<p>要说钱的话，一分没有，有段时间我甚至在想要不要贴个二维码接受点赞助啥的（至少可以喝杯咖啡）。</p>
+<p>最后也还是放弃了，因为这个产品的初衷就不是拿来赚钱的，何况受众面有限，也赚不了啥钱，那就继续用爱发电呗。</p>
+<p>要说名气，也没啥名气，起码面试的时候还没碰见过：原来你是那个 xxx 项目的作者啊。</p>
+<p>名和利虽然没有，但是一些虚无缥缈的收获倒有，比如成就感，还记得收到第一个 issue 的时候我都惊了，原来我做的产品真的有人在用，那可是足足让我开心了好几天。</p>
+<p>还有一些技能成长，认知提升也可以算是收益。</p>
+<p>在这个空气都躁动的快爆炸的时代，至少静下心来做了一件纯粹的事情。</p>
+<p>这种感觉就像创业了，但创业不是为了赚钱。</p>
+<h2 id="些许失败">些许失败</h2>
+<p>即使现在每个版本都有着少许稳定的下载量，但是产品的 contributor 却仍然只有我一个人，这对于一个开源项目来说是很危险的，甚至是有些许失败。</p>
+<p>后来我简单的反思了一下，总结了一下原因</p>
+<ul>
+<li>项目文档不全，导致参与门槛提高</li>
+<li>技术选型不够热门，社区上熟悉的人少</li>
+<li>没有组织和形成良好的产品社区，吸引和培养人才</li>
+</ul>
+<p>可惜由于我的佛系（拖延症），一直也没有开始去行动。</p>
+<p>这种感觉就像创业好久了，但还是就你一个人。</p>
+<h2 id="附录">附录</h2>
 <ol>
-<li>具化产品形态</li>
-<li>验证产品功能</li>
-<li>快速调整、迭代</li>
+<li>Github 仓库数据在线统计，https://github.com/vesoft-inc/github-statistics</li>
+<li>MockPlus 产品原型在线设计工具，https://www.mockplus.cn/</li>
+<li>PrettyZoo，https://github.com/vran-dev/PrettyZoo</li>
 </ol>
-<p>而这就需要用到<strong>原型设计</strong>了，这里我借助了<a href="https://www.mockplus.cn">摹客原型</a>这款在线的原型工具</p>
-<blockquote>
-<p>原型设计其实可以理解为就是将产品用画图的方式展现出来，不过现在的原型工具在这方面提供了更多的便利性</p>
-</blockquote>
-<p>考虑到软件的功能并不复杂、展示的信息也并不是很多，所以我采用了桌面软件现在很流行的三栏式布局，软件的布局从左到右被划分为了三块</p>
-<p><img src="img/prettyZoo-layout.png" alt="image-20201115223934030"></p>
-<p>在设计原型的时候还要考虑到软件的配色，开发的时候就可以完全按照这个原型做参考（一般企业中会有单独的 UI 设计师来美化原型、甚至 UED 来设计交互）。</p>
-<p>下面展示了完成后的原型图</p>
-<ul>
-<li>首页</li>
-</ul>
-<p><img src="img/prettyZoo-main.png" alt="image-20201115183933586"></p>
-<ul>
-<li>配置页面</li>
-</ul>
-<p><img src="img/prettyZoo-config.png" alt="image-20201115184030460"></p>
-<ul>
-<li>节点列表页面</li>
-</ul>
-<p><img src="img/prettyZoo-node-list.png" alt="image-20201115184103771"></p>
-<ul>
-<li>节点创建页面</li>
-</ul>
-<p><img src="img/prettyZoo-node-create.png" alt="image-20201115184130940"></p>
-<p>每张图对应了软件的一个页面，这些页面之间的流转也需要明确下来</p>
-<p><img src="img/overview.png" alt="overview"></p>
-<p>对于开发来说，流程图可能更友好一些</p>
-<p><img src="img/prettyZoo-flow.png" alt="image-20201115200141460"></p>
-<p>整个过程看似一气呵成，其实中间会做无数次的调整，甚至完全推翻重新设计也不在话下。</p>
-<h2 id="技术选型">技术选型</h2>
-<p>经过原型阶段的验证以后基本就可以进入开发阶段了，而在这个阶段首先要明确的事情就是技术选型，如果是团队开发的话得综合考量团队人员的技术维度、技术的稳定性等，不过这个软件的开发就我一人，所以什么都是我说了算&hellip;&hellip;</p>
-<p>下面我简单列了一下几个比较重要的技术抉择。</p>
-<p>编程语言我选择了 Java 11， 因为这是 Java 第一个支持模块化的 LTS 版本，模块化可以为 Java 桌面软件构建最小运行时。</p>
-<p>UI 框架可选择不多，就 AWT、Swing 和 JavaFX， 本着用新不用旧的心态选择了 JavaFX，缺点就是我需要学习相关的知识。</p>
-<p>项目构建工具我选择了 Gradle，原因很简单，就是我不喜欢写 maven 的 XML 配置，-_- 。</p>
-<p>其他就不一一枚举了，整体的思路就是 Keep it simple and interesting。</p>
-<h2 id="架构设计">架构设计</h2>
-<p>选型以后就是整个产品的技术架构设计了，架构设计的思路就是预留更多的「可选项」，保证系统能以低成本的方式持续演进。</p>
-<p>项目的架构设计采用了整洁架构的模式，参见下图</p>
-<p><img src="img/arch-1.png" alt="arch-1"></p>
-<p>项目整体被划分为 App、SPI、Infrastructure 和 Domain 四个模块，与上图的对应关系如下</p>
-<ul>
-<li>SPI 对应 Adapter</li>
-<li>Domain 对应 Domain</li>
-<li>Infrustructure 对应 Config、Zookeeper 等</li>
-<li>App 对应 App【JavaFX】</li>
-</ul>
-<p>模块之间的依赖关系如下（遵循无依赖环原则、稳定依赖原则）</p>
-<p><img src="img/arch-2.png" alt="arch-2"></p>
-<h2 id="成品">成品</h2>
-<p>具体的实现过程我就跳过了，中间其实也踩了不少坑，整体还是挺顺畅的，下面就是成品的展示了</p>
-<blockquote>
-<p>最新版本的软件可以在 Github 发布页进行下载（https://github.com/vran-dev/PrettyZoo/releases）</p>
-</blockquote>
-<p><img src="img/show-main.png" alt=""></p>
-<p><img src="img/show-server.png" alt=""></p>
-<p><img src="img/show-node-list.png" alt=""></p>
-<p><img src="img/show-node-add.png" alt=""></p>
 
             </section>
 
