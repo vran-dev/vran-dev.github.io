@@ -12,16 +12,16 @@
 		<meta name="author" content="vran">
 		
 		<meta name="generator" content="Hugo 0.80.0" />
-		<title>Scala &middot; 且徐行</title>
+		<title>分享：对积分业务的一些思考 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
 </head>
 
-	<body>
 
-	<section class="wrapper">
-		<nav class="nav-main" style="display: flex;">
+<body>
+    <section id="single" class="wrapper">
+    <nav class="nav-main" style="display: flex;">
          <div style="margin-left:auto;">
             
             <a href='https://blog.cc1234.cc/'> Home</a>
@@ -33,79 +33,125 @@
          </div>
 </nav>
 
-		<div class="profile">
-    <div  class = "avator">
-        <img src="https://blog.cc1234.cc/images/avatar.png" alt="" />
-    </div>
-    <div class="bio">
-        <h2>且徐行</h2>
-        <p> 莫听穿林打叶声，何妨吟啸且徐行。</p>
-    </div>
-</div>
-
-<div class="line"></div>
-
-		
-		
-		<div class="archive">
-			<h3>2020</h3>
-			<ul>
+        <article class = "post">
+            <header>
+                <div class = "post-img">
                     
-                    <div class="archive-item">
-                            <div class = "time">Aug 18</div>
-                            <div class = "title">
-                                <a class = "" href="https://blog.cc1234.cc/posts/scala-adt/">  Scala 与 Algebraic data type </a>
-                            </div>
-                    </div>
-					
-                    <div class="archive-item">
-                            <div class = "time">Aug 15</div>
-                            <div class = "title">
-                                <a class = "" href="https://blog.cc1234.cc/posts/typeclasses-deriving/">  Scala2 如何实现 Type class 派生 </a>
-                            </div>
-                    </div>
-					
-                    <div class="archive-item">
-                            <div class = "time">Jul 19</div>
-                            <div class = "title">
-                                <a class = "" href="https://blog.cc1234.cc/posts/typeclasses-2/"> 真的学不动了：Scala3 与 Type classes </a>
-                            </div>
-                    </div>
-					
-                    <div class="archive-item">
-                            <div class = "time">Jul 15</div>
-                            <div class = "title">
-                                <a class = "" href="https://blog.cc1234.cc/posts/typeclasses-1/"> 真的学不动了：除了 class , 也该了解 Type classes 了 </a>
-                            </div>
-                    </div>
-					
-                    <div class="archive-item">
-                            <div class = "time">May 27</div>
-                            <div class = "title">
-                                <a class = "" href="https://blog.cc1234.cc/posts/polymorphism/"> 多态都不知道，谈什么对象 </a>
-                            </div>
-                    </div>
-					
-			</ul>
-		</div>
-		
-		
-		<div class="archive">
-			<h3>2019</h3>
-			<ul>
-                    
-                    <div class="archive-item">
-                            <div class = "time">Sep 17</div>
-                            <div class = "title">
-                                <a class = "" href="https://blog.cc1234.cc/posts/sbt-update-optimize/"> 从30分钟到1分钟 - SBT的update耗时优化记录 </a>
-                            </div>
-                    </div>
-					
-			</ul>
-		</div>
-		
-		
-		<div class = "social">
+                </div>
+                <div class = "title" >
+                    分享：对积分业务的一些思考
+                </div>
+                <div class="meta">
+                2021/06/29
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="前言">前言</h2>
+<p>最近一直在做和积分相关的业务系统，趁着这段时间有空就把最近对于积分的一些思考总结下来做个分享，仅供参考。</p>
+<p>下面是本文的大纲</p>
+<ul>
+<li>什么是积分</li>
+<li>为什么要做积分</li>
+<li>积分的入口和出口</li>
+<li>积分的货币属性</li>
+<li>积分的关键数</li>
+</ul>
+<p>如果有相关错误和意见，欢迎指出</p>
+<h2 id="什么是积分">什么是积分？</h2>
+<p>在用户运营中，拉新、促活、转化等是绝对不会缺席的话题，要实现这些目标有很多的方式，而积分正式其中之一。</p>
+<p>在我们现在的生活中，积分可以说是随处可见了，比如</p>
+<ul>
+<li>移动运营商积分</li>
+</ul>
+<p><img src="img/IMG_1317.jpg" alt="img/IMG_1317.jpg"></p>
+<ul>
+<li>电商购物平台积分</li>
+</ul>
+<p><img src="img/IMG_1318.jpg" alt="img/IMG_1318.jpg"></p>
+<p>还有诸如信用卡积分、酒店积分等等，数不胜数。</p>
+<p>积分本质上就是平台发放的一种虚拟货币，平台可以基于积分设计很多价值交换的功能，比如</p>
+<ul>
+<li>积分兑换实物</li>
+<li>积分兑换虚拟物品</li>
+<li>积分抵扣现金支付</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<p>从平台自身的角度来看，积分其实是一种让利行为，即平台将自己的利润划一部分出来以积分的形式反馈给客户。</p>
+<p>当把积分给到用户时，平台就产生了一笔债务，当用户消耗一笔积分以后，平台就偿还了一笔债务。</p>
+<h2 id="为什么要做积分">为什么要做积分？</h2>
+<p>据统计数据显示：商家发展一名新用户的成本是挽留老用户的 3 ~ 10 倍，向新顾客推销产品的成功率只有 15%，而向现有忠诚顾客推销产品的成功率则高达 50%。</p>
+<p>而积分体系可以很好的连接用户与产品，维持用户，建立长期的需求，从而将新用户培养成高价值用户</p>
+<p><img src="img/Untitled.png" alt="img/Untitled.png"></p>
+<blockquote>
+<p>一般这种用户关系的维护都称之为客户忠诚度计划，积分只是其中的体系之一</p>
+</blockquote>
+<h2 id="从哪里来到哪里去">从哪里来？到哪里去？</h2>
+<p>哲学上有三个终极问题：我是谁？我从哪里来？要到哪里去？</p>
+<p>换到本文谈到的积分里就是：积分是什么？积分从哪里来？积分到哪里去？</p>
+<p>是什么前面已经谈过了，本节着重讨论一下后面两个问题</p>
+<p><img src="img/Untitled%201.png" alt="img/Untitled%201.png"></p>
+<p>积分从哪里来？也可以理解为获取积分的入口，一般常见的有</p>
+<ul>
+<li>消费返积分</li>
+<li>参加活动返积分
+<ul>
+<li>签到</li>
+<li>分享</li>
+<li>&hellip;&hellip;</li>
+</ul>
+</li>
+</ul>
+<p>到哪里去实际上就是指如何消耗掉积分，也就是常说的积分出口。</p>
+<p>如果只有入口，没有出口的话，那用户就感受不到积分的价值，我们想通过积分体系与用户建立长期关系的目标也就落空了。</p>
+<p>常见的出口有</p>
+<ul>
+<li>积分兑换（实物 or 虚拟商品）</li>
+<li>积分抵现 / 提现</li>
+<li>积分过期自动作废</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<p>这样用户、入口、出口就形成了积分体系的价值闭环</p>
+<p><img src="img/Untitled%202.png" alt="img/Untitled%202.png"></p>
+<p>这里深入讨论一个细节点：为什么积分需要有有效期并作废？</p>
+<p>前面提到过积分对于平台来说其实是成本，也可以认为是一种债务，如果债务一直累积得不到释放会引起多种连锁反应，比如</p>
+<ul>
+<li>信用贬值：用户信任感缺失，丧失获取积分的动力</li>
+<li>积分贬值：平台为了加速积分的消耗，同一商品的积分定价会越来越高</li>
+<li>挤兑风暴：每次平台上新，都会发生挤兑，因为人均持有积分数累积太多</li>
+</ul>
+<p>而过期是一种可以低成本的消耗累积积分的一种方式</p>
+<p><img src="img/Untitled%203.png" alt="img/Untitled%203.png"></p>
+<p>而且积分的过期会给用户带来一种缺失感，从而促进用户对积分价值的认知，达成基于积分与用户建立长期关系的目标。</p>
+<h2 id="积分的货币属性">积分的货币属性</h2>
+<p>前面有说到积分是一种让利行为：平台将自己的一部利润划分出来以积分的形式返给用户。</p>
+<p>这就说明积分天然就有一定的货币属性，只不过它的价值被局限在了平台内部（目前也有一种联合积分的模式，它的积分可以跨平台使用）。</p>
+<p>在积分建立之初就应该定义好汇率</p>
+<blockquote>
+<p>汇率：指的是两种货币之间兑换的比率</p>
+</blockquote>
+<p>有了汇率这样的概念后，就能够基于此去核算成本，更好的计算 ROI （投入产出比）了。</p>
+<h2 id="积分关键数据">积分关键数据</h2>
+<p>数据可以直观的为我们展示当下整个积分生态的健康指数，下面简单列了一些（基本的 PV、UV 就列了）</p>
+<p>一、积分维度</p>
+<p>在积分的维度，一般会关注<strong>已发放积分总数</strong>、<strong>已消耗积分总数</strong>、<strong>消耗积分占比</strong>等数据。</p>
+<p>二、用户维度</p>
+<p>如果从用户的角度出发的话，关注的数据主要有<strong>人均持有积分数</strong>、<strong>人均消耗积分数、积分消耗人数比，近 30 天有积分消耗人数</strong>等。</p>
+<p>如果想要做更好的积分运营，对持有积分的不同范围的人群分布也需要知悉</p>
+<p><img src="img/Untitled%204.png" alt="img/Untitled%204.png"></p>
+<p>要是能和其他数据联动起来，统计到是由积分带来的转化数据就更好了，比如通过积分的拉新活动带来的新用户数。</p>
+
+            </section>
+
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
+        <div class = "social">
 
     
         <a href="https://github.com/vran-dev">
@@ -134,9 +180,24 @@
     
 
 </div>
-		
-	</section>
-	<footer id="footer">
+        
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
+
+</script>
+        </div>
+        
+
+    </section>
+
+    <footer id="footer">
     <p>
         
         © 2021 <i></i> vran
@@ -158,5 +219,4 @@
 </script>
 
 
-	</body>
-</html>
+</body>
