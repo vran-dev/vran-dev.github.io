@@ -8,12 +8,26 @@
     <language>en-us</language>
     <lastBuildDate>Thu, 02 Sep 2021 22:20:44 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Index</title>
+      <title>纵享丝滑，Mybatis-Dynamic-Sql 集成体验</title>
       <link>https://blog.cc1234.cc/posts/mybats-dynamic-sql-integration/</link>
       <pubDate>Thu, 02 Sep 2021 22:20:44 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/mybats-dynamic-sql-integration/</guid>
-      <description></description>
+      <description>前言 我大概两三年没有使用过 Mybatis 了，最近因为项目的原因重新开始使用 Mybatis，体验上总感觉不丝滑，即使加了 Mybatis plus 也没有达到我心中的预期。
+想着这几年用的 JOOQ，用 Java 写 SQL 的体验太棒了，因为它实现的 DSL 完备度很高，让人自己写的就是原汁原味的 SQL 一样。
+有天我就在想 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。
+本文就是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。
+整个项目我已经放在 Github （https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo） ，如果你感兴趣可以点个 star，我会持续更新。
+观察维度 在开始实际写代码体验之前，我列了四个维度来观察框架是否能够符合自己的期望，它们分别是
+ Mybatis 生态兼容性 代码生成能力 无 XML DSL 完备度  下面一个一个来过一下
+一、Mybatis 生态兼容性
+要和 Mybatis 既有的生态保持兼容性，比如一些 SQL 日志插件、分页查询插件以及通用的 TypeHandler 等
+二、代码生成能力
+数据库实体可以自动生成，开发者不需要（通常也不允许）修改这一部分自动生成的代码，开发者可以通过配置项来灵活的制定生成规则。
+要是代码生成工具能和构建工具（比如 Maven、Gradle）无缝集成那就更好。
+三、无 XML
+忘掉 XML 和 OGNL 表达式吧
+四、DSL 完备度（Domain Special Language）</description>
     </item>
     
     <item>

@@ -12,7 +12,7 @@
 		<meta name="author" content="vran">
 		
 		<meta name="generator" content="Hugo 0.80.0" />
-		<title>Index &middot; 且徐行</title>
+		<title>纵享丝滑，Mybatis-Dynamic-Sql 集成体验 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
@@ -36,10 +36,10 @@
         <article class = "post">
             <header>
                 <div class = "post-img">
-                    <img src='' alt="" />
+                    <img src='img/mybatis-icon.jpg' alt="" />
                 </div>
                 <div class = "title" >
-                    Index
+                    纵享丝滑，Mybatis-Dynamic-Sql 集成体验
                 </div>
                 <div class="meta">
                 2021/09/02
@@ -49,7 +49,321 @@
             <div class = "line"></div>
             
             <section class="content">
-                
+                <h2 id="前言">前言</h2>
+<p>我大概两三年没有使用过 Mybatis 了，最近因为项目的原因重新开始使用 Mybatis，体验上总感觉不丝滑，即使加了 Mybatis plus 也没有达到我心中的预期。</p>
+<p>想着这几年用的 JOOQ，用 Java 写 SQL 的体验太棒了，因为它实现的 DSL 完备度很高，让人自己写的就是原汁原味的 SQL 一样。</p>
+<p>有天我就在想 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。</p>
+<p>本文就是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。</p>
+<p>整个项目我已经放在 Github （<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo</a>） ，如果你感兴趣可以点个 star，我会持续更新。</p>
+<h2 id="观察维度">观察维度</h2>
+<p>在开始实际写代码体验之前，我列了四个维度来观察框架是否能够符合自己的期望，它们分别是</p>
+<ol>
+<li>Mybatis 生态兼容性</li>
+<li>代码生成能力</li>
+<li>无 XML</li>
+<li>DSL 完备度</li>
+</ol>
+<p>下面一个一个来过一下</p>
+<p><strong>一、Mybatis 生态兼容性</strong></p>
+<p>要和 Mybatis 既有的生态保持兼容性，比如一些 SQL 日志插件、分页查询插件以及通用的 TypeHandler 等</p>
+<p><strong>二、代码生成能力</strong></p>
+<p>数据库实体可以自动生成，开发者不需要（通常也不允许）修改这一部分自动生成的代码，开发者可以通过配置项来灵活的制定生成规则。</p>
+<p>要是代码生成工具能和构建工具（比如 Maven、Gradle）无缝集成那就更好。</p>
+<p><strong>三、无 XML</strong></p>
+<p>忘掉 XML 和 OGNL 表达式吧</p>
+<p><strong>四、DSL 完备度</strong>（Domain Special Language）</p>
+<p>Mybatis dynamic sql 使得开发者可以用 Java 的方式来写 SQL，那框架就得对常用的 SQL 有完善的支持，对不常用的 SQL 也能有相应的解决方案。</p>
+<p>还有一个点就是写出来的 DSL 和原生 SQL 的差别不能太大，比如像下面这样，几乎一眼就能看懂</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRepository</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">public</span> <span style="color:#000">User</span> <span style="color:#000">selectByUsernameAndPassword</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">username</span><span style="color:#000">,</span> <span style="color:#000">String</span> <span style="color:#000">password</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+        <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">User</span> <span style="color:#000">user</span> <span style="color:#000">=</span> <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">user</span><span style="color:#000">();</span>
+        <span style="color:#177500">// select * from user where user.name = ? and user.password = ?
+</span><span style="color:#177500"></span>        <span style="color:#a90d91">return</span> <span style="color:#000">select</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">.</span><span style="color:#836c28">all</span><span style="color:#000">()).</span><span style="color:#836c28">from</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">)</span>
+                <span style="color:#000">.</span><span style="color:#836c28">where</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">.</span><span style="color:#836c28">username</span><span style="color:#000">().</span><span style="color:#836c28">eq</span><span style="color:#000">(</span><span style="color:#000">username</span><span style="color:#000">))</span>
+                <span style="color:#000">.</span><span style="color:#836c28">and</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">.</span><span style="color:#836c28">password</span><span style="color:#000">().</span><span style="color:#836c28">eq</span><span style="color:#000">(</span><span style="color:#000">password</span><span style="color:#000">));</span>
+    <span style="color:#000">}</span>
+<span style="color:#000">}</span>
+</code></pre></div><h2 id="框架简介">框架简介</h2>
+<h3 id="mybatis-dynamic-sql"><strong>Mybatis Dynamic SQL</strong></h3>
+<p><a href="https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html">Mybatis Dynamic SQL</a> 也是  Mybatis 团队出的一个框架，兼容 Mybatis3 的生态，但与 Mybatis 最大的不同是：你既不用在 XML 里写 SQL，也不用在 Annotation 里拼接 SQL（用 Java 拼接过复杂字符串的都懂），而是直接以 Java 的方式去写 SQL。</p>
+<p>这样会带来以下好处</p>
+<ul>
+<li>Typesafe：在编译期就可以确保你的 sql 参数类型和列类型是一致的</li>
+<li>Expressive：这就是要执行的 SQL 的样子</li>
+<li>Flexible：再复杂的 if else、and、or 都能轻松实现</li>
+</ul>
+<h3 id="mybatis-generator"><strong>Mybatis Generator</strong></h3>
+<p><a href="https://mybatis.org/generator/">Mybatis Generator</a> 也是 Mybatis 团队出的代码自动生成工具，它支持 Mybatis3、Mybatis-Dynamic-SQL 等类型的代码生成。并且用户可以自定义生成规则，它提供了非常多的扩展点和预定义配置项。</p>
+<p>它支持多种生成模式，用户可以根据使用场景自行选择</p>
+<ul>
+<li>command 模式：可以通过命令行生成代码</li>
+<li>Maven 插件：直接集成在 Maven 构建工具中</li>
+<li>Java Runtime 模式：通过编写 Java 代码然后运行来生成</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<h2 id="业务实验">业务<strong>实验</strong></h2>
+<p>接下来就是将这一套框架应用在实际的业务开发场景中去了，看一下是否能够符合我的期望。</p>
+<h3 id="业务模拟"><strong>业务模拟</strong></h3>
+<p>我模拟了一个用户、订单相关的业务场景，完整覆盖了增删改查的应用，整个用例如下</p>
+<p><img src="img/Untitled-16305924789521.png" alt="Untitled"></p>
+<p>接下来就是设计应用的数据模型，很简单的三张表：user、order、order_item，参考下面的 UML</p>
+<p>![Untitled](img/Untitled 1-16305924789532.png)</p>
+<p>完整的 SQL 请通过 GITHUB 查看：<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/api/src/main/resources/db/migration/V1__init.sql">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/api/src/main/resources/db/migration/V1__init.sql</a></p>
+<h3 id="项目构建"><strong>项目构建</strong></h3>
+<p>项目我使用了 Gradle 来构建，引入了 Lombok、Mapstruct 等基于 APT 的代码生成工具。</p>
+<p>完整的构建环境和依赖库如下所示</p>
+<p>![Untitled](img/Untitled 2-16305924789533.png)</p>
+<p>整个项目分了 3 个 module，module 之间的依赖关系如下</p>
+<p>![Untitled](img/Untitled 3-16305924789534.png)</p>
+<p>每个 module 内部的包如下</p>
+<p>![Untitled](img/Untitled 4-16305924789535.png)</p>
+<ul>
+<li>API</li>
+</ul>
+<p>该模块提供 http 端口给客户端，它会依赖 Core 和 Dao 模块</p>
+<ul>
+<li>CORE</li>
+</ul>
+<p>实现了具体的业务逻辑，不依赖任何 module</p>
+<ul>
+<li>DAO</li>
+</ul>
+<p>由 Mybatis 生成的 Mapper、Entity 都会存放在该 Module 下，并且该 Dao 模块内会实现 Core 模块内的 Repository，所以它会依赖 Core 模块</p>
+<h3 id="将-mybatis-generator-集成进-gradle-task">将 Mybatis Generator 集成进 Gradle Task</h3>
+<p>由于 Mybatis generator 目前还没有官方的 Gradle 插件，所以我就将这部分生成的逻辑封装成了一个 Gradle task。</p>
+<p>完整配置可参考 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/dao/build.gradle">dao/build.gradle</a></p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.api.MyBatisGenerator</span>
+<span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.config.xml.ConfigurationParser</span>
+<span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.internal.DefaultShellCallback</span>
+
+<span style="color:#000">buildscript</span> <span style="color:#000">{</span>
+    <span style="color:#000">repositories</span> <span style="color:#000">{</span>
+        <span style="color:#000">mavenCentral</span><span style="color:#000">()</span>
+    <span style="color:#000">}</span>
+    <span style="color:#177500">// 配置 gradle plugin 或 task 需要的依赖
+</span><span style="color:#177500"></span>    <span style="color:#000">dependencies</span> <span style="color:#000">{</span>
+        <span style="color:#000">classpath</span> <span style="color:#000">group:</span> <span style="color:#c41a16">&#39;org.mybatis.generator&#39;</span><span style="color:#000">,</span> <span style="color:#000">name:</span> <span style="color:#c41a16">&#39;mybatis-generator-core&#39;</span><span style="color:#000">,</span> <span style="color:#000">version:</span> <span style="color:#c41a16">&#39;1.4.0&#39;</span>
+        <span style="color:#000">classpath</span> <span style="color:#000">group:</span> <span style="color:#c41a16">&#39;mysql&#39;</span><span style="color:#000">,</span> <span style="color:#000">name:</span> <span style="color:#c41a16">&#39;mysql-connector-java&#39;</span><span style="color:#000">,</span> <span style="color:#000">version:</span> <span style="color:#c41a16">&#39;8.0.25&#39;</span>
+    <span style="color:#000">}</span>
+<span style="color:#000">}</span>
+
+<span style="color:#000">task</span> <span style="color:#000">mybatisGenerate</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">warnings</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">ArrayList</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">&gt;()</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">overwrite</span> <span style="color:#000">=</span> <span style="color:#a90d91">true</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">configurationFile</span> <span style="color:#000">=</span> <span style="color:#000">projectDir</span><span style="color:#000">.</span><span style="color:#836c28">getAbsolutePath</span><span style="color:#000">()</span> <span style="color:#000">+</span> <span style="color:#c41a16">&#39;/src/main/resources/generatorConfiguration.xml&#39;</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">configFile</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">File</span><span style="color:#000">(</span><span style="color:#000">configurationFile</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">cp</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">ConfigurationParser</span><span style="color:#000">(</span><span style="color:#000">warnings</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">config</span> <span style="color:#000">=</span> <span style="color:#000">cp</span><span style="color:#000">.</span><span style="color:#836c28">parseConfiguration</span><span style="color:#000">(</span><span style="color:#000">configFile</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">callback</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">DefaultShellCallback</span><span style="color:#000">(</span><span style="color:#000">overwrite</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">def</span> <span style="color:#000">myBatisGenerator</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">MyBatisGenerator</span><span style="color:#000">(</span><span style="color:#000">config</span><span style="color:#000">,</span> <span style="color:#000">callback</span><span style="color:#000">,</span> <span style="color:#000">warnings</span><span style="color:#000">)</span>
+    <span style="color:#000">myBatisGenerator</span><span style="color:#000">.</span><span style="color:#836c28">generate</span><span style="color:#000">(</span><span style="color:#a90d91">null</span><span style="color:#000">)</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>代码的生成规则都放在 <code>generatorConfiguration.xml</code> 配置文件中（关于 Mybatis generator 的更多配置可以参考<a href="https://mybatis.org/generator/configreference/xmlconfig.html">官方文档</a> ）。</p>
+<p>一定记得在 context 标签中配置  <code>targetRuntime=&quot;MyBatis3DynamicSql&quot;</code> ，这样才能生成 mybatis dynamic sql 框架需要的代码</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;!DOCTYPE generatorConfiguration PUBLIC
+</span><span style="color:#633820">        &#34;-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN&#34;
+</span><span style="color:#633820">        &#34;http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd&#34;&gt;</span>
+<span style="color:#000">&lt;generatorConfiguration&gt;</span>
+		<span style="color:#177500">&lt;!-- MyBatis3DynamicSql 指定生成 mybatis dynamic sql 的代码 --&gt;</span>
+    <span style="color:#000">&lt;context</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;dsql&#34;</span> <span style="color:#836c28">targetRuntime=</span><span style="color:#c41a16">&#34;MyBatis3DynamicSql&#34;</span><span style="color:#000">&gt;</span>
+        <span style="color:#177500">&lt;!-- 转义规则 --&gt;</span>
+        <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;autoDelimitKeywords&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
+        <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;beginningDelimiter&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;`&#34;</span><span style="color:#000">/&gt;</span>
+        <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;endingDelimiter&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;`&#34;</span><span style="color:#000">/&gt;</span>
+
+        <span style="color:#177500">&lt;!-- 数据库连接 --&gt;</span>
+        <span style="color:#000">&lt;jdbcConnection</span> <span style="color:#836c28">driverClass=</span><span style="color:#c41a16">&#34;com.mysql.cj.jdbc.Driver&#34;</span>
+                        <span style="color:#836c28">connectionURL=</span><span style="color:#c41a16">&#34;jdbc:mysql://localhost:3306/user&#34;</span> <span style="color:#836c28">userId=</span><span style="color:#c41a16">&#34;root&#34;</span> <span style="color:#836c28">password=</span><span style="color:#c41a16">&#34;123456&#34;</span><span style="color:#000">/&gt;</span>
+
+        <span style="color:#177500">&lt;!-- mybatis type handler --&gt;</span>
+        <span style="color:#000">&lt;javaTypeResolver&gt;</span>
+            <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;useJSR310Types&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
+        <span style="color:#000">&lt;/javaTypeResolver&gt;</span>
+
+        <span style="color:#177500">&lt;!-- 代码生成存放路径 --&gt;</span>
+        <span style="color:#000">&lt;javaModelGenerator</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.model&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;src/main/java&#34;</span><span style="color:#000">/&gt;</span>
+
+        <span style="color:#000">&lt;javaClientGenerator</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;src/main/java&#34;</span><span style="color:#000">&gt;</span>
+						<span style="color:#177500">&lt;!-- 为生成的 Mapper 指定父接口 --&gt;</span>
+            <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;rootInterface&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;org.mybatis.dynamic.sql.util.mybatis3.CommonSelectMapper&#34;</span><span style="color:#000">/&gt;</span>
+        <span style="color:#000">&lt;/javaClientGenerator&gt;</span>
+			
+				<span style="color:#177500">&lt;!-- 表和实体的生成规则映射 --&gt;</span>
+				<span style="color:#000">&lt;table</span> <span style="color:#836c28">tableName=</span><span style="color:#c41a16">&#34;user&#34;</span> <span style="color:#836c28">domainObjectName=</span><span style="color:#c41a16">&#34;UserEntity&#34;</span><span style="color:#000">&gt;</span>
+            <span style="color:#000">&lt;generatedKey</span> <span style="color:#836c28">column=</span><span style="color:#c41a16">&#34;id&#34;</span> <span style="color:#836c28">sqlStatement=</span><span style="color:#c41a16">&#34;JDBC&#34;</span> <span style="color:#836c28">identity=</span><span style="color:#c41a16">&#34;true&#34;</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;post&#34;</span><span style="color:#000">/&gt;</span>
+            <span style="color:#177500">&lt;!-- Gender 字段使用自定义的 typeHandler 处理 --&gt;</span>
+						<span style="color:#000">&lt;columnOverride</span> <span style="color:#836c28">column=</span><span style="color:#c41a16">&#34;gender&#34;</span>
+                            <span style="color:#836c28">javaType=</span><span style="color:#c41a16">&#34;cc.cc1234.core.domain.enums.Gender&#34;</span>
+                            <span style="color:#836c28">typeHandler=</span><span style="color:#c41a16">&#34;org.apache.ibatis.type.EnumOrdinalTypeHandler&#34;</span><span style="color:#000">/&gt;</span>
+        <span style="color:#000">&lt;/table&gt;</span>
+    <span style="color:#000">&lt;/context&gt;</span>
+
+<span style="color:#000">&lt;/generatorConfiguration&gt;</span>
+</code></pre></div><p>这样配置完成以后只需要执行 <code>mybatisGenerator</code> 这个 task 就可以生成代码了，如果你使用的事 Intellij IDEA 的话，可以在右侧工具栏找到该 task</p>
+<p>![Untitled](img/Untitled 5-16305924789536.png)</p>
+<p>执行玩 task 以后你就能在项目里看见你生成的代码了</p>
+<p>![Untitled](img/Untitled 6-16305924789537.png)</p>
+<h3 id="生成的代码分析和使用">生成的代码分析和使用</h3>
+<p>生成的代码主要包括 xxxMapper、xxxSqlSupport 和 xxxEntity。</p>
+<ul>
+<li>Entity 就是数据库表对应的 Java 实体，仅有 Getter 和 Setter</li>
+<li>Mapper 则是执行 CRUD 的入口，默认已经有了通用的 CRUD 方法</li>
+<li>SqlSupport 则是维护了实体和表的映射关系，比如某个 Field 对应表的某一列</li>
+</ul>
+<p>完整的项目我已经开源在了 GITHUB 上（<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo</a>），你随时可以 fork 下来运行，我这里就只展示部分代码了，</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserEntityDynamicSqlSupport</span> <span style="color:#000">{</span>
+    <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120396+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source Table: user&#34;</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#000">UserEntity</span> <span style="color:#000">userEntity</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">UserEntity</span><span style="color:#000">();</span>
+
+    <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120949+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source field: user.id&#34;</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#000">SqlColumn</span><span style="color:#000">&lt;</span><span style="color:#000">Long</span><span style="color:#000">&gt;</span> <span style="color:#000">id</span> <span style="color:#000">=</span> <span style="color:#000">userEntity</span><span style="color:#000">.</span><span style="color:#836c28">id</span><span style="color:#000">;</span>
+
+    <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120949+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source field: user.username&#34;</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#000">SqlColumn</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">&gt;</span> <span style="color:#000">username</span> <span style="color:#000">=</span> <span style="color:#000">userEntity</span><span style="color:#000">.</span><span style="color:#836c28">username</span><span style="color:#000">;</span>
+
+    <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120949+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source field: user.gender&#34;</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#000">SqlColumn</span><span style="color:#000">&lt;</span><span style="color:#000">Gender</span><span style="color:#000">&gt;</span> <span style="color:#000">gender</span> <span style="color:#000">=</span> <span style="color:#000">userEntity</span><span style="color:#000">.</span><span style="color:#836c28">gender</span><span style="color:#000">;</span>
+
+    <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120949+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source Table: user&#34;</span><span style="color:#000">)</span>
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserEntity</span> <span style="color:#a90d91">extends</span> <span style="color:#000">SqlTable</span> <span style="color:#000">{</span>
+        <span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#000">SqlColumn</span><span style="color:#000">&lt;</span><span style="color:#000">Long</span><span style="color:#000">&gt;</span> <span style="color:#000">id</span> <span style="color:#000">=</span> <span style="color:#000">column</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">,</span> <span style="color:#000">JDBCType</span><span style="color:#000">.</span><span style="color:#836c28">BIGINT</span><span style="color:#000">);</span>
+
+        <span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#000">SqlColumn</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">&gt;</span> <span style="color:#000">username</span> <span style="color:#000">=</span> <span style="color:#000">column</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;username&#34;</span><span style="color:#000">,</span> <span style="color:#000">JDBCType</span><span style="color:#000">.</span><span style="color:#836c28">VARCHAR</span><span style="color:#000">);</span>
+
+        <span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#000">SqlColumn</span><span style="color:#000">&lt;</span><span style="color:#000">Gender</span><span style="color:#000">&gt;</span> <span style="color:#000">gender</span> <span style="color:#000">=</span> <span style="color:#000">column</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;gender&#34;</span><span style="color:#000">,</span> <span style="color:#000">JDBCType</span><span style="color:#000">.</span><span style="color:#836c28">TINYINT</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;cc.cc1234.dao.EnumOrdinalTypeHandler&#34;</span><span style="color:#000">);</span>
+
+        <span style="color:#a90d91">public</span> <span style="color:#000">UserEntity</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+            <span style="color:#a90d91">super</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;user&#34;</span><span style="color:#000">);</span>
+        <span style="color:#000">}</span>
+    <span style="color:#000">}</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>那么如何用这些生成的代码来构造 SQL 查询呢</p>
+<p>对于简单的 CRUD，使用起来是非常简单的</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Autowired</span>
+<span style="color:#a90d91">private</span> <span style="color:#000">UserEntityMapper</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">;</span>
+
+<span style="color:#000">@Override</span>
+<span style="color:#a90d91">public</span> <span style="color:#000">Optional</span><span style="color:#000">&lt;</span><span style="color:#000">User</span><span style="color:#000">&gt;</span> <span style="color:#000">selectByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">return</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">id</span><span style="color:#000">);</span>
+<span style="color:#000">}</span>
+
+<span style="color:#000">@Override</span>
+<span style="color:#a90d91">public</span> <span style="color:#000">Long</span> <span style="color:#000">insertAndReturnPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">User</span> <span style="color:#000">user</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">final</span> <span style="color:#000">UserEntity</span> <span style="color:#000">entity</span> <span style="color:#000">=</span> <span style="color:#000">userRecordConverter</span><span style="color:#000">.</span><span style="color:#836c28">from</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">);</span>
+    <span style="color:#000">userEntityMapper</span><span style="color:#000">.</span><span style="color:#836c28">insertSelective</span><span style="color:#000">(</span><span style="color:#000">entity</span><span style="color:#000">);</span>
+    <span style="color:#a90d91">return</span> <span style="color:#000">entity</span><span style="color:#000">.</span><span style="color:#836c28">getId</span><span style="color:#000">();</span>
+<span style="color:#000">}</span>
+
+<span style="color:#000">@Override</span>
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">boolean</span> <span style="color:#000">deleteByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">int</span> <span style="color:#000">delete</span> <span style="color:#000">=</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">.</span><span style="color:#836c28">delete</span><span style="color:#000">(</span><span style="color:#000">d</span> <span style="color:#000">-&gt;</span> <span style="color:#000">d</span><span style="color:#000">.</span><span style="color:#836c28">where</span><span style="color:#000">(</span><span style="color:#000">UserEntityDynamicSqlSupport</span><span style="color:#000">.</span><span style="color:#836c28">id</span><span style="color:#000">,</span> <span style="color:#000">isEqualTo</span><span style="color:#000">(</span><span style="color:#000">id</span><span style="color:#000">)));</span>
+    <span style="color:#a90d91">return</span> <span style="color:#000">delete</span> <span style="color:#000">==</span> <span style="color:#000">1</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
+
+<span style="color:#000">@Override</span>
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">boolean</span> <span style="color:#000">updateByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">User</span> <span style="color:#000">userEntity</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+    <span style="color:#000">var</span> <span style="color:#000">record</span> <span style="color:#000">=</span> <span style="color:#000">userRecordConverter</span><span style="color:#000">.</span><span style="color:#836c28">from</span><span style="color:#000">(</span><span style="color:#000">userEntity</span><span style="color:#000">);</span>
+    <span style="color:#a90d91">return</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">.</span><span style="color:#836c28">updateByPrimaryKeySelective</span><span style="color:#000">(</span><span style="color:#000">record</span><span style="color:#000">)</span> <span style="color:#000">==</span> <span style="color:#000">1</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>即使是复杂的查询和类型映射也不难，写出来的感觉和原生 SQL 差距不会很大，基本上一眼就能看懂。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#177500">/**
+</span><span style="color:#177500">     * &lt;pre&gt;
+</span><span style="color:#177500">     *     select user.id, order_item.goods_name, sum(order_item.goods_quantity) from user
+</span><span style="color:#177500">     *      inner join `order` on user.id = `order`.user_id
+</span><span style="color:#177500">     *      inner join order_item on `order`.id = order_item.order_id
+</span><span style="color:#177500">     *      where user.id = 1 group by order_item.goods_name
+</span><span style="color:#177500">     * &lt;/pre&gt;
+</span><span style="color:#177500">     *
+</span><span style="color:#177500">     * @param userId
+</span><span style="color:#177500">     * @return
+</span><span style="color:#177500">     */</span>
+<span style="color:#000">@Override</span>
+<span style="color:#a90d91">public</span> <span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">UserPurchasedGoods</span><span style="color:#000">&gt;</span> <span style="color:#000">selectUserPurchasedOrders</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">userId</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+
+    <span style="color:#177500">// alias
+</span><span style="color:#177500"></span>    <span style="color:#000">val</span> <span style="color:#000">user</span> <span style="color:#000">=</span> <span style="color:#000">UserEntityDynamicSqlSupport</span><span style="color:#000">.</span><span style="color:#836c28">userEntity</span><span style="color:#000">;</span>
+    <span style="color:#000">val</span> <span style="color:#000">orderItem</span> <span style="color:#000">=</span> <span style="color:#000">OrderItemEntityDynamicSqlSupport</span><span style="color:#000">.</span><span style="color:#836c28">orderItemEntity</span><span style="color:#000">;</span>
+    <span style="color:#000">val</span> <span style="color:#000">order</span> <span style="color:#000">=</span> <span style="color:#000">OrderEntityDynamicSqlSupport</span><span style="color:#000">.</span><span style="color:#836c28">orderEntity</span><span style="color:#000">;</span>
+
+    <span style="color:#177500">// build sql dsl
+</span><span style="color:#177500"></span>    <span style="color:#000">val</span> <span style="color:#000">sqlDsl</span> <span style="color:#000">=</span> <span style="color:#000">select</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">.</span><span style="color:#836c28">id</span><span style="color:#000">,</span> <span style="color:#000">orderItem</span><span style="color:#000">.</span><span style="color:#836c28">goodsName</span><span style="color:#000">,</span> <span style="color:#000">sum</span><span style="color:#000">(</span><span style="color:#000">orderItem</span><span style="color:#000">.</span><span style="color:#836c28">goodsQuantity</span><span style="color:#000">).</span><span style="color:#836c28">as</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;goods_quantity&#34;</span><span style="color:#000">))</span>
+        <span style="color:#000">.</span><span style="color:#836c28">from</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">)</span>
+        <span style="color:#000">.</span><span style="color:#836c28">join</span><span style="color:#000">(</span><span style="color:#000">order</span><span style="color:#000">).</span><span style="color:#836c28">on</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">.</span><span style="color:#836c28">id</span><span style="color:#000">,</span> <span style="color:#000">equalTo</span><span style="color:#000">(</span><span style="color:#000">order</span><span style="color:#000">.</span><span style="color:#836c28">userId</span><span style="color:#000">))</span>
+        <span style="color:#000">.</span><span style="color:#836c28">join</span><span style="color:#000">(</span><span style="color:#000">orderItem</span><span style="color:#000">).</span><span style="color:#836c28">on</span><span style="color:#000">(</span><span style="color:#000">order</span><span style="color:#000">.</span><span style="color:#836c28">id</span><span style="color:#000">,</span> <span style="color:#000">equalTo</span><span style="color:#000">(</span><span style="color:#000">orderItem</span><span style="color:#000">.</span><span style="color:#836c28">orderId</span><span style="color:#000">))</span>
+        <span style="color:#000">.</span><span style="color:#836c28">where</span><span style="color:#000">(</span><span style="color:#000">user</span><span style="color:#000">.</span><span style="color:#836c28">id</span><span style="color:#000">,</span> <span style="color:#000">isEqualTo</span><span style="color:#000">(</span><span style="color:#000">userId</span><span style="color:#000">))</span>
+        <span style="color:#000">.</span><span style="color:#836c28">groupBy</span><span style="color:#000">(</span><span style="color:#000">orderItem</span><span style="color:#000">.</span><span style="color:#836c28">goodsName</span><span style="color:#000">)</span>
+        <span style="color:#000">.</span><span style="color:#836c28">build</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">render</span><span style="color:#000">(</span><span style="color:#000">RenderingStrategies</span><span style="color:#000">.</span><span style="color:#836c28">MYBATIS3</span><span style="color:#000">);</span>
+
+    <span style="color:#177500">// execute and map
+</span><span style="color:#177500"></span>    <span style="color:#a90d91">return</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectMany</span><span style="color:#000">(</span><span style="color:#000">sqlDsl</span><span style="color:#000">,</span> <span style="color:#000">map</span> <span style="color:#000">-&gt;</span> <span style="color:#000">{</span>
+        <span style="color:#000">val</span> <span style="color:#000">result</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">UserPurchasedGoods</span><span style="color:#000">();</span>
+        <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">setGoodsQuantity</span><span style="color:#000">(</span><span style="color:#000">Integer</span><span style="color:#000">.</span><span style="color:#836c28">parseInt</span><span style="color:#000">(</span><span style="color:#000">map</span><span style="color:#000">.</span><span style="color:#836c28">get</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;goods_quantity&#34;</span><span style="color:#000">).</span><span style="color:#836c28">toString</span><span style="color:#000">()));</span>
+        <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">setGoodsName</span><span style="color:#000">(</span><span style="color:#000">map</span><span style="color:#000">.</span><span style="color:#836c28">get</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;goods_name&#34;</span><span style="color:#000">).</span><span style="color:#836c28">toString</span><span style="color:#000">());</span>
+        <span style="color:#a90d91">return</span> <span style="color:#000">result</span><span style="color:#000">;</span>
+    <span style="color:#000">});</span>
+<span style="color:#000">}</span>
+</code></pre></div><h3 id="不支持的-sql">不支持的 SQL</h3>
+<p>在验证过程中发现 Mybatis Dynamic SQL 有一些 SQL 是没有封装进 DSL 里面的（即存在对应的链式调用方法），比如</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">INTO</span> ...... <span style="color:#a90d91">ON</span> <span style="color:#000">DUPLICATE</span> <span style="color:#a90d91">KEY</span> <span style="color:#a90d91">UPDATE</span>...
+</code></pre></div><p>或者</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">IGNORE</span> <span style="color:#a90d91">INTO</span>...
+</code></pre></div><p>官方也有对应的 issue （<a href="https://github.com/mybatis/mybatis-dynamic-sql/issues/82">https://github.com/mybatis/mybatis-dynamic-sql/issues/82</a>），不过好在虽然 DSL 不支持，但是却可以通过 Mybatis 原生的 @Insert 注解来写这样的原生 SQL，这就需要继承由 Mybatis Generator 生成的 Mapper 了。</p>
+<p>由于很多 DB 实现的 SQL 语法都不统一，所以在业务中遇见这种情况还是蛮常见的，好在 Mybatis Dynamic SQL 兼容 Mybatis 的注解功能，那几乎都能通过写原生 SQL 的方式来解决这样的问题。</p>
+<h3 id="一个-bug">一个 Bug</h3>
+<p>我在做 Demo 的时候无意间还碰到了一个 bug，我使用了Mybatis 自带的 <code>EnumOrdinalTypeHandler</code> 来处理枚举类型字段的读和写，结果发现在涉及 Inserrt 或 Update 语句时该 Handler 无法正确的处理并且会抛出异常。</p>
+<p>最后通过 debug 发现这是一个小 bug，已经通过 issue （<a href="https://github.com/mybatis/mybatis-dynamic-sql/issues/391">https://github.com/mybatis/mybatis-dynamic-sql/issues/391</a>）的形式反馈给了官方团队，官方也做出了回馈。</p>
+<p>要解决这个问题，除了 mybatis dynamic sql 需要改以外，mybatis generator 也需要改，而后者的 release 周期要长一些。</p>
+<p>如果你有兴趣的话，可以持续关注。</p>
+<h2 id="总结"><strong>总结</strong></h2>
+<p>最后再从自己定的几个考察维度来做一个总结吧</p>
+<table>
+<thead>
+<tr>
+<th>观察维度</th>
+<th>星级</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mybatis 生态兼容性</td>
+<td>☆☆☆☆☆</td>
+<td>几乎 mybatis 现有插件都能使用，而且学习成本低</td>
+</tr>
+<tr>
+<td>代码生成能力</td>
+<td>☆☆☆☆</td>
+<td>配置项还无法完全覆盖 mybatis 支持的特性，但它的扩展能力很强</td>
+</tr>
+<tr>
+<td>无 XML</td>
+<td>☆☆☆☆☆</td>
+<td>完全可以做到</td>
+</tr>
+<tr>
+<td>DSL 完备性</td>
+<td>☆☆☆</td>
+<td>很多 SQL 还是不支持，对比 JOOQ 的话，这方面相形见绌</td>
+</tr>
+<tr>
+<td>社区活跃度</td>
+<td>☆☆☆</td>
+<td>Mybatis dynamicc sql 使用的人不多，但是官方一直在保持更新。 Mybatis generator 更新的频次倒不是很活跃。</td>
+</tr>
+</tbody>
+</table>
+<p>整体体验下来的话我觉得在生产环境中引入 Mybatis Dynamic SQL 是可行的，在引入之前只需要考虑清楚：在某段时间内项目的 SQL 真的需要和代码分离吗？</p>
+<p>选择的本质还是在做 trade off。</p>
+<p>如果不需要并且你也无法忍受 mybatis 的 xml 和注解，但又必须使用 mybatis 生态，那 mybatis dynamic sql 或许就是你的不二选择。</p>
+<p>如果你不介意是否是 mybatis 生态，那其实我更建议你使用 JOOQ，它的 DSL 更完备，配套的代码生成能力也更强大。</p>
+<h2 id="相关链接"><strong>相关链接</strong></h2>
+<ol>
+<li>Mybatis-Dynamic-SQL-Integeration-demo <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo</a></li>
+<li>Mybatis Generator docs <a href="https://mybatis.org/generator/index.html">https://mybatis.org/generator/index.html</a></li>
+<li>Myabtis Dynamic SQL docs <a href="https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html">https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html</a></li>
+</ol>
+
             </section>
 
             <div class="over">
