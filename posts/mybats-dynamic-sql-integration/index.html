@@ -51,12 +51,11 @@
             <section class="content">
                 <h2 id="前言">前言</h2>
 <p>我大概两三年没有使用过 Mybatis 了，最近因为项目的原因重新开始使用 Mybatis，体验上总感觉不丝滑，即使加了 Mybatis plus 也没有达到我心中的预期。</p>
-<p>想着这几年用的 JOOQ，用 Java 写 SQL 的体验太棒了，因为它实现的 DSL 完备度很高，让人自己写的就是原汁原味的 SQL 一样。</p>
-<p>有天我就在想 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。</p>
-<p>本文就是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。</p>
-<p>整个项目我已经放在 Github （<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo</a>） ，如果你感兴趣可以点个 star，我会持续更新。</p>
+<p>回想这几年用的 <a href="https://www.jooq.org/">JOOQ</a>，直接用 Java 写 SQL 的体验太棒了它实现的 DSL 完备度很高，几乎和写原生的 SQL 体验差不多了。</p>
+<p>那 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。而本文是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。</p>
+<p>整个项目我已经放在 Github （https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo） ，如果你感兴趣可以点个 star，我会持续更新。</p>
 <h2 id="观察维度">观察维度</h2>
-<p>在开始实际写代码体验之前，我列了四个维度来观察框架是否能够符合自己的期望，它们分别是</p>
+<p>在开始实际写代码体验之前，我列了四个维度来观察框架是否能符合自己的期望，它们分别是</p>
 <ol>
 <li>Mybatis 生态兼容性</li>
 <li>代码生成能力</li>
@@ -65,15 +64,15 @@
 </ol>
 <p>下面一个一个来过一下</p>
 <p><strong>一、Mybatis 生态兼容性</strong></p>
-<p>要和 Mybatis 既有的生态保持兼容性，比如一些 SQL 日志插件、分页查询插件以及通用的 TypeHandler 等</p>
+<p>就是要和 Mybatis 既有的生态保持兼容性，比如一些 SQL 日志插件、分页查询插件以及通用的 TypeHandler，二级缓存等</p>
 <p><strong>二、代码生成能力</strong></p>
-<p>数据库实体可以自动生成，开发者不需要（通常也不允许）修改这一部分自动生成的代码，开发者可以通过配置项来灵活的制定生成规则。</p>
+<p>数据库实体可以自动生成，开发者不需要（通常也不允许）修改这一部分自动生成的代码，但开发者可以通过配置项来灵活的制定生成规则以便扩展。</p>
 <p>要是代码生成工具能和构建工具（比如 Maven、Gradle）无缝集成那就更好。</p>
 <p><strong>三、无 XML</strong></p>
-<p>忘掉 XML 和 OGNL 表达式吧</p>
+<p>零 XML</p>
 <p><strong>四、DSL 完备度</strong>（Domain Special Language）</p>
-<p>Mybatis dynamic sql 使得开发者可以用 Java 的方式来写 SQL，那框架就得对常用的 SQL 有完善的支持，对不常用的 SQL 也能有相应的解决方案。</p>
-<p>还有一个点就是写出来的 DSL 和原生 SQL 的差别不能太大，比如像下面这样，几乎一眼就能看懂</p>
+<p>既然是用 Java 的方式来写 SQL，那框架就得对常用的 SQL 有完善的支持，对不常用的 SQL 也能有相应的解决方案。</p>
+<p>还有一个点就是写出来的 DSL 和原生 SQL 的差别不能太大，类似于下面这样，几乎一眼就能看懂</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRepository</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">public</span> <span style="color:#000">User</span> <span style="color:#000">selectByUsernameAndPassword</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">username</span><span style="color:#000">,</span> <span style="color:#000">String</span> <span style="color:#000">password</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">User</span> <span style="color:#000">user</span> <span style="color:#000">=</span> <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">user</span><span style="color:#000">();</span>
@@ -85,7 +84,7 @@
 <span style="color:#000">}</span>
 </code></pre></div><h2 id="框架简介">框架简介</h2>
 <h3 id="mybatis-dynamic-sql"><strong>Mybatis Dynamic SQL</strong></h3>
-<p><a href="https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html">Mybatis Dynamic SQL</a> 也是  Mybatis 团队出的一个框架，兼容 Mybatis3 的生态，但与 Mybatis 最大的不同是：你既不用在 XML 里写 SQL，也不用在 Annotation 里拼接 SQL（用 Java 拼接过复杂字符串的都懂），而是直接以 Java 的方式去写 SQL。</p>
+<p><a href="https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html">Mybatis Dynamic SQL</a> 是  Mybatis 团队出的一个框架，兼容 Mybatis3 的生态，但与 Mybatis 最大的不同是：你既不用在 XML 里写 SQL，也不用在 Annotation 里拼接 SQL（用 Java 拼接过复杂字符串的都懂），而是直接以 Java 的方式去写 SQL。</p>
 <p>这样会带来以下好处</p>
 <ul>
 <li>Typesafe：在编译期就可以确保你的 sql 参数类型和列类型是一致的</li>
@@ -93,30 +92,30 @@
 <li>Flexible：再复杂的 if else、and、or 都能轻松实现</li>
 </ul>
 <h3 id="mybatis-generator"><strong>Mybatis Generator</strong></h3>
-<p><a href="https://mybatis.org/generator/">Mybatis Generator</a> 也是 Mybatis 团队出的代码自动生成工具，它支持 Mybatis3、Mybatis-Dynamic-SQL 等类型的代码生成。并且用户可以自定义生成规则，它提供了非常多的扩展点和预定义配置项。</p>
-<p>它支持多种生成模式，用户可以根据使用场景自行选择</p>
+<p><a href="https://mybatis.org/generator/">Mybatis Generator</a> 也是 Mybatis 团队出的代码自动生成工具，它支持 Mybatis3、Mybatis-Dynamic-SQL 等类型的代码生成。提供了非常多的扩展点和预定义配置项，使得用户可以灵活的自定义生成规则。</p>
+<p>并且 Generator 也支持多种生成模式，用户可以根据使用场景自行选择</p>
 <ul>
 <li>command 模式：可以通过命令行生成代码</li>
 <li>Maven 插件：直接集成在 Maven 构建工具中</li>
 <li>Java Runtime 模式：通过编写 Java 代码然后运行来生成</li>
 <li>&hellip;&hellip;</li>
 </ul>
-<h2 id="业务实验">业务<strong>实验</strong></h2>
+<h2 id="业务集成">业务集成</h2>
 <p>接下来就是将这一套框架应用在实际的业务开发场景中去了，看一下是否能够符合我的期望。</p>
 <h3 id="业务模拟"><strong>业务模拟</strong></h3>
 <p>我模拟了一个用户、订单相关的业务场景，完整覆盖了增删改查的应用，整个用例如下</p>
-<p><img src="img/Untitled-16305924789521.png" alt="Untitled"></p>
-<p>接下来就是设计应用的数据模型，很简单的三张表：user、order、order_item，参考下面的 UML</p>
-<p>![Untitled](img/Untitled 1-16305924789532.png)</p>
+<p><img src="img/use-case.png" alt="Untitled"></p>
+<p>数据模型对应了三张表：user、order、order_item，参考下面的 UML</p>
+<p><img src="img/use-uml.png" alt="Untitled"></p>
 <p>完整的 SQL 请通过 GITHUB 查看：<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/api/src/main/resources/db/migration/V1__init.sql">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/api/src/main/resources/db/migration/V1__init.sql</a></p>
 <h3 id="项目构建"><strong>项目构建</strong></h3>
 <p>项目我使用了 Gradle 来构建，引入了 Lombok、Mapstruct 等基于 APT 的代码生成工具。</p>
 <p>完整的构建环境和依赖库如下所示</p>
-<p>![Untitled](img/Untitled 2-16305924789533.png)</p>
+<p><img src="img/project-build.png" alt="Untitled"></p>
 <p>整个项目分了 3 个 module，module 之间的依赖关系如下</p>
-<p>![Untitled](img/Untitled 3-16305924789534.png)</p>
+<p><img src="img/project-module.png" alt="Untitled"></p>
 <p>每个 module 内部的包如下</p>
-<p>![Untitled](img/Untitled 4-16305924789535.png)</p>
+<p><img src="img/project-module2.png" alt="Untitled"></p>
 <ul>
 <li>API</li>
 </ul>
@@ -200,9 +199,9 @@
 
 <span style="color:#000">&lt;/generatorConfiguration&gt;</span>
 </code></pre></div><p>这样配置完成以后只需要执行 <code>mybatisGenerator</code> 这个 task 就可以生成代码了，如果你使用的事 Intellij IDEA 的话，可以在右侧工具栏找到该 task</p>
-<p>![Untitled](img/Untitled 5-16305924789536.png)</p>
+<p><img src="img/generator-task.png" alt="Untitled"></p>
 <p>执行玩 task 以后你就能在项目里看见你生成的代码了</p>
-<p>![Untitled](img/Untitled 6-16305924789537.png)</p>
+<p><img src="img/generator-code.png" alt="Untitled"></p>
 <h3 id="生成的代码分析和使用">生成的代码分析和使用</h3>
 <p>生成的代码主要包括 xxxMapper、xxxSqlSupport 和 xxxEntity。</p>
 <ul>
