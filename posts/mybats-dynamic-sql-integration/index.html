@@ -53,7 +53,7 @@
 <p>我大概两三年没有使用过 Mybatis 了，最近因为项目的原因重新开始使用 Mybatis，体验上总感觉不丝滑，即使加了 Mybatis plus 也没有达到我心中的预期。</p>
 <p>回想这几年用的 <a href="https://www.jooq.org/">JOOQ</a>，直接用 Java 写 SQL 的体验太棒了它实现的 DSL 完备度很高，几乎和写原生的 SQL 体验差不多了。</p>
 <p>那 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。而本文是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。</p>
-<p>整个项目我已经放在 Github （https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo） ，如果你感兴趣可以点个 star，我会持续更新。</p>
+<p>整个项目我已经放在 Github （<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">Mybatis-Dynamic-SQL-integration-demo</a>） ，如果你感兴趣可以点个 star，我会持续更新。</p>
 <h2 id="观察维度">观察维度</h2>
 <p>在开始实际写代码体验之前，我列了四个维度来观察框架是否能符合自己的期望，它们分别是</p>
 <ol>
@@ -107,7 +107,7 @@
 <p><img src="img/use-case.png" alt="Untitled"></p>
 <p>数据模型对应了三张表：user、order、order_item，参考下面的 UML</p>
 <p><img src="img/use-uml.png" alt="Untitled"></p>
-<p>完整的 SQL 请通过 GITHUB 查看：<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/api/src/main/resources/db/migration/V1__init.sql">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/api/src/main/resources/db/migration/V1__init.sql</a></p>
+<p>完整的 SQL 请通过 GITHUB 查看：<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/api/src/main/resources/db/migration/V1__init.sql">V1__init.sql</a></p>
 <h3 id="项目构建"><strong>项目构建</strong></h3>
 <p>项目我使用了 Gradle 来构建，引入了 Lombok、Mapstruct 等基于 APT 的代码生成工具。</p>
 <p>完整的构建环境和依赖库如下所示</p>
@@ -209,7 +209,7 @@
 <li>Mapper 则是执行 CRUD 的入口，默认已经有了通用的 CRUD 方法</li>
 <li>SqlSupport 则是维护了实体和表的映射关系，比如某个 Field 对应表的某一列</li>
 </ul>
-<p>完整的项目我已经开源在了 GITHUB 上（<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo</a>），你随时可以 fork 下来运行，我这里就只展示部分代码了，</p>
+<p>完整的项目我已经开源在了 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">GITHUB </a>，你随时可以 fork 下来运行，我这里就只展示部分代码了，</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserEntityDynamicSqlSupport</span> <span style="color:#000">{</span>
     <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120396+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source Table: user&#34;</span><span style="color:#000">)</span>
     <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#000">UserEntity</span> <span style="color:#000">userEntity</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">UserEntity</span><span style="color:#000">();</span>
@@ -328,12 +328,12 @@
 <tr>
 <td>Mybatis 生态兼容性</td>
 <td>☆☆☆☆☆</td>
-<td>几乎 mybatis 现有插件都能使用，而且学习成本低</td>
+<td>几乎兼容 mybatis 现有插件都能使用，而且学习成本低</td>
 </tr>
 <tr>
 <td>代码生成能力</td>
 <td>☆☆☆☆</td>
-<td>配置项还无法完全覆盖 mybatis 支持的特性，但它的扩展能力很强</td>
+<td>配置项还无法完全覆盖 mybatis 支持的特性，但它的扩展能力很强，可以通过扩展的方式实现</td>
 </tr>
 <tr>
 <td>无 XML</td>
@@ -354,13 +354,13 @@
 </table>
 <p>整体体验下来的话我觉得在生产环境中引入 Mybatis Dynamic SQL 是可行的，在引入之前只需要考虑清楚：在某段时间内项目的 SQL 真的需要和代码分离吗？</p>
 <p>选择的本质还是在做 trade off。</p>
-<p>如果不需要并且你也无法忍受 mybatis 的 xml 和注解，但又必须使用 mybatis 生态，那 mybatis dynamic sql 或许就是你的不二选择。</p>
+<p>如果你也无法忍受 mybatis 的 xml 和注解，但又必须使用 mybatis 生态，那 mybatis dynamic sql 或许就是你的不二选择。</p>
 <p>如果你不介意是否是 mybatis 生态，那其实我更建议你使用 JOOQ，它的 DSL 更完备，配套的代码生成能力也更强大。</p>
 <h2 id="相关链接"><strong>相关链接</strong></h2>
 <ol>
-<li>Mybatis-Dynamic-SQL-Integeration-demo <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo</a></li>
-<li>Mybatis Generator docs <a href="https://mybatis.org/generator/index.html">https://mybatis.org/generator/index.html</a></li>
-<li>Myabtis Dynamic SQL docs <a href="https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html">https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html</a></li>
+<li><a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">Mybatis-Dynamic-SQL-Integeration-demo</a></li>
+<li><a href="https://mybatis.org/generator/index.html">Mybatis Generator docs</a></li>
+<li><a href="https://mybatis.org/mybatis-dynamic-sql/docs/introduction.html">Myabtis Dynamic SQL docs</a></li>
 </ol>
 
             </section>
