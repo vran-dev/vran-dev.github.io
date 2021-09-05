@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.80.0" />
+		<meta name="generator" content="Hugo 0.88.1" />
 		<title>纵享丝滑，Mybatis-Dynamic-Sql 集成体验 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -51,7 +51,7 @@
             <section class="content">
                 <h2 id="前言">前言</h2>
 <p>我大概两三年没有使用过 Mybatis 了，最近因为项目的原因重新开始使用 Mybatis，体验上总感觉不丝滑，即使加了 Mybatis plus 也没有达到我心中的预期。</p>
-<p>回想这几年用的 <a href="https://www.jooq.org/">JOOQ</a>，直接用 Java 写 SQL 的体验太棒了它实现的 DSL 完备度很高，几乎和写原生的 SQL 体验差不多了。</p>
+<p>回想这几年用的 <a href="https://www.jooq.org/">JOOQ</a>，直接用 Java 写 SQL 的体验太棒了。它实现的 DSL 完备度很高，几乎和写原生的 SQL 体验差不多了。</p>
 <p>那 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。而本文是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。</p>
 <p>整个项目我已经放在 Github （<a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">Mybatis-Dynamic-SQL-integration-demo</a>） ，如果你感兴趣可以点个 star，我会持续更新。</p>
 <h2 id="观察维度">观察维度</h2>
@@ -73,7 +73,7 @@
 <p><strong>四、DSL 完备度</strong>（Domain Special Language）</p>
 <p>既然是用 Java 的方式来写 SQL，那框架就得对常用的 SQL 有完善的支持，对不常用的 SQL 也能有相应的解决方案。</p>
 <p>还有一个点就是写出来的 DSL 和原生 SQL 的差别不能太大，类似于下面这样，几乎一眼就能看懂</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRepository</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRepository</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">public</span> <span style="color:#000">User</span> <span style="color:#000">selectByUsernameAndPassword</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">username</span><span style="color:#000">,</span> <span style="color:#000">String</span> <span style="color:#000">password</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">User</span> <span style="color:#000">user</span> <span style="color:#000">=</span> <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">user</span><span style="color:#000">();</span>
         <span style="color:#177500">// select * from user where user.name = ? and user.password = ?
@@ -131,7 +131,7 @@
 <h3 id="将-mybatis-generator-集成进-gradle-task">将 Mybatis Generator 集成进 Gradle Task</h3>
 <p>由于 Mybatis generator 目前还没有官方的 Gradle 插件，所以我就将这部分生成的逻辑封装成了一个 Gradle task。</p>
 <p>完整配置可参考 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/dao/build.gradle">dao/build.gradle</a></p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.api.MyBatisGenerator</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.api.MyBatisGenerator</span>
 <span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.config.xml.ConfigurationParser</span>
 <span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.internal.DefaultShellCallback</span>
 
@@ -159,7 +159,7 @@
 <span style="color:#000">}</span>
 </code></pre></div><p>代码的生成规则都放在 <code>generatorConfiguration.xml</code> 配置文件中（关于 Mybatis generator 的更多配置可以参考<a href="https://mybatis.org/generator/configreference/xmlconfig.html">官方文档</a> ）。</p>
 <p>一定记得在 context 标签中配置  <code>targetRuntime=&quot;MyBatis3DynamicSql&quot;</code> ，这样才能生成 mybatis dynamic sql 框架需要的代码</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;!DOCTYPE generatorConfiguration PUBLIC
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;!DOCTYPE generatorConfiguration PUBLIC
 </span><span style="color:#633820">        &#34;-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN&#34;
 </span><span style="color:#633820">        &#34;http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd&#34;&gt;</span>
 <span style="color:#000">&lt;generatorConfiguration&gt;</span>
@@ -210,7 +210,7 @@
 <li>SqlSupport 则是维护了实体和表的映射关系，比如某个 Field 对应表的某一列</li>
 </ul>
 <p>完整的项目我已经开源在了 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">GITHUB </a>，你随时可以 fork 下来运行，我这里就只展示部分代码了，</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserEntityDynamicSqlSupport</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserEntityDynamicSqlSupport</span> <span style="color:#000">{</span>
     <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120396+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source Table: user&#34;</span><span style="color:#000">)</span>
     <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#000">UserEntity</span> <span style="color:#000">userEntity</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">UserEntity</span><span style="color:#000">();</span>
 
@@ -238,7 +238,7 @@
 <span style="color:#000">}</span>
 </code></pre></div><p>那么如何用这些生成的代码来构造 SQL 查询呢</p>
 <p>对于简单的 CRUD，使用起来是非常简单的</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Autowired</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Autowired</span>
 <span style="color:#a90d91">private</span> <span style="color:#000">UserEntityMapper</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">;</span>
 
 <span style="color:#000">@Override</span>
@@ -265,7 +265,7 @@
     <span style="color:#a90d91">return</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">.</span><span style="color:#836c28">updateByPrimaryKeySelective</span><span style="color:#000">(</span><span style="color:#000">record</span><span style="color:#000">)</span> <span style="color:#000">==</span> <span style="color:#000">1</span><span style="color:#000">;</span>
 <span style="color:#000">}</span>
 </code></pre></div><p>即使是复杂的查询和类型映射也不难，写出来的感觉和原生 SQL 差距不会很大，基本上一眼就能看懂。</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#177500">/**
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#177500">/**
 </span><span style="color:#177500">     * &lt;pre&gt;
 </span><span style="color:#177500">     *     select user.id, order_item.goods_name, sum(order_item.goods_quantity) from user
 </span><span style="color:#177500">     *      inner join `order` on user.id = `order`.user_id
@@ -304,9 +304,9 @@
 <span style="color:#000">}</span>
 </code></pre></div><h3 id="不支持的-sql">不支持的 SQL</h3>
 <p>在验证过程中发现 Mybatis Dynamic SQL 有一些 SQL 是没有封装进 DSL 里面的（即存在对应的链式调用方法），比如</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">INTO</span> ...... <span style="color:#a90d91">ON</span> <span style="color:#000">DUPLICATE</span> <span style="color:#a90d91">KEY</span> <span style="color:#a90d91">UPDATE</span>...
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">INTO</span> ...... <span style="color:#a90d91">ON</span> <span style="color:#000">DUPLICATE</span> <span style="color:#a90d91">KEY</span> <span style="color:#a90d91">UPDATE</span>...
 </code></pre></div><p>或者</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">IGNORE</span> <span style="color:#a90d91">INTO</span>...
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">IGNORE</span> <span style="color:#a90d91">INTO</span>...
 </code></pre></div><p>官方也有对应的 issue （<a href="https://github.com/mybatis/mybatis-dynamic-sql/issues/82">https://github.com/mybatis/mybatis-dynamic-sql/issues/82</a>），不过好在虽然 DSL 不支持，但是却可以通过 Mybatis 原生的 @Insert 注解来写这样的原生 SQL，这就需要继承由 Mybatis Generator 生成的 Mapper 了。</p>
 <p>由于很多 DB 实现的 SQL 语法都不统一，所以在业务中遇见这种情况还是蛮常见的，好在 Mybatis Dynamic SQL 兼容 Mybatis 的注解功能，那几乎都能通过写原生 SQL 的方式来解决这样的问题。</p>
 <h3 id="一个-bug">一个 Bug</h3>
@@ -328,7 +328,7 @@
 <tr>
 <td>Mybatis 生态兼容性</td>
 <td>☆☆☆☆☆</td>
-<td>几乎兼容 mybatis 现有插件都能使用，而且学习成本低</td>
+<td>几乎兼容 mybatis 现有插件，而且学习成本低</td>
 </tr>
 <tr>
 <td>代码生成能力</td>

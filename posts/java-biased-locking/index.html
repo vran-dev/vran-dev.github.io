@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.80.0" />
+		<meta name="generator" content="Hugo 0.88.1" />
 		<title>  你知道 Java 的偏向锁要被废弃掉了吗？  &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -51,12 +51,12 @@
             <section class="content">
                 <h2 id="前言">前言</h2>
 <p><strong>偏向锁</strong>是从 JDK1.6 引入的一种针对 <strong>synchronized</strong> 的锁优化技术，然而从 JDK 15 开始，这一特性被官方标记为废弃状态，如果还想继续使用的话需要通过 JVM 参数手动启用。</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">-</span><span style="color:#000">XX</span><span style="color:#000">:+</span><span style="color:#000">UseBiasedLocking</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">-</span><span style="color:#000">XX</span><span style="color:#000">:+</span><span style="color:#000">UseBiasedLocking</span>
 </code></pre></div><p>那么问题来了，JDK15 为什么要废弃偏向锁呢？</p>
 <h2 id="什么是偏向锁">什么是偏向锁？</h2>
 <p>在回答 Why 之前要先明白 What：什么是偏向锁？</p>
 <p>在 Java 中可以使用 <strong>synchronized</strong> 来保证代码块同一时间只被一个线程访问（互斥），它是基于 Monitor Object 模式来实现的。</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">int</span> <span style="color:#000">i</span><span style="color:#000">;</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">int</span> <span style="color:#000">i</span><span style="color:#000">;</span>
 
 <span style="color:#a90d91">public</span> <span style="color:#a90d91">synchronized</span> <span style="color:#a90d91">void</span> <span style="color:#000">mutex</span><span style="color:#000">()</span> <span style="color:#000">{</span>
   <span style="color:#000">i</span><span style="color:#000">++;</span>
@@ -79,7 +79,7 @@
 <li>如果不是：就升级为轻量级锁</li>
 </ul>
 <p>这个优化方案其实就是<strong>偏向锁</strong>了，在 JVM 的实际实现中，锁升级其实有 4 个状态，并且是只可升级不可降级。</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">无锁</span> <span style="color:#000">-&gt;</span> <span style="color:#000">偏向锁</span> <span style="color:#000">-&gt;</span> <span style="color:#000">轻量级锁</span> <span style="color:#000">-&gt;</span> <span style="color:#000">重量级锁</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">无锁</span> <span style="color:#000">-&gt;</span> <span style="color:#000">偏向锁</span> <span style="color:#000">-&gt;</span> <span style="color:#000">轻量级锁</span> <span style="color:#000">-&gt;</span> <span style="color:#000">重量级锁</span>
 </code></pre></div><h2 id="为什么要废弃">为什么要废弃？</h2>
 <h3 id="大人时代变了">大人，时代变了</h3>
 <p>在过去，Java 应用通常使用的都是 HashTable、Vector 等比较老的集合库，这类集合库大量使用了 synchronized  来保证线程安全。</p>
@@ -98,10 +98,10 @@
 <p>总结下来其实就是 ROI （投资回报率）太低了，考虑到兼容性，所以决定先废弃该特性，最终的目标是移除它。</p>
 <h2 id="后续如何兼容">后续如何兼容？</h2>
 <p>默认禁用偏向锁可能会导致一些 Java 应用的性能下降，所以 HotSpot 提供了显示开启偏向锁的命令</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#177500"># 在 Java15 后，手动开启偏向锁在启动的时候会收到警告信息</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#177500"># 在 Java15 后，手动开启偏向锁在启动的时候会收到警告信息</span>
 -XX:+UseBiasedLocking
 </code></pre></div><p>以下和偏向锁相关的命令参数仍然可以使用，但是虚拟机会列出对应的警告信息表示其已被废弃掉</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:BiasedLockingStartupDelay<span style="color:#000">=</span>__
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:BiasedLockingStartupDelay<span style="color:#000">=</span>__
 -XX:BiasedLockingBulkRebiasThreshold<span style="color:#000">=</span>__
 -XX:BiasedLockingBulkRevokeThreshold<span style="color:#000">=</span>__
 -XX:BiasedLockingDecayTime<span style="color:#000">=</span>__

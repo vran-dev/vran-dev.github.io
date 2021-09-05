@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.80.0" />
+		<meta name="generator" content="Hugo 0.88.1" />
 		<title>Spring的循环依赖 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -81,7 +81,7 @@
 </ul>
 <p>二、<strong>循环依赖会导致内存溢出</strong></p>
 <p>参考下面的代码</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AService</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AService</span> <span style="color:#000">{</span>
   <span style="color:#a90d91">private</span> <span style="color:#000">BService</span> <span style="color:#000">bService</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">BService</span><span style="color:#000">();</span>
 <span style="color:#000">}</span>
 
@@ -96,44 +96,44 @@
 <ul>
 <li>
 <p>构造器注入</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
 <span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AService</span> <span style="color:#000">{</span>
-    
+
   <span style="color:#a90d91">private</span> <span style="color:#a90d91">final</span> <span style="color:#000">BService</span> <span style="color:#000">bService</span><span style="color:#000">;</span>
-    
+
   <span style="color:#000">@Autowired</span>
   <span style="color:#a90d91">public</span> <span style="color:#000">AService</span><span style="color:#000">(</span><span style="color:#000">BService</span> <span style="color:#000">bService</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">BService</span> <span style="color:#000">=</span> <span style="color:#000">bService</span>
   <span style="color:#000">}</span>
-    
+
 <span style="color:#000">}</span>
-</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
+</code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
 <span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">BService</span> <span style="color:#000">{</span>
-    
+
   <span style="color:#a90d91">private</span> <span style="color:#a90d91">final</span> <span style="color:#000">AService</span> <span style="color:#000">aService</span><span style="color:#000">;</span>
-    
+
   <span style="color:#000">@Autowired</span>
   <span style="color:#a90d91">public</span> <span style="color:#000">BService</span><span style="color:#000">(</span><span style="color:#000">AService</span> <span style="color:#000">aService</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">aService</span> <span style="color:#000">=</span> <span style="color:#000">aService</span><span style="color:#000">;</span>
   <span style="color:#000">}</span>
-    
+
 <span style="color:#000">}</span>
 </code></pre></div></li>
 <li>
 <p>Field注入</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
 <span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AService</span> <span style="color:#000">{</span>
-    
+
   <span style="color:#000">@Autowired</span>
   <span style="color:#a90d91">private</span> <span style="color:#000">BService</span> <span style="color:#000">bService</span><span style="color:#000">;</span>
-    
+
 <span style="color:#000">}</span>
-</code></pre></div><div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
+</code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Service</span>
 <span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">BService</span> <span style="color:#000">{</span>
-    
+
   <span style="color:#000">@Autowired</span>
   <span style="color:#a90d91">private</span> <span style="color:#000">AService</span> <span style="color:#000">aService</span><span style="color:#000">;</span>
-    
+
 <span style="color:#000">}</span>
 </code></pre></div><p><code>Setter</code>注入和 Feild注入 类似</p>
 </li>
@@ -178,7 +178,7 @@
 <p>入口直接从 <code>getBean(String)</code> 方法开始， 以 <code>populateBean</code> 结束， 用于分析循环依赖的处理是足够的了</p>
 <p><img src="img/spring-di.png" alt="image-20190821130844906"></p>
 <p><code>getBean(String)</code> 是 <strong>AbstractBeanFactory</strong> 的方法,  它内部调用了  <code>doGetBean</code> 方法， 下面是源码：</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">abstract</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AbstractBeanFactory</span> <span style="color:#a90d91">extends</span> <span style="color:#000">FactoryBeanRegistrySupport</span> <span style="color:#a90d91">implements</span> <span style="color:#000">ConfigurableBeanFactory</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">abstract</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AbstractBeanFactory</span> <span style="color:#a90d91">extends</span> <span style="color:#000">FactoryBeanRegistrySupport</span> <span style="color:#a90d91">implements</span> <span style="color:#000">ConfigurableBeanFactory</span> <span style="color:#000">{</span>
  	<span style="color:#000">@Override</span>
 	<span style="color:#a90d91">public</span> <span style="color:#000">Object</span> <span style="color:#000">getBean</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">name</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">BeansException</span> <span style="color:#000">{</span>
 		<span style="color:#a90d91">return</span> <span style="color:#000">doGetBean</span><span style="color:#000">(</span><span style="color:#000">name</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">false</span><span style="color:#000">);</span>
@@ -205,10 +205,10 @@
   <span style="color:#000">}</span>
 <span style="color:#000">}</span>
 </code></pre></div><p>我简化了 <code>doGetBean</code> 的方法体，与流程图对应起来，使得我们可以轻松找到下面的调用流程</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">doGetBean</span> <span style="color:#000">-&gt;</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">)</span> <span style="color:#000">-&gt;</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">,</span> <span style="color:#000">ObjectFactory</span><span style="color:#000">)</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">doGetBean</span> <span style="color:#000">-&gt;</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">)</span> <span style="color:#000">-&gt;</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">,</span> <span style="color:#000">ObjectFactory</span><span style="color:#000">)</span>
 </code></pre></div><p><code>getSingleton</code> 是 <strong>DefaultSingletonBeanRegistry</strong> 的重载方法</p>
 <p><strong>DefaultSingletonBeanRegistry</strong> 维护了三个 <strong>Map</strong> 用于缓存不同状态的 Bean,  稍后我们分析 <code>getSingleton</code> 时会用到</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">/** 维护着所有创建完成的Bean */</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">/** 维护着所有创建完成的Bean */</span>
 <span style="color:#a90d91">private</span> <span style="color:#a90d91">final</span> <span style="color:#000">Map</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">,</span> <span style="color:#000">Object</span><span style="color:#000">&gt;</span> <span style="color:#000">singletonObjects</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">ConcurrentHashMap</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">,</span> <span style="color:#000">Object</span><span style="color:#000">&gt;(</span><span style="color:#000">256</span><span style="color:#000">);</span>
 
 <span style="color:#177500">/** 维护着创建中Bean的ObjectFactory */</span>
@@ -219,9 +219,9 @@
 </code></pre></div><p><code>getSingleton(String)</code>  调用了重载方法  <code>getSingleton(String, boolean)</code>， 而该方法实际就是一个查询 Bean 的实现， 先看图再看代码：</p>
 <p><img src="img/getSingleton.png" alt="image-20190821143946283"></p>
 <p>从图中我们可以看见如下查询层次</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">singletonObjects</span> <span style="color:#000">=&gt;</span>  <span style="color:#000">earlySingletonObjects</span> <span style="color:#000">=&gt;</span> <span style="color:#000">singletonFactories</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">singletonObjects</span> <span style="color:#000">=&gt;</span>  <span style="color:#000">earlySingletonObjects</span> <span style="color:#000">=&gt;</span> <span style="color:#000">singletonFactories</span>
 </code></pre></div><p>再结合源码</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">DefaultSingletonBeanRegistry</span> <span style="color:#a90d91">extends</span> <span style="color:#000">SimpleAliasRegistry</span> <span style="color:#a90d91">implements</span> <span style="color:#000">SingletonBeanRegistry</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">DefaultSingletonBeanRegistry</span> <span style="color:#a90d91">extends</span> <span style="color:#000">SimpleAliasRegistry</span> <span style="color:#a90d91">implements</span> <span style="color:#000">SingletonBeanRegistry</span> <span style="color:#000">{</span>
   <span style="color:#000">@Override</span>
 	<span style="color:#a90d91">public</span> <span style="color:#000">Object</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">beanName</span><span style="color:#000">)</span> <span style="color:#000">{</span>
 		<span style="color:#a90d91">return</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">beanName</span><span style="color:#000">,</span> <span style="color:#a90d91">true</span><span style="color:#000">);</span>
@@ -256,7 +256,7 @@
 <span style="color:#000">}</span>
 
 </code></pre></div><p>通过 <code>getSingleton(String)</code> 没有找到Bean的话就会继续往下调用 <code>getSingleton(String, ObjectFactory)</code> ,  这也是个重载方法， 源码如下</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">Object</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">beanName</span><span style="color:#000">,</span> <span style="color:#000">ObjectFactory</span><span style="color:#000">&lt;?&gt;</span> <span style="color:#000">singletonFactory</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">Object</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">beanName</span><span style="color:#000">,</span> <span style="color:#000">ObjectFactory</span><span style="color:#000">&lt;?&gt;</span> <span style="color:#000">singletonFactory</span><span style="color:#000">)</span> <span style="color:#000">{</span>
 		<span style="color:#000">...</span>	
     <span style="color:#177500">// 获取缓存的Bean
 </span><span style="color:#177500"></span>    <span style="color:#000">Object</span> <span style="color:#000">singletonObject</span> <span style="color:#000">=</span> <span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">singletonObjects</span><span style="color:#000">.</span><span style="color:#836c28">get</span><span style="color:#000">(</span><span style="color:#000">beanName</span><span style="color:#000">);</span>
@@ -279,7 +279,7 @@
 	<span style="color:#000">}</span>
 </code></pre></div><p>流程很清晰，就没必要再画图了，简单来说就是根据 beanName 找不到 Bean 的话就使用传入的 ObjectFactory 创建一个 Bean。</p>
 <p>从最开始的代码片段我们可以知道这个 ObjectFactory 的 getObject 方法实际就是调用了 <code>createBean</code> 方法</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">sharedInstance</span> <span style="color:#000">=</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">beanName</span><span style="color:#000">,</span> <span style="color:#a90d91">new</span> <span style="color:#000">ObjectFactory</span><span style="color:#000">&lt;</span><span style="color:#000">Object</span><span style="color:#000">&gt;()</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">sharedInstance</span> <span style="color:#000">=</span> <span style="color:#000">getSingleton</span><span style="color:#000">(</span><span style="color:#000">beanName</span><span style="color:#000">,</span> <span style="color:#a90d91">new</span> <span style="color:#000">ObjectFactory</span><span style="color:#000">&lt;</span><span style="color:#000">Object</span><span style="color:#000">&gt;()</span> <span style="color:#000">{</span>
 						<span style="color:#000">@Override</span>
 						<span style="color:#a90d91">public</span> <span style="color:#000">Object</span> <span style="color:#000">getObject</span><span style="color:#000">()</span> <span style="color:#a90d91">throws</span> <span style="color:#000">BeansException</span> <span style="color:#000">{</span>
               	<span style="color:#177500">// #3
@@ -294,7 +294,7 @@
 <p><code>addSingletonFactory</code> 会将单例对象的引用通过 ObjectFactory 保存下来， 然后将该 ObjectFactory 缓存在 <strong>Map</strong> 中（该方法在依赖注入之前执行）。</p>
 <p><code>populateBean</code> 主要是执行依赖注入。</p>
 <p>下面是源码， 基本与上面的流程图保持一致， 细节的地方我也标了注释了</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">abstract</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AbstractAutowireCapableBeanFactory</span> <span style="color:#a90d91">extends</span> <span style="color:#000">AbstractBeanFactory</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">abstract</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AbstractAutowireCapableBeanFactory</span> <span style="color:#a90d91">extends</span> <span style="color:#000">AbstractBeanFactory</span>
       <span style="color:#a90d91">implements</span> <span style="color:#000">AutowireCapableBeanFactory</span> <span style="color:#000">{</span>
 	<span style="color:#000">@Override</span>
 	<span style="color:#a90d91">protected</span> <span style="color:#000">Object</span> <span style="color:#000">createBean</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">beanName</span><span style="color:#000">,</span> <span style="color:#000">RootBeanDefinition</span> <span style="color:#000">mbd</span><span style="color:#000">,</span> <span style="color:#000">Object</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">BeanCreationException</span> <span style="color:#000">{</span>
