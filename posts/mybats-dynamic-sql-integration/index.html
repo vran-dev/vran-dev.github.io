@@ -129,33 +129,25 @@
 </ul>
 <p>由 Mybatis 生成的 Mapper、Entity 都会存放在该 Module 下，并且该 Dao 模块内会实现 Core 模块内的 Repository，所以它会依赖 Core 模块</p>
 <h3 id="将-mybatis-generator-集成进-gradle-task">将 Mybatis Generator 集成进 Gradle Task</h3>
-<p>由于 Mybatis generator 目前还没有官方的 Gradle 插件，所以我就将这部分生成的逻辑封装成了一个 Gradle task。</p>
-<p>完整配置可参考 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/dao/build.gradle">dao/build.gradle</a></p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.api.MyBatisGenerator</span>
-<span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.config.xml.ConfigurationParser</span>
-<span style="color:#a90d91">import</span> <span style="color:#000">org.mybatis.generator.internal.DefaultShellCallback</span>
-
-<span style="color:#000">buildscript</span> <span style="color:#000">{</span>
-    <span style="color:#000">repositories</span> <span style="color:#000">{</span>
-        <span style="color:#000">mavenCentral</span><span style="color:#000">()</span>
-    <span style="color:#000">}</span>
-    <span style="color:#177500">// 配置 gradle plugin 或 task 需要的依赖
-</span><span style="color:#177500"></span>    <span style="color:#000">dependencies</span> <span style="color:#000">{</span>
-        <span style="color:#000">classpath</span> <span style="color:#000">group:</span> <span style="color:#c41a16">&#39;org.mybatis.generator&#39;</span><span style="color:#000">,</span> <span style="color:#000">name:</span> <span style="color:#c41a16">&#39;mybatis-generator-core&#39;</span><span style="color:#000">,</span> <span style="color:#000">version:</span> <span style="color:#c41a16">&#39;1.4.0&#39;</span>
-        <span style="color:#000">classpath</span> <span style="color:#000">group:</span> <span style="color:#c41a16">&#39;mysql&#39;</span><span style="color:#000">,</span> <span style="color:#000">name:</span> <span style="color:#c41a16">&#39;mysql-connector-java&#39;</span><span style="color:#000">,</span> <span style="color:#000">version:</span> <span style="color:#c41a16">&#39;8.0.25&#39;</span>
-    <span style="color:#000">}</span>
+<p>Mybatis Generator 目前没有官方的 Gradle Plugin 可以集成，但是万能的开源社区却为我们提供了这样的一个 插件</p>
+<blockquote>
+<p>Mybatis-Generator-Plugin (<a href="https://github.com/kimichen13/mybatis-generator-plugin">https://github.com/kimichen13/mybatis-generator-plugin</a>)</p>
+</blockquote>
+<p>集成方式也很简单，完整配置可参考 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/dao/build.gradle">dao/build.gradle</a></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">plugins</span> <span style="color:#000">{</span>
+    <span style="color:#000">id</span> <span style="color:#c41a16">&#39;java-library&#39;</span>
+    <span style="color:#000">id</span> <span style="color:#c41a16">&#34;com.thinkimi.gradle.MybatisGenerator&#34;</span> <span style="color:#000">version</span> <span style="color:#c41a16">&#34;2.3&#34;</span>
 <span style="color:#000">}</span>
 
-<span style="color:#000">task</span> <span style="color:#000">mybatisGenerate</span> <span style="color:#000">{</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">warnings</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">ArrayList</span><span style="color:#000">&lt;</span><span style="color:#000">String</span><span style="color:#000">&gt;()</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">overwrite</span> <span style="color:#000">=</span> <span style="color:#a90d91">true</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">configurationFile</span> <span style="color:#000">=</span> <span style="color:#000">projectDir</span><span style="color:#000">.</span><span style="color:#836c28">getAbsolutePath</span><span style="color:#000">()</span> <span style="color:#000">+</span> <span style="color:#c41a16">&#39;/src/main/resources/generatorConfiguration.xml&#39;</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">configFile</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">File</span><span style="color:#000">(</span><span style="color:#000">configurationFile</span><span style="color:#000">)</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">cp</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">ConfigurationParser</span><span style="color:#000">(</span><span style="color:#000">warnings</span><span style="color:#000">)</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">config</span> <span style="color:#000">=</span> <span style="color:#000">cp</span><span style="color:#000">.</span><span style="color:#836c28">parseConfiguration</span><span style="color:#000">(</span><span style="color:#000">configFile</span><span style="color:#000">)</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">callback</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">DefaultShellCallback</span><span style="color:#000">(</span><span style="color:#000">overwrite</span><span style="color:#000">)</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">myBatisGenerator</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">MyBatisGenerator</span><span style="color:#000">(</span><span style="color:#000">config</span><span style="color:#000">,</span> <span style="color:#000">callback</span><span style="color:#000">,</span> <span style="color:#000">warnings</span><span style="color:#000">)</span>
-    <span style="color:#000">myBatisGenerator</span><span style="color:#000">.</span><span style="color:#836c28">generate</span><span style="color:#000">(</span><span style="color:#a90d91">null</span><span style="color:#000">)</span>
+<span style="color:#000">mybatisGenerator</span> <span style="color:#000">{</span>
+    <span style="color:#000">verbose</span> <span style="color:#000">=</span> <span style="color:#a90d91">true</span>
+    <span style="color:#000">configFile</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#39;src/main/resources/generatorConfiguration.xml&#39;</span>
+
+    <span style="color:#000">dependencies</span> <span style="color:#000">{</span>
+        <span style="color:#000">mybatisGenerator</span>  <span style="color:#000">group:</span> <span style="color:#c41a16">&#39;org.mybatis.generator&#39;</span><span style="color:#000">,</span> <span style="color:#000">name:</span> <span style="color:#c41a16">&#39;mybatis-generator-core&#39;</span><span style="color:#000">,</span> <span style="color:#000">version:</span> <span style="color:#c41a16">&#39;1.4.0&#39;</span>
+        <span style="color:#000">mybatisGenerator</span> <span style="color:#000">group:</span> <span style="color:#c41a16">&#39;mysql&#39;</span><span style="color:#000">,</span> <span style="color:#000">name:</span> <span style="color:#c41a16">&#39;mysql-connector-java&#39;</span><span style="color:#000">,</span> <span style="color:#000">version:</span> <span style="color:#c41a16">&#39;8.0.25&#39;</span>
+        <span style="color:#177500">// you can add jdbc driver here
+</span><span style="color:#177500"></span>    <span style="color:#000">}</span>
 <span style="color:#000">}</span>
 </code></pre></div><p>代码的生成规则都放在 <code>generatorConfiguration.xml</code> 配置文件中（关于 Mybatis generator 的更多配置可以参考<a href="https://mybatis.org/generator/configreference/xmlconfig.html">官方文档</a> ）。</p>
 <p>一定记得在 context 标签中配置  <code>targetRuntime=&quot;MyBatis3DynamicSql&quot;</code> ，这样才能生成 mybatis dynamic sql 框架需要的代码</p>
@@ -198,7 +190,7 @@
     <span style="color:#000">&lt;/context&gt;</span>
 
 <span style="color:#000">&lt;/generatorConfiguration&gt;</span>
-</code></pre></div><p>这样配置完成以后只需要执行 <code>mybatisGenerator</code> 这个 task 就可以生成代码了，如果你使用的是 Intellij IDEA 的话，可以在右侧工具栏找到该 task</p>
+</code></pre></div><p>这样配置完成以后只需要执行 <code>mbGenerator</code> 这个 task 就可以生成代码了，如果你使用的是 Intellij IDEA 的话，可以在右侧工具栏找到该 task</p>
 <p><img src="img/generator-task.png" alt="Untitled"></p>
 <p>执行玩 task 以后你就能在项目里看见你生成的代码了</p>
 <p><img src="img/generator-code.png" alt="Untitled"></p>
