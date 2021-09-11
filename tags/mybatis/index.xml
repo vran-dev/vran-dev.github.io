@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>mybatis on 且徐行</title>
+    <title>Mybatis on 且徐行</title>
     <link>https://blog.cc1234.cc/tags/mybatis/</link>
-    <description>Recent content in mybatis on 且徐行</description>
+    <description>Recent content in Mybatis on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 02 Sep 2021 22:20:44 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/mybatis/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 09 Sep 2021 21:41:39 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/mybatis/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>纵向丝滑，Mybatis Generator 代码持续生成实践</title>
+      <link>https://blog.cc1234.cc/posts/mybatis-and-generator/</link>
+      <pubDate>Thu, 09 Sep 2021 21:41:39 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/mybatis-and-generator/</guid>
+      <description>前言 关于如何集成 Mybatis Generator 从而生成代码的文章不少，但是使用 Mybatis Generator 在项目中持续生成代码的实践分享就鲜有。
+这里的持续生成代码指的是每当数据库表结构有变更时，开发者都可以使用工具重新生成对应的 Model 和 Mapper 类，而不仅仅只是第一次用它生成，后面都是手动修改了。
+想要做到这一点（持续生成代码）的话就得解决代码重复生成时可能引入冲突，生成的代码功能不满足需求等问题，反过来说就是工程至少需要有以下特性才能够实现持续性的代码生成
+ 隔离：自动生成的代码能够以某种形式与手写的代码隔离 扩展性：用户不需要去修改生成的代码  可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等 能够以某种非侵入性的方式去扩展生成的代码的功能   一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响  接下来就进入主题，分享一下我在集成 Mybatis、 Mybatis Generator 、Gradle 等工具实现持续生成代码时的一些实践和验证
+ 完整项目请通过 Github 查看
+ Mybatis Generator 与 Gradle 的集成 由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 Mybatis Generator Plugin 来集成。
+集成方式很简单，首先需要在 build.gradle 中引入一下插件，并配置指定的版本
+plugins { id &amp;#34;com.thinkimi.gradle.MybatisGenerator&amp;#34; version &amp;#34;2.3&amp;#34; } 刷新完 Gradle 以后，我们就可以在 build.gradle 中通过 mybatisGenerator 块来配置运行时依赖的 JDBC 驱动、mybatis-generator-core 以及代码生产的规则文件</description>
+    </item>
+    
     <item>
       <title>纵享丝滑，Mybatis-Dynamic-Sql 集成体验</title>
       <link>https://blog.cc1234.cc/posts/mybats-dynamic-sql-integration/</link>
