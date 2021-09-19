@@ -50,12 +50,17 @@
             
             <section class="content">
                 <h2 id="前言">前言</h2>
-<p>关于如何集成 Mybatis Generator 从而生成代码的文章不少，但是使用 Mybatis Generator 在项目中<strong>持续生成代码</strong>的实践分享就鲜有。</p>
-<p>这里的持续生成代码指的是每当数据库表结构有变更时，开发者都可以使用工具重新生成对应的 Model 和 Mapper 类，而不仅仅只是第一次用它生成，后面都是手动修改了。</p>
-<p>想要做到这一点（持续生成代码）的话就得解决<strong>代码重复生成时可能引入冲突</strong>，<strong>生成的代码功能不满足需求</strong>等问题，反过来说就是工程至少需要有以下特性才能够实现持续性的代码生成</p>
+<p><a href="http://mybatis.org/generator/">Mybatis Generator</a> 是与 <a href="https://mybatis.org/mybatis-3/zh/index.html">Mybatis</a>  配套的代码生成工具，它可以基于 Database 的元数据自动生成实体、Java Mapper 以及 XML 等 <code>Boilerplate code</code>。</p>
+<p>但目前很多实践都只是在项目初期使用该工具，后面由于文件冲突、功能扩展等原因都不会再使用它生成代码，这种不可持续性让 Mybatis Generator 的价值大打折扣。</p>
+<p>本文则分享了我的一些实践和尝试，让 Mybatis Generator 的代码生成在项目的全生命周期内得以持续，希望能为你带来一些灵感。</p>
+<p>项目源码请通过 <a href="https://github.com/vran-dev/mybatis-continuous-generate-integration-demo">Github</a> 查看。</p>
+<p><img src="img/code.png" alt="code"></p>
+<h2 id="目标">目标</h2>
+<p>我期望的是只要每次数据库有变动都可以使用 Mybatis Generator 来生成代码，而不仅仅是项目第一初始化使用，这就得解决<strong>代码重复生成时可能引入冲突</strong>，<strong>生成的代码功能不满足需求等问题</strong>。</p>
+<p>也就是说项目得有以下几个特性</p>
 <ol>
 <li>隔离：自动生成的代码能够以某种形式与手写的代码隔离</li>
-<li>扩展性：用户不需要去修改生成的代码
+<li>扩展性：用户不需要（也不允许）去修改生成的代码
 <ul>
 <li>可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等</li>
 <li>能够以某种非侵入性的方式去扩展生成的代码的功能</li>
@@ -63,12 +68,8 @@
 </li>
 <li>一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响</li>
 </ol>
-<p>接下来就进入主题，分享一下我在集成 Mybatis、 Mybatis Generator 、Gradle 等工具实现持续生成代码时的一些实践和验证</p>
-<blockquote>
-<p>完整项目请通过 <a href="https://github.com/vran-dev/mybatis-continuous-generate-integration-demo">Github</a> 查看</p>
-</blockquote>
-<p><img src="img/code.png" alt="code"></p>
-<h2 id="mybatis-generator-与-gradle-的集成">Mybatis Generator 与 Gradle 的集成</h2>
+<p>接下来就正式开始集成吧</p>
+<h2 id="集成-gradle">集成 Gradle</h2>
 <p>由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 <a href="https://github.com/kimichen13/mybatis-generator-plugin">Mybatis Generator Plugin</a> 来集成。</p>
 <p>集成方式很简单，首先需要在 <code>build.gradle</code> 中引入一下插件，并配置指定的版本</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">plugins</span> <span style="color:#000">{</span>

@@ -13,12 +13,14 @@
       <pubDate>Thu, 09 Sep 2021 21:41:39 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/mybatis-and-generator/</guid>
-      <description>前言 关于如何集成 Mybatis Generator 从而生成代码的文章不少，但是使用 Mybatis Generator 在项目中持续生成代码的实践分享就鲜有。
-这里的持续生成代码指的是每当数据库表结构有变更时，开发者都可以使用工具重新生成对应的 Model 和 Mapper 类，而不仅仅只是第一次用它生成，后面都是手动修改了。
-想要做到这一点（持续生成代码）的话就得解决代码重复生成时可能引入冲突，生成的代码功能不满足需求等问题，反过来说就是工程至少需要有以下特性才能够实现持续性的代码生成
- 隔离：自动生成的代码能够以某种形式与手写的代码隔离 扩展性：用户不需要去修改生成的代码  可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等 能够以某种非侵入性的方式去扩展生成的代码的功能   一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响  接下来就进入主题，分享一下我在集成 Mybatis、 Mybatis Generator 、Gradle 等工具实现持续生成代码时的一些实践和验证
- 完整项目请通过 Github 查看
- Mybatis Generator 与 Gradle 的集成 由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 Mybatis Generator Plugin 来集成。
+      <description>前言 Mybatis Generator 是与 Mybatis 配套的代码生成工具，它可以基于 Database 的元数据自动生成实体、Java Mapper 以及 XML 等 Boilerplate code。
+但目前很多实践都只是在项目初期使用该工具，后面由于文件冲突、功能扩展等原因都不会再使用它生成代码，这种不可持续性让 Mybatis Generator 的价值大打折扣。
+本文则分享了我的一些实践和尝试，让 Mybatis Generator 的代码生成在项目的全生命周期内得以持续，希望能为你带来一些灵感。
+项目源码请通过 Github 查看。
+目标 我期望的是只要每次数据库有变动都可以使用 Mybatis Generator 来生成代码，而不仅仅是项目第一初始化使用，这就得解决代码重复生成时可能引入冲突，生成的代码功能不满足需求等问题。
+也就是说项目得有以下几个特性
+ 隔离：自动生成的代码能够以某种形式与手写的代码隔离 扩展性：用户不需要（也不允许）去修改生成的代码  可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等 能够以某种非侵入性的方式去扩展生成的代码的功能   一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响  接下来就正式开始集成吧
+集成 Gradle 由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 Mybatis Generator Plugin 来集成。
 集成方式很简单，首先需要在 build.gradle 中引入一下插件，并配置指定的版本
 plugins { id &amp;#34;com.thinkimi.gradle.MybatisGenerator&amp;#34; version &amp;#34;2.3&amp;#34; } 刷新完 Gradle 以后，我们就可以在 build.gradle 中通过 mybatisGenerator 块来配置运行时依赖的 JDBC 驱动、mybatis-generator-core 以及代码生产的规则文件</description>
     </item>
