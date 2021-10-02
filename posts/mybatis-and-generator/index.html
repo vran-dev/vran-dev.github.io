@@ -56,7 +56,7 @@
 <p>项目源码请通过 <a href="https://github.com/vran-dev/mybatis-continuous-generate-integration-demo">Github</a> 查看。</p>
 <p><img src="img/code.png" alt="code"></p>
 <h2 id="目标">目标</h2>
-<p>我期望的是只要每次数据库有变动都可以使用 Mybatis Generator 来生成代码，而不仅仅是项目第一初始化使用，这就得解决<strong>代码重复生成时可能引入冲突</strong>，<strong>生成的代码功能不满足需求等问题</strong>。</p>
+<p>我期望的是只要每次数据库有变动都可以使用 Mybatis Generator 来生成代码，而不仅仅是项目首次初始化使用。要实现这样的目标就得解决<strong>代码重复生成时可能引入冲突</strong>，<strong>生成的代码功能不满足需求等问题</strong>。</p>
 <p>也就是说项目得有以下几个特性</p>
 <ol>
 <li>隔离：自动生成的代码能够以某种形式与手写的代码隔离</li>
@@ -68,14 +68,14 @@
 </li>
 <li>一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响</li>
 </ol>
-<p>接下来就正式开始集成吧</p>
+<p>接下来就正式开始尝试把</p>
 <h2 id="集成-gradle">集成 Gradle</h2>
 <p>由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 <a href="https://github.com/kimichen13/mybatis-generator-plugin">Mybatis Generator Plugin</a> 来集成。</p>
 <p>集成方式很简单，首先需要在 <code>build.gradle</code> 中引入一下插件，并配置指定的版本</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">plugins</span> <span style="color:#000">{</span>
   <span style="color:#000">id</span> <span style="color:#c41a16">&#34;com.thinkimi.gradle.MybatisGenerator&#34;</span> <span style="color:#000">version</span> <span style="color:#c41a16">&#34;2.3&#34;</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>刷新完 Gradle 以后，我们就可以在 build.gradle 中通过 mybatisGenerator 块来配置运行时依赖的 JDBC 驱动、mybatis-generator-core 以及代码生产的规则文件</p>
+</code></pre></div><p>刷新完 Gradle 以后，我们就可以在 build.gradle 中通过 mybatisGenerator 块来配置运行时依赖的 JDBC 驱动、mybatis-generator-core 的版本以及代码生成的规则文件</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mybatisGenerator</span> <span style="color:#000">{</span>
     <span style="color:#000">verbose</span> <span style="color:#000">=</span> <span style="color:#a90d91">true</span>
     <span style="color:#000">configFile</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#39;src/main/resources/mybatis-generator.xml&#39;</span>
@@ -93,7 +93,7 @@
 <li>生成的代码文件存放路径</li>
 <li>&hellip;&hellip;</li>
 </ul>
-<p>更多详细的配置请参考<a href="http://mybatis.org/generator/">官方文档</a> ，下面展示了一个简单的 Demo 配置，完整 配置示例可以通过 <a href="https://github.com/vran-dev/mybatis-continuous-generate-integration-demo">GitHub</a> 查看</p>
+<p>更多详细的配置请参考<a href="http://mybatis.org/generator/">官方文档</a> ，下面展示了一个简单的 Demo 配置，完整配置示例可以通过 <a href="https://github.com/vran-dev/mybatis-continuous-generate-integration-demo">GitHub</a> 查看</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">&lt;!</span><span style="color:#000">DOCTYPE</span> <span style="color:#000">generatorConfiguration</span> <span style="color:#000">PUBLIC</span>
         <span style="color:#c41a16">&#34;-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN&#34;</span>
         <span style="color:#c41a16">&#34;http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd&#34;</span><span style="color:#000">&gt;</span>
@@ -115,12 +115,12 @@
         <span style="color:#000">&lt;/</span><span style="color:#000">table</span><span style="color:#000">&gt;</span>
     <span style="color:#000">&lt;/</span><span style="color:#000">context</span><span style="color:#000">&gt;</span>
 <span style="color:#000">&lt;/</span><span style="color:#000">generatorConfiguration</span><span style="color:#000">&gt;</span>
-</code></pre></div><p>这样配置完成后，Mybatis Generator Plugin 会自动创建一个名为 <strong>mbGenerator</strong> 的 Gradle Task，执行该 Task 就能生成对应的 Entity 和 Mapper 代码文件，这部分通过工具自动生成的代码文件在后面都会称之为 Generated Code。</p>
+</code></pre></div><p>这样配置完成后，Mybatis Generator Plugin 会自动创建一个名为 <strong>mbGenerator</strong> 的 Gradle Task，执行该 Task 就能生成对应的 Entity 和 Mapper 代码文件，我们将这部分通过工具自动生成的代码文件称之为 Generated Code。</p>
 <p><img src="img/gradle-task.png" alt="gradle-task"></p>
 <h2 id="generated-code-的隔离">Generated Code 的隔离</h2>
-<p>目前所有的 Generated Code 都是存放在一个 targetProject （src/main/java）下，通过包路径 <strong>cc.cc1234.generate</strong> 来区分这些文件是不是由工具自动生成的。</p>
-<p>通过包路径的方式来隔离 Generated Code 这种方式我觉得可以再优化一下，我期望是达到一种形散神不散的阻止方式，答案就是<strong>源码目录</strong>来做隔离。</p>
-<p>那么什么是源码目录呢？一般默认的 Java 目录结构如下</p>
+<p>目前所有的 Generated Code 都是存放在一个 targetProject （src/main/java）下，通过包路径来区分这些文件是不是由工具自动生成的，比如在  <strong>cc.cc1234.generate</strong> 下的代就是自动生成的。</p>
+<p>通过包路径的方式来隔离 Generated Code 这种方式可以再优化一下，我期望是达到一种形散神不散的组织方式，这就需要用到<strong>源码目录</strong>来做隔离。</p>
+<p>那什么是源码目录呢？一般默认的 Java 目录结构如下</p>
 <pre tabindex="0"><code class="language-properties" data-lang="properties">project
 └── src
     ├── main
@@ -129,8 +129,8 @@
     └── test
         ├── java
         └── resources
-</code></pre><p>这里的 main 就是源码目录，而我要做的就是创建一个和 main 同级的目录专门用来存放 Generated Code，该目录的名称为 <strong>generator</strong>。</p>
-<p>也就是新的项目结构就变成了下面这样</p>
+</code></pre><p>这里的 main 就是源码目录，我要做的就是创建一个和 main 同级的目录专门用来存放 Generated Code，该目录的名称为 <strong>generator</strong>。</p>
+<p>新的项目结构就变成了下面这样</p>
 <pre tabindex="0"><code class="language-properties" data-lang="properties">project
 └── src
     ├── generator
@@ -147,7 +147,7 @@
 <li><strong>generator</strong> 能够引用到 project 项目下的依赖</li>
 <li>main 下的代码能引用到 <strong>generator</strong> 下的代码</li>
 </ol>
-<p>Gradle 中这个可以很轻松的实现， 只需要在 build.gradle 中配置 SourceSet 既可以</p>
+<p>在 Gradle 中只需要在 build.gradle 中配置 SourceSet 就可以轻松实现</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">sourceSets</span> <span style="color:#000">{</span>
     <span style="color:#177500">// 将 generator 目录加入 main 所属的源码目录集合中去
 </span><span style="color:#177500"></span>    <span style="color:#000">main</span> <span style="color:#000">{</span>
@@ -155,31 +155,30 @@
         <span style="color:#000">resources</span><span style="color:#000">.</span><span style="color:#836c28">srcDirs</span> <span style="color:#000">+=</span> <span style="color:#000">[</span><span style="color:#c41a16">&#39;src/generator/resources&#39;</span><span style="color:#000">]</span>
     <span style="color:#000">}</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>最后，再将 Mybatis Generator 的代码生成目标目录（targetProject）修改为 <strong>src/generator/java</strong> 即可</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;!DOCTYPE generatorConfiguration PUBLIC
-</span><span style="color:#633820">        &#34;-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN&#34;
-</span><span style="color:#633820">        &#34;&lt;http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd&gt;</span>&#34;&gt;
-<span style="color:#000">&lt;generatorConfiguration&gt;</span>
+</code></pre></div><p>接下来，我们只需要保证 Mybatis Generaor 生成的代码在 <code>src/generator/java</code> 目录下即可。</p>
+<p>但这里直接将 XML 配置中的 targetProject 改成 <code>src/generator/java</code> 是没有用的，生成代码的时候会报错</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#000">[</span>ant:mbgenerator<span style="color:#000">]</span> Cannot create directory <span style="color:#000">{</span>user.home<span style="color:#000">}</span>/.gradle/daemon/7.1/src/generator/java/cc/cc1234/dao/mapper
+</code></pre></div><p>看来插件这一块还是有问题的，好在插件可以引用系统变量，通过系统变量将 targetProject 配置成绝对路径就可以解决这个问题。</p>
+<p>首先修改 <code>dao/build.gradle</code>，配置系统变量（注意 <code>System.setProperty</code> 这一行）</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mbGenerator</span><span style="color:#000">.</span><span style="color:#836c28">dependsOn</span> <span style="color:#000">{</span>
+    <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">setProperty</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;mybatis.generator.baseDir&#34;</span><span style="color:#000">,</span> <span style="color:#000">projectDir</span><span style="color:#000">.</span><span style="color:#836c28">getAbsolutePath</span><span style="color:#000">())</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>再修改 XML 中的 targetProject 属性，通过 ${mybatis.generator.baseDir} 引用变量即可</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;javaModelGenerator</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.model&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;${mybatis.generator.baseDir}/src/generator/java&#34;</span><span style="color:#000">/&gt;</span>
 
-    <span style="color:#000">&lt;context</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;dsql&#34;</span> <span style="color:#836c28">targetRuntime=</span><span style="color:#c41a16">&#34;MyBatis3&#34;</span><span style="color:#000">&gt;</span>
-        <span style="color:#177500">&lt;!-- ...... --&gt;</span>
-        <span style="color:#000">&lt;javaModelGenerator</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.generator.model&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;src/generator/java&#34;</span><span style="color:#000">/&gt;</span>
-        <span style="color:#000">&lt;javaClientGenerator</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.generator.mapper&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;src/generator/java&#34;</span> <span style="color:#000">/&gt;</span>
-        <span style="color:#177500">&lt;!-- ...... --&gt;</span>
-    <span style="color:#000">&lt;/context&gt;</span>
-
-<span style="color:#000">&lt;/generatorConfiguration&gt;</span>
-</code></pre></div><p>这样就完全将 Generated Code 通过源码目录隔离开了。</p>
-<p>下面是我加的一个代码生成的前置处理逻辑：先删除目录下已生成的旧代码。</p>
+<span style="color:#000">&lt;javaClientGenerator</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;ANNOTATEDMAPPER&#34;</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;${mybatis.generator.baseDir}/src/generator/java&#34;</span><span style="color:#000">/&gt;</span>
+</code></pre></div><p>最后执行 mbGenerator 任务， 这样就完成了将 Generated Code 通过源码目录隔离开了。</p>
+<p>为了保证每次生成的代码都是最新的，不会有遗留的一些文件，我为 mbGenerator 添加了一个前置处理逻辑：先删除目录下已生成的旧代码</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mbGenerator</span><span style="color:#000">.</span><span style="color:#836c28">dependsOn</span> <span style="color:#000">{</span>
     <span style="color:#000">cleanGeneratedCode</span>
 <span style="color:#000">}</span>
 
 <span style="color:#000">task</span> <span style="color:#000">cleanGeneratedCode</span><span style="color:#000">(</span><span style="color:#000">type:</span> <span style="color:#000">Delete</span><span style="color:#000">)</span> <span style="color:#000">{</span>
-    <span style="color:#000">file</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;src/generator/java&#34;</span><span style="color:#000">).</span><span style="color:#836c28">list</span><span style="color:#000">().</span><span style="color:#836c28">each</span> <span style="color:#000">{</span>
+  	<span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">setProperty</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;mybatis.generator.baseDir&#34;</span><span style="color:#000">,</span> <span style="color:#000">projectDir</span><span style="color:#000">.</span><span style="color:#836c28">getAbsolutePath</span><span style="color:#000">())</span>
+    <span style="color:#000">file</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;src/generator/java&#34;</span><span style="color:#000">)</span><span style="color:#000">？</span><span style="color:#000">.</span><span style="color:#836c28">list</span><span style="color:#000">()</span><span style="color:#000">？</span><span style="color:#000">.</span><span style="color:#836c28">each</span> <span style="color:#000">{</span>
         <span style="color:#000">f</span> <span style="color:#000">-&gt;</span> <span style="color:#000">delete</span> <span style="color:#c41a16">&#34;src/generator/java/${f}&#34;</span>
     <span style="color:#000">}</span>
-    <span style="color:#000">file</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;src/generator/resources&#34;</span><span style="color:#000">).</span><span style="color:#836c28">list</span><span style="color:#000">().</span><span style="color:#836c28">each</span> <span style="color:#000">{</span>
+    <span style="color:#000">file</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;src/generator/resources&#34;</span><span style="color:#000">)</span><span style="color:#000">？</span><span style="color:#000">.</span><span style="color:#836c28">list</span><span style="color:#000">()</span><span style="color:#000">？</span><span style="color:#000">.</span><span style="color:#836c28">each</span> <span style="color:#000">{</span>
         <span style="color:#000">f</span> <span style="color:#000">-&gt;</span> <span style="color:#000">delete</span> <span style="color:#c41a16">&#34;src/generator/resources/${f}&#34;</span>
     <span style="color:#000">}</span>
 <span style="color:#000">}</span>
@@ -189,7 +188,11 @@
 <li>扩展代码生成规则</li>
 <li>无侵入式的扩展 Generated Code</li>
 </ol>
-<p>在本文中就是扩展 Mybatis Generator 的代码生成能力和扩展已生成的 Mapper 功能。</p>
+<p>在本文中其实就是</p>
+<ol>
+<li>扩展 Mybatis Generator 的代码生成能力</li>
+<li>扩展已生成的 Mapper 功能。</li>
+</ol>
 <h3 id="mybatis-generator-的扩展">Mybatis Generator 的扩展</h3>
 <p>Mybatis Generator 提供很丰富的扩展点，我这里就不赘述了，读者可以通过<a href="http://mybatis.org/generator/reference/extending.html">官方文档</a>详细了解。</p>
 <p>在我的 Demo 项目中，我基于它的扩展机制实现了以下几个插件，实现逻辑请通过 Github 查看</p>
