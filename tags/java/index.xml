@@ -6,7 +6,23 @@
     <description>Recent content in Java on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 09 Sep 2021 21:41:39 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 18 Oct 2021 22:18:25 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>千呼万唤： Pattern Matching for JAVA</title>
+      <link>https://blog.cc1234.cc/posts/java-pattern-matching/</link>
+      <pubDate>Mon, 18 Oct 2021 22:18:25 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/java-pattern-matching/</guid>
+      <description>一声惊雷 2021 年 9 月一声惊雷，Java17 正式发布了，这是自 Java11 过后的又一个 LTS 版本，该版本引入了 Record class、Sealed Classes 以及 Pattern Matching for switch 等新特性。
+对于一个曾经写过 Scala 的程序员来说最吸引人的自然就是 Pattern Matching 了
+瞧瞧隔壁家的孩子 Pattern Matching 中文一般叫做模式匹配，它其实并不是什么新的概念，C#、Scala、Hashkell 等其他语言在很早以前就支持了。
+简单来说，Pattern Matching 就是检查某个值是否匹配某一个模式的机制。这里的模式含义很广：可以是类型模式，可以是结构模式，也可以是常量模式。
+鉴于 Scala 与 Java 的血缘关系，咱们以 Scala 为例来展示以下模式匹配的大概模样。
+将下面的需求用 Pattern Matching 来实现：
+我现在有一个 Shape 类，它有 X 和 Y 两个成员属性
+ 如果 X 和 Y 的值都是 1，那么输出 small 如果 X 和 Y 的值都是 5，那么输出 normal 否则输出 invalid  case class Shape(x: Int, y: Int); def testPatternMatching2(shape: Shape): Unit = { shape match { // shape 对象的 x 和 y 的值是否都为 1  case Shape(1, 1) =&amp;gt; println(&amp;#34;small&amp;#34;) // shape 对象的 x 和 y 的值是否都为 5  case Shape(5, 5) =&amp;gt; println(&amp;#34;large&amp;#34;) case _ =&amp;gt; println(&amp;#34;not support&amp;#34;) } } 上面的代码展示出了 Pattern Matching 的对象解构能力，它可以将 shape 对象结构以后与判断是否与指定的模式匹配。</description>
+    </item>
+    
     <item>
       <title>纵享丝滑，Mybatis Generator 代码持续生成实践</title>
       <link>https://blog.cc1234.cc/posts/mybatis-and-generator/</link>
