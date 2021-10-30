@@ -50,15 +50,9 @@
             
             <section class="content">
                 <h2 id="前言">前言</h2>
+<p>前段时间 Java17 发布了，恰好在 Release note 中看到了 Pattern Matching 的信息，这极大的引起了我的兴趣，遂初步尝试了一番，以本文作为记录。</p>
 <p>Pattern Matching 一般译作<strong>模式匹配</strong>，它其实并不是什么新的概念，C#、Scala、Hashkell 等其他语言在很早以前就支持了。</p>
 <p>模式匹配里的模式指的不是设计模式，而是数据结构的模式，常见的有类型模式、结构模式、变量模式以及常量模式等。</p>
-<p>前段时间 Java17 发布了，恰好在 Release note 中看到了 Pattern Matching 的信息，这极大的引起了我的兴趣，遂初步尝试了一番，以本文作为记录。</p>
-<p>本文使用工具版本如下</p>
-<ul>
-<li>Oracle Java17</li>
-<li>Intellij IDEA  2021.2.3</li>
-<li>Gradle 7.3-rc-3</li>
-</ul>
 <h2 id="回首过往">回首过往</h2>
 <p>由于现在 Java 改进了迭代速度和发布周期， 采取了”小步快跑，快速迭代“的策略，所以像 Pattern Matching 这种大的改进也被拆分成了多个 Roadmap。</p>
 <p>从 Java12 开始，Java 团队就在为引入 Pattern Matching 而努力了，他们不想做得跟 Scala 完全一样，而是希望有过之而无不及。</p>
@@ -83,6 +77,12 @@
 <li><a href="https://openjdk.java.net/jeps/405">JEP 405: Record Patterns &amp; Array Patterns (Preview)</a></li>
 </ul>
 <p>接下来就挨个试试 Java 已经完成了的 Pattern Matching 吧</p>
+<p>本文使用工具版本如下</p>
+<ul>
+<li>Oracle Java17</li>
+<li>Intellij IDEA  2021.2.3</li>
+<li>Gradle 7.3-rc-3</li>
+</ul>
 <h2 id="小目标先加强个-instanceof">小目标：先加强个 instanceof</h2>
 <p>instanceof 是 Java 中的一个二元操作符，作用是测试它左边的对象是否是它右边的类的实例（类型匹配），比如</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// obj 对象是否为 String 类型
@@ -194,7 +194,7 @@
 <p>目前看来 Java 的 Pattern Matching 与 Scala 相比还有很长的路要走，曾经的先驱在某些方面现在已经成为了追赶者，未来几何，作为吃瓜群众咱们拭目以待。</p>
 <h2 id="参考"><strong>参考</strong></h2>
 <ol>
-<li><a href="https://en.wikipedia.org/wiki/Pattern_matching">Pattern Matching</a></li>
+<li><a href="">Pattern Matching</a></li>
 <li><a href="https://www.infoq.cn/article/2017/10/pattern-matching-for-java">《与 Brian Goetz 聊 Java 的模式匹配》</a></li>
 <li><a href="https://docs.scala-lang.org/zh-cn/tour/pattern-matching.html">Scala docs：模式匹配</a></li>
 <li><a href="http://ifeve.com/pattern-matching-1/">话说模式匹配(1) 什么是模式?</a></li>
