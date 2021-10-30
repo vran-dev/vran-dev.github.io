@@ -12,7 +12,7 @@
 		<meta name="author" content="vran">
 		
 		<meta name="generator" content="Hugo 0.88.1" />
-		<title>千呼万唤： Pattern Matching for JAVA &middot; 且徐行</title>
+		<title>Java17 之 Pattern Matching 初探 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
@@ -39,7 +39,7 @@
                     <img src='' alt="" />
                 </div>
                 <div class = "title" >
-                    千呼万唤： Pattern Matching for JAVA
+                    Java17 之 Pattern Matching 初探
                 </div>
                 <div class="meta">
                 2021/10/18
@@ -49,92 +49,61 @@
             <div class = "line"></div>
             
             <section class="content">
-                <h2 id="一声惊雷">一声惊雷</h2>
-<p>2021 年 9 月一声惊雷，Java17 正式发布了，这是自 Java11 过后的又一个 LTS 版本，该版本引入了 Record class、Sealed Classes 以及 Pattern Matching for switch 等新特性。</p>
-<p>对于一个曾经写过 Scala 的程序员来说最吸引人的自然就是 Pattern Matching 了</p>
-<h2 id="瞧瞧隔壁家的孩子">瞧瞧隔壁家的孩子</h2>
-<p>Pattern Matching 中文一般叫做模式匹配，它其实并不是什么新的概念，C#、Scala、Hashkell 等其他语言在很早以前就支持了。</p>
-<p>简单来说，Pattern Matching 就是检查某个值是否匹配某一个模式的机制。这里的模式含义很广：可以是类型模式，可以是结构模式，也可以是常量模式。</p>
-<p>鉴于 Scala 与 Java 的血缘关系，咱们以 Scala 为例来展示以下模式匹配的大概模样。</p>
-<p>将下面的需求用 Pattern Matching 来实现：</p>
-<p>我现在有一个 Shape 类，它有  X 和 Y 两个成员属性</p>
+                <h2 id="前言">前言</h2>
+<p>Pattern Matching 一般译作<strong>模式匹配</strong>，它其实并不是什么新的概念，C#、Scala、Hashkell 等其他语言在很早以前就支持了。</p>
+<p>模式匹配里的模式指的不是设计模式，而是数据结构的模式，常见的有类型模式、结构模式、变量模式以及常量模式等。</p>
+<p>前段时间 Java17 发布了，恰好在 Release note 中看到了 Pattern Matching 的信息，这极大的引起了我的兴趣，遂初步尝试了一番，以本文作为记录。</p>
+<p>本文使用工具版本如下</p>
 <ul>
-<li>如果 X 和 Y 的值都是 1，那么输出 small</li>
-<li>如果 X 和 Y 的值都是 5，那么输出 normal</li>
-<li>否则输出 invalid</li>
+<li>Oracle Java17</li>
+<li>Intellij IDEA  2021.2.3</li>
+<li>Gradle 7.3-rc-3</li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">case</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Shape</span><span style="color:#000">(</span><span style="color:#000">x</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">,</span> <span style="color:#000">y</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">);</span>
-
-<span style="color:#a90d91">def</span> <span style="color:#000">testPatternMatching2</span><span style="color:#000">(</span><span style="color:#000">shape</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Shape</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Unit</span> <span style="color:#000">=</span> <span style="color:#000">{</span>
-  <span style="color:#000">shape</span> <span style="color:#a90d91">match</span> <span style="color:#000">{</span>
-		<span style="color:#177500">// shape 对象的 x 和 y 的值是否都为 1
-</span><span style="color:#177500"></span>    <span style="color:#a90d91">case</span> <span style="color:#3f6e75">Shape</span><span style="color:#000">(</span><span style="color:#1c01ce">1</span><span style="color:#000">,</span> <span style="color:#1c01ce">1</span><span style="color:#000">)</span> <span style="color:#a90d91">=&gt;</span> <span style="color:#000">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;small&#34;</span><span style="color:#000">)</span>
-		<span style="color:#177500">// shape 对象的 x 和 y 的值是否都为 5
-</span><span style="color:#177500"></span>    <span style="color:#a90d91">case</span> <span style="color:#3f6e75">Shape</span><span style="color:#000">(</span><span style="color:#1c01ce">5</span><span style="color:#000">,</span> <span style="color:#1c01ce">5</span><span style="color:#000">)</span> <span style="color:#a90d91">=&gt;</span> <span style="color:#000">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;large&#34;</span><span style="color:#000">)</span>
-    <span style="color:#a90d91">case</span> <span style="color:#a90d91">_</span> <span style="color:#a90d91">=&gt;</span> <span style="color:#000">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;not support&#34;</span><span style="color:#000">)</span>
-  <span style="color:#000">}</span>
-<span style="color:#000">}</span>
-</code></pre></div><p>上面的代码展示出了 Pattern Matching 的对象解构能力，它可以将 shape 对象结构以后与判断是否与指定的模式匹配。</p>
-<p>再将上面的需求变一下：如果 shape 中的 x 与 y 相等就输出正方形，否则输出长方形。</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">case</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Shape</span><span style="color:#000">(</span><span style="color:#000">x</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">,</span> <span style="color:#000">y</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Int</span><span style="color:#000">);</span>
-
-<span style="color:#a90d91">def</span> <span style="color:#000">testPatternMatching2</span><span style="color:#000">(</span><span style="color:#000">shape</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Shape</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Unit</span> <span style="color:#000">=</span> <span style="color:#000">{</span>
-  <span style="color:#000">shape</span> <span style="color:#a90d91">match</span> <span style="color:#000">{</span>
-	<span style="color:#177500">// 用 a 和 b 代替 Shape 类的成员变量 x 和 y
-</span><span style="color:#177500"></span>    <span style="color:#a90d91">case</span> <span style="color:#3f6e75">Shape</span><span style="color:#000">(</span><span style="color:#000">a</span><span style="color:#000">,</span> <span style="color:#000">b</span><span style="color:#000">)</span> <span style="color:#a90d91">if</span> <span style="color:#000">a</span> <span style="color:#000">==</span> <span style="color:#000">b</span> <span style="color:#a90d91">=&gt;</span> <span style="color:#000">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;正方形&#34;</span><span style="color:#000">)</span>
-    <span style="color:#a90d91">case</span> <span style="color:#a90d91">_</span> <span style="color:#a90d91">=&gt;</span> <span style="color:#000">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;长方形&#34;</span><span style="color:#000">)</span>
-  <span style="color:#000">}</span>
-<span style="color:#000">}</span>
-</code></pre></div><p>是不是感受到了原来除了 if..else 代码还可以这样写？</p>
-<p>下面我们开始进入 Pattern Matching in Java 吧</p>
-<h2 id="他悄悄努力的样子">他悄悄努力的样子</h2>
-<p>从 Java14 开始，Java 团队就在为引入 Pattern Matching 而努力了，他们并不想做得跟 Scala 完全一样，而是希望有过之而无不及。</p>
-<p>由于现在 Java 更改了迭代和发布周期， Java 团队也采取了”小步快跑，快速迭代“的策略，最开始的 Pattern Matching 是针对 instanceof 操作符的强化，经历了三个版本，最终才正式在 Java16 中 Release</p>
+<h2 id="回首过往">回首过往</h2>
+<p>由于现在 Java 改进了迭代速度和发布周期， 采取了”小步快跑，快速迭代“的策略，所以像 Pattern Matching 这种大的改进也被拆分成了多个 Roadmap。</p>
+<p>从 Java12 开始，Java 团队就在为引入 Pattern Matching 而努力了，他们不想做得跟 Scala 完全一样，而是希望有过之而无不及。</p>
+<p>最开始的 Pattern Matching 是针对 instanceof 操作符的强化，光这项改进就经历了三个版本：从 Java14 开始，直到 Java16 后才 Release。</p>
 <ul>
 <li><a href="https://openjdk.java.net/jeps/305">JEP 305 Pattern Matching for instanceof (Preview)</a></li>
 <li><a href="https://openjdk.java.net/jeps/375">JEP 375 Pattern Matching for instanceof (Second Preview)</a></li>
 <li><a href="https://openjdk.java.net/jeps/394">JEP 394 Pattern Matching for instanceof</a></li>
 </ul>
-<p>Java 团队认为 ”switch 语句就是一种完美的模式匹配“，所以它们也为 switch 语句作了改进，并且随着 Java14 一起发布了</p>
+<p>Java 团队认为 ”switch 语句就是一种完美的模式匹配“，所以它们也为 switch 语句作了改进，该功能已经在 Java14 中 Release</p>
 <ul>
-<li>
-<p><a href="https://openjdk.java.net/jeps/354">JEP 354: Switch Expressions (Second Preview)</a></p>
-</li>
-<li>
-<p><a href="https://openjdk.java.net/jeps/361">JEP 361: Switch Expressions</a></p>
-</li>
+<li><a href="https://openjdk.java.net/jeps/325">JEP 325: Switch Expressions (Preview)</a></li>
+<li><a href="https://openjdk.java.net/jeps/354">JEP 354: Switch Expressions (Second Preview)</a></li>
+<li><a href="https://openjdk.java.net/jeps/361">JEP 361: Switch Expressions</a></li>
 </ul>
-<p>然后才引入了 Pattern Matching for switch，该功能已经在 Java17 中作为预览特性发布了</p>
+<p>随后就引入了 Pattern Matching for switch 的提案，目前该特性已作为预览功能随着 Java17 发布了</p>
 <ul>
 <li><a href="https://openjdk.java.net/jeps/406">JEP 406: Pattern Matching for switch (Preview)</a></li>
 </ul>
-<p>还有最近处于候选状态的提案</p>
+<p>最新的动向当属 JEP 405，但目前还处于候选状态</p>
 <ul>
 <li><a href="https://openjdk.java.net/jeps/405">JEP 405: Record Patterns &amp; Array Patterns (Preview)</a></li>
 </ul>
-<p>总之，他在悄悄的努力。</p>
-<p>铺垫了那么多，下面该进入演示环节了，看看 Java 中的 Pattern Matching 到底有何不同。</p>
+<p>接下来就挨个试试 Java 已经完成了的 Pattern Matching 吧</p>
 <h2 id="小目标先加强个-instanceof">小目标：先加强个 instanceof</h2>
-<p>instanceof 是 Java 中的一个二元操作符，作用是测试它左边的对象是否是它右边的类的实例，比如</p>
+<p>instanceof 是 Java 中的一个二元操作符，作用是测试它左边的对象是否是它右边的类的实例（类型匹配），比如</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// obj 对象是否为 String 类型
 </span><span style="color:#177500"></span><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">boolean</span> <span style="color:#000">isString</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">return</span> <span style="color:#000">obj</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">String</span><span style="color:#000">;</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>一般常用于类型强转之前的判断，避免  <code>ClassCastException</code></p>
+</code></pre></div><p>常用于类型强转前的判断，避免  <code>ClassCastException</code></p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">testInstanceof</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">obj</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">String</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#000">String</span> <span style="color:#000">str</span> <span style="color:#000">=</span> <span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">)</span> <span style="color:#000">obj</span><span style="color:#000">;</span>
         <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">str</span><span style="color:#000">);</span>
     <span style="color:#000">}</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>这种先判断再强转的代码让人感觉非常的乏味和重复，但它却充斥在几乎所有的 Java 项目中。</p>
-<p>Java 团队很显然也意识到了这个问题，于是它们对 instanceof 操作符作了加强，使得 test and cast 可以合二为一，代码如下：</p>
+</code></pre></div><p>几乎所有的 Java 项目中都会有这样的代码，写这样的代码也让人感觉非常的乏味和重复。好在 Java 团队也意识到了这个问题，于是他们对 instanceof 操作符作了加强，使得 <strong>test and cast</strong> 可以合二为一，如下：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">testInstanceof</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
-    <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">obj</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">String</span> <span style="color:#000">str</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+		<span style="color:#177500">// 如果匹配成功，则直接赋值给变量 str
+</span><span style="color:#177500"></span>    <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">obj</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">String</span> <span style="color:#000">str</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">str</span><span style="color:#000">);</span>
     <span style="color:#000">}</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>不止如此，条件表达式支持守卫模式，即可以使用复杂的条件判断：</p>
+</code></pre></div><p>不止如此，它可以使用复杂的条件判断：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">boolean</span> <span style="color:#000">isLargerString</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">obj</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">String</span> <span style="color:#000">str</span> <span style="color:#000">&amp;&amp;</span> <span style="color:#000">str</span><span style="color:#000">.</span><span style="color:#836c28">length</span><span style="color:#000">()</span> <span style="color:#000">&gt;</span> <span style="color:#000">68</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#a90d91">return</span> <span style="color:#a90d91">true</span><span style="color:#000">;</span>
@@ -142,25 +111,14 @@
         <span style="color:#a90d91">return</span> <span style="color:#a90d91">false</span><span style="color:#000">;</span>
     <span style="color:#000">}</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>instanceof 现在在类型匹配的情况下，可以自动赋值为一个变量，后续代码就可以直接使用该变量进行操作了。</p>
-<p>当然，现在的模式匹配与前面 Scala 展示的模式匹配还有很大的距离，不过起码 Java 是跨出去了这一步。</p>
-<p>额外多说一句，类型模式匹配其实是模式匹配的一种特例，其他还有</p>
-<ul>
-<li>类型检测模式（将被转型的目标绑定到变量）</li>
-<li>解构模式（解构目标并进行递归匹配）</li>
-<li>常量模式（等值匹配，比如 Java 中的 switch 匹配字符串、枚举等）</li>
-<li>变量模式（任意匹配并绑定目标）</li>
-<li>下划线模式（任意匹配）</li>
-</ul>
-<p>好了，我们继续看看 Java 的 Pattern Matching for switch。</p>
-<h2 id="再加强个-switch">再加强个 switch</h2>
+</code></pre></div><h2 id="再加强个-switch">再加强个 switch</h2>
 <p>Pattern Matching for Switch 是 Java17 的预览特性，所以读者如果要运行以下代码的话至少需要安装 Java17，在编译时加上启用预览的参数才行（参考<a href="https://docs.oracle.com/en/java/javase/17/language/preview-language-and-vm-features.html">文档</a>）：</p>
-<pre tabindex="0"><code class="language-curl" data-lang="curl">javac --enable-preview --release 17 Demo.java
-</code></pre><p>如果你使用的是 Intellij IDEA，只需要将 Project 配置中的 Project language level 设置为 17(preview) 即可，如下图所示：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">javac --enable-preview --release <span style="color:#1c01ce">17</span> Demo.java
+</code></pre></div><p>如果读者也是使用的 Intellij IDEA，只需要将 Project 配置中的 Project language level 设置为 17(preview) 即可，如下图所示：</p>
 <p><img src="img/idea-project-setting.png" alt="setting"></p>
-<p>项目如果构建工具是 gradle 的话，最低版本需要 7.3-rc-1 才支持 Java17。</p>
-<p>准备工作完成以后就可以体验 Java17 的 Pattern Matching for switch 了，不过这之前得先提一下 Java14 对 switch 得增强。</p>
-<p>Java14 后得 switch 支持直接返回值，只需要使用 <code>-&gt;</code> 代替以前得 <code>:</code> 即可：</p>
+<p>项目构建工具如果是 gradle 的话，最低版本需要 7.3-rc-1 才支持 Java17。</p>
+<p>准备工作完成以后就可以体验 Java17 的 Pattern Matching for switch 了，不过这之前得先提一下 Java14 对 switch 的增强。</p>
+<p>Java14 后 switch 支持直接返回值，只需要使用 <code>-&gt;</code> 代替以前的 <code>:</code> 即可：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">testSwitch</span><span style="color:#000">(</span><span style="color:#000">Integer</span> <span style="color:#000">num</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#000">String</span> <span style="color:#000">str</span> <span style="color:#000">=</span> <span style="color:#a90d91">switch</span> <span style="color:#000">(</span><span style="color:#000">num</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#a90d91">case</span> <span style="color:#000">1</span> <span style="color:#000">-&gt;</span> <span style="color:#c41a16">&#34;one&#34;</span><span style="color:#000">;</span>
@@ -169,7 +127,7 @@
         <span style="color:#a90d91">default</span> <span style="color:#000">-&gt;</span> <span style="color:#c41a16">&#34;unknown&#34;</span><span style="color:#000">;</span>
     <span style="color:#000">};</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>也支持执函数表达式，不需要像以前一样匹配到以后还要手动 break，每个表达式被匹配执行以后就终止了</p>
+</code></pre></div><p>也支持执行表达式，而且不需要像以前一样要注意手动 break，每个表达式被匹配执行完以后就终止了</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">testSwitch2</span><span style="color:#000">(</span><span style="color:#000">Integer</span> <span style="color:#000">num</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">switch</span> <span style="color:#000">(</span><span style="color:#000">num</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#a90d91">case</span> <span style="color:#000">1</span> <span style="color:#000">-&gt;</span> <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;one&#34;</span><span style="color:#000">);</span>
@@ -178,7 +136,7 @@
         <span style="color:#a90d91">default</span> <span style="color:#000">-&gt;</span> <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;unknown&#34;</span><span style="color:#000">);</span>
     <span style="color:#000">}</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>结合加强后得 switch 表达式，Java 团队将前面提到的类型匹配模式也应用在了 switch 上：</p>
+</code></pre></div><p>上面的代码展示的是常量匹配模式，新版的 switch 表达式也支持类型匹配模式：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">testSwitch3</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#000">String</span> <span style="color:#000">formatted</span> <span style="color:#000">=</span> <span style="color:#a90d91">switch</span> <span style="color:#000">(</span><span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#a90d91">case</span> <span style="color:#000">Integer</span> <span style="color:#000">i</span> <span style="color:#000">-&gt;</span> <span style="color:#000">String</span><span style="color:#000">.</span><span style="color:#836c28">format</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;int %d&#34;</span><span style="color:#000">,</span> <span style="color:#000">i</span><span style="color:#000">);</span>
@@ -189,7 +147,7 @@
     <span style="color:#000">};</span>
     <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">formatted</span><span style="color:#000">);</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>当然，switch 的模式匹配也支持守卫模式</p>
+</code></pre></div><p>当然，也支持守卫模式</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">testSwitch4</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#000">String</span> <span style="color:#000">formatted</span> <span style="color:#000">=</span> <span style="color:#a90d91">switch</span> <span style="color:#000">(</span><span style="color:#000">obj</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#a90d91">case</span> <span style="color:#a90d91">null</span> <span style="color:#000">-&gt;</span> <span style="color:#c41a16">&#34;null&#34;</span><span style="color:#000">;</span>
@@ -199,36 +157,42 @@
     <span style="color:#000">};</span>
     <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">formatted</span><span style="color:#000">);</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>是不是已经感觉有点前面 Scala 的影子了？</p>
-<p>不过目前就到此为止了，对于前面提到的对象解构模式只能在未来的版本中去实现了&hellip;&hellip;</p>
-<h2 id="下一步records-pattern-和-array-pattern">下一步：Records Pattern 和 Array Pattern</h2>
+</code></pre></div><h2 id="下一步record-patterns-和-array-patterns">下一步：Record Patterns 和 Array Patterns</h2>
 <p>Record Patterns &amp; Array Patterns 是 <a href="https://openjdk.java.net/jeps/405">JEP 405</a> 的提案内容，目标就是使得 Pattern Matching 可以应用于 Record class 和数组类型上。</p>
-<blockquote>
-<p>Records 是 Java16 发布的一种新的数据类型，详情查看<a href="https://openjdk.java.net/jeps/395"> JEP 395</a></p>
-</blockquote>
-<p>该提案主要就是实现对 Records 类型和 Array 类型的解构模式匹配，比如对于 Records 就可以使用如下的模式进行匹配</p>
+<p>PS: Record 是 Java16 发布的一种新的数据类型，详情查看 JEP 395。</p>
+<p>该提案目前尚处于 Candidate 的状态，不过我们仍可以简单的了解一下。</p>
+<p>首先是 Record class 和 instanceof 操作符的结合，使得 instanceof 不仅能够匹配类型，还能够直接结构 Record 类型中的属性，如下：</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">record</span> <span style="color:#000">Point</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">x</span><span style="color:#000">,</span> <span style="color:#a90d91">int</span> <span style="color:#000">y</span><span style="color:#000">)</span> <span style="color:#000">{}</span>
 
 <span style="color:#a90d91">public</span> <span style="color:#000">record</span> <span style="color:#000">3DPoint</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">x</span><span style="color:#000">,</span> <span style="color:#000">Point</span> <span style="color:#000">point</span><span style="color:#000">)</span> <span style="color:#000">{}</span>
 
-<span style="color:#177500">/**
-</span><span style="color:#177500">* 伪代码
-</span><span style="color:#177500">*/</span>
 <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">testMatch</span><span style="color:#000">(</span><span style="color:#000">Point</span> <span style="color:#000">point</span><span style="color:#000">,</span> <span style="color:#000">3DPoint</span> <span style="color:#000">3dPoint</span><span style="color:#000">)</span> <span style="color:#000">{</span>
     <span style="color:#177500">// 简单解构模式匹配
-</span><span style="color:#177500"></span>    <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">point</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">Point</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">x</span><span style="color:#000">,</span> <span style="color:#a90d91">int</span> <span style="color:#000">y</span><span style="color:#000">)</span> <span style="color:#000">point</span><span style="color:#000">)</span> <span style="color:#000">{</span>
-        <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">point</span><span style="color:#000">);</span>
-    <span style="color:#000">}</span>
-    
-    <span style="color:#177500">// 嵌套解构模式匹配
-</span><span style="color:#177500"></span>    <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">3dPoint</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">3DPoint</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">x</span><span style="color:#000">,</span> <span style="color:#000">Point</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">z</span><span style="color:#000">,</span> <span style="color:#a90d91">int</span> <span style="color:#000">y</span><span style="color:#000">)</span> <span style="color:#000">point</span><span style="color:#000">))</span> <span style="color:#000">{</span>
+</span><span style="color:#177500"></span>    <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">point</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">Point</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">x</span><span style="color:#000">,</span> <span style="color:#a90d91">int</span> <span style="color:#000">y</span><span style="color:#000">))</span> <span style="color:#000">{</span>
+        <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">sample</span><span style="color:#000">);</span>
         <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">x</span><span style="color:#000">);</span>
-        <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">point</span><span style="color:#000">);</span>
+        <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">y</span><span style="color:#000">);</span>
+    <span style="color:#000">}</span>
+
+    <span style="color:#177500">// 嵌套解构模式匹配
+</span><span style="color:#177500"></span>    <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">3dPoint</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">3DPoint</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">x</span><span style="color:#000">,</span> <span style="color:#000">Point</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">z</span><span style="color:#000">,</span> <span style="color:#a90d91">int</span> <span style="color:#000">y</span><span style="color:#000">)))</span> <span style="color:#000">{</span>
+        <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">x</span><span style="color:#000">);</span>
+        <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">y</span><span style="color:#000">);</span>
+				<span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">z</span><span style="color:#000">);</span>
     <span style="color:#000">}</span>
 <span style="color:#000">}</span>
-</code></pre></div><p>由于该提案尚且处于 Candidate 的状态，本文就不多做介绍了，因为最终的实现可能于该提案有很大的不同。</p>
-<p>不过呢我相信解构模式匹配 Java 一定是会实现的，甚至会比以往接触到的 Scala 模式匹配更强大也说不定。</p>
-<h2 id="参考">参考</h2>
+</code></pre></div><p>然后就是 Array 和 instanceof 操作符的结合</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 将数组前两个字符拼接并打印
+</span><span style="color:#177500"></span><span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">printFirstTwoStrings</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">o</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+		<span style="color:#177500">// 这里的 ... 标识 0 个或多个剩余元素
+</span><span style="color:#177500"></span>    <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">o</span> <span style="color:#a90d91">instanceof</span> <span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">{</span> <span style="color:#000">String</span> <span style="color:#000">s1</span><span style="color:#000">,</span> <span style="color:#000">String</span> <span style="color:#000">s2</span><span style="color:#000">,</span> <span style="color:#000">...</span> <span style="color:#000">}){</span>
+        <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">s1</span> <span style="color:#000">+</span> <span style="color:#000">s2</span><span style="color:#000">);</span>
+    <span style="color:#000">}</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>由于该提案尚且处于 Candidate 的状态，本文就不多做介绍了，如果有兴趣的话可以通过该链接持续关注：https://openjdk.java.net/jeps/405</p>
+<h2 id="总结">总结</h2>
+<p>目前看来 Java 的 Pattern Matching 与 Scala 相比还有很长的路要走，曾经的先驱在某些方面现在已经成为了追赶者，未来几何，作为吃瓜群众咱们拭目以待。</p>
+<h2 id="参考"><strong>参考</strong></h2>
 <ol>
 <li><a href="https://en.wikipedia.org/wiki/Pattern_matching">Pattern Matching</a></li>
 <li><a href="https://www.infoq.cn/article/2017/10/pattern-matching-for-java">《与 Brian Goetz 聊 Java 的模式匹配》</a></li>
