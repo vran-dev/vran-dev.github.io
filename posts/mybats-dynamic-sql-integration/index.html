@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.88.1" />
+		<meta name="generator" content="Hugo 0.81.0" />
 		<title>纵享丝滑，Mybatis-Dynamic-Sql 集成体验 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -73,7 +73,7 @@
 <p><strong>四、DSL 完备度</strong>（Domain Special Language）</p>
 <p>既然是用 Java 的方式来写 SQL，那框架就得对常用的 SQL 有完善的支持，对不常用的 SQL 也能有相应的解决方案。</p>
 <p>还有一个点就是写出来的 DSL 和原生 SQL 的差别不能太大，类似于下面这样，几乎一眼就能看懂</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRepository</span> <span style="color:#000">{</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRepository</span> <span style="color:#000">{</span>
     <span style="color:#a90d91">public</span> <span style="color:#000">User</span> <span style="color:#000">selectByUsernameAndPassword</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">username</span><span style="color:#000">,</span> <span style="color:#000">String</span> <span style="color:#000">password</span><span style="color:#000">)</span> <span style="color:#000">{</span>
         <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">User</span> <span style="color:#000">user</span> <span style="color:#000">=</span> <span style="color:#000">Tables</span><span style="color:#000">.</span><span style="color:#836c28">user</span><span style="color:#000">();</span>
         <span style="color:#177500">// select * from user where user.name = ? and user.password = ?
@@ -134,7 +134,7 @@
 <p>Mybatis-Generator-Plugin (<a href="https://github.com/kimichen13/mybatis-generator-plugin">https://github.com/kimichen13/mybatis-generator-plugin</a>)</p>
 </blockquote>
 <p>集成方式也很简单，完整配置可参考 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo/blob/main/dao/build.gradle">dao/build.gradle</a></p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">plugins</span> <span style="color:#000">{</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">plugins</span> <span style="color:#000">{</span>
     <span style="color:#000">id</span> <span style="color:#c41a16">&#39;java-library&#39;</span>
     <span style="color:#000">id</span> <span style="color:#c41a16">&#34;com.thinkimi.gradle.MybatisGenerator&#34;</span> <span style="color:#000">version</span> <span style="color:#c41a16">&#34;2.3&#34;</span>
 <span style="color:#000">}</span>
@@ -151,7 +151,7 @@
 <span style="color:#000">}</span>
 </code></pre></div><p>代码的生成规则都放在 <code>generatorConfiguration.xml</code> 配置文件中（关于 Mybatis generator 的更多配置可以参考<a href="https://mybatis.org/generator/configreference/xmlconfig.html">官方文档</a> ）。</p>
 <p>一定记得在 context 标签中配置  <code>targetRuntime=&quot;MyBatis3DynamicSql&quot;</code> ，这样才能生成 mybatis dynamic sql 框架需要的代码</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;!DOCTYPE generatorConfiguration PUBLIC
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;!DOCTYPE generatorConfiguration PUBLIC
 </span><span style="color:#633820">        &#34;-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN&#34;
 </span><span style="color:#633820">        &#34;http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd&#34;&gt;</span>
 <span style="color:#000">&lt;generatorConfiguration&gt;</span>
@@ -202,7 +202,7 @@
 <li>SqlSupport 则是维护了实体和表的映射关系，比如某个 Field 对应表的某一列</li>
 </ul>
 <p>完整的项目我已经开源在了 <a href="https://github.com/vran-dev/mybatis-dynamic-sql-integration-demo">GITHUB </a>，你随时可以 fork 下来运行，我这里就只展示部分代码了，</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserEntityDynamicSqlSupport</span> <span style="color:#000">{</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserEntityDynamicSqlSupport</span> <span style="color:#000">{</span>
     <span style="color:#000">@Generated</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;org.mybatis.generator.api.MyBatisGenerator&#34;</span><span style="color:#000">,</span> <span style="color:#000">date</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;2021-08-29T21:59:12.7120396+08:00&#34;</span><span style="color:#000">,</span> <span style="color:#000">comments</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Source Table: user&#34;</span><span style="color:#000">)</span>
     <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#000">UserEntity</span> <span style="color:#000">userEntity</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">UserEntity</span><span style="color:#000">();</span>
 
@@ -230,7 +230,7 @@
 <span style="color:#000">}</span>
 </code></pre></div><p>那么如何用这些生成的代码来构造 SQL 查询呢</p>
 <p>对于简单的 CRUD，使用起来是非常简单的</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Autowired</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">@Autowired</span>
 <span style="color:#a90d91">private</span> <span style="color:#000">UserEntityMapper</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">;</span>
 
 <span style="color:#000">@Override</span>
@@ -257,7 +257,7 @@
     <span style="color:#a90d91">return</span> <span style="color:#000">userEntityMapper</span><span style="color:#000">.</span><span style="color:#836c28">updateByPrimaryKeySelective</span><span style="color:#000">(</span><span style="color:#000">record</span><span style="color:#000">)</span> <span style="color:#000">==</span> <span style="color:#000">1</span><span style="color:#000">;</span>
 <span style="color:#000">}</span>
 </code></pre></div><p>即使是复杂的查询和类型映射也不难，写出来的感觉和原生 SQL 差距不会很大，基本上一眼就能看懂。</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#177500">/**
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#177500">/**
 </span><span style="color:#177500">     * &lt;pre&gt;
 </span><span style="color:#177500">     *     select user.id, order_item.goods_name, sum(order_item.goods_quantity) from user
 </span><span style="color:#177500">     *      inner join `order` on user.id = `order`.user_id
@@ -296,9 +296,9 @@
 <span style="color:#000">}</span>
 </code></pre></div><h3 id="不支持的-sql">不支持的 SQL</h3>
 <p>在验证过程中发现 Mybatis Dynamic SQL 有一些 SQL 是没有封装进 DSL 里面的（即存在对应的链式调用方法），比如</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">INTO</span> ...... <span style="color:#a90d91">ON</span> <span style="color:#000">DUPLICATE</span> <span style="color:#a90d91">KEY</span> <span style="color:#a90d91">UPDATE</span>...
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">INTO</span> ...... <span style="color:#a90d91">ON</span> <span style="color:#000">DUPLICATE</span> <span style="color:#a90d91">KEY</span> <span style="color:#a90d91">UPDATE</span>...
 </code></pre></div><p>或者</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">IGNORE</span> <span style="color:#a90d91">INTO</span>...
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">INSERT</span> <span style="color:#a90d91">IGNORE</span> <span style="color:#a90d91">INTO</span>...
 </code></pre></div><p>官方也有对应的 issue （<a href="https://github.com/mybatis/mybatis-dynamic-sql/issues/82">https://github.com/mybatis/mybatis-dynamic-sql/issues/82</a>），不过好在虽然 DSL 不支持，但是却可以通过 Mybatis 原生的 @Insert 注解来写这样的原生 SQL，这就需要继承由 Mybatis Generator 生成的 Mapper 了。</p>
 <p>由于很多 DB 实现的 SQL 语法都不统一，所以在业务中遇见这种情况还是蛮常见的，好在 Mybatis Dynamic SQL 兼容 Mybatis 的注解功能，那几乎都能通过写原生 SQL 的方式来解决这样的问题。</p>
 <h3 id="一个-bug">一个 Bug</h3>
@@ -412,7 +412,7 @@ async>
     <footer id="footer">
     <p>
         
-        © 2021 <i></i> vran
+        © 2022 <i></i> vran
         
         ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/hugo-zenHo">ZenHo</a>
     </p>

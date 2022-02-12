@@ -6,7 +6,28 @@
     <description>Recent content in Posts on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 18 Oct 2021 22:18:25 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 11 Feb 2022 16:01:02 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>再也不用手写模型文档了，Databasir beta 初体验</title>
+      <link>https://blog.cc1234.cc/posts/databasir-beta-experience/</link>
+      <pubDate>Fri, 11 Feb 2022 16:01:02 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/databasir-beta-experience/</guid>
+      <description>背景 文档在软件开发流程中扮演着重要的角色，它用于描述软件的功能、设计，是软件能持续演进的重要组成部分，可是由于软件和文档各自都需要独立维护，这就经常导致软件已经迭代到了 C 版本，但是文档却还停留在 A 版本。
+那有没有什么办法能让软件迭代更新的同时，文档也自动更新呢？
+答案当然是肯定的，业界的 swagger、yapi 等工具，它们就可以基于软件当前的版本生成最新的 API 文档。
+可惜除了 API 文档以外，程序员经常还需要写数据库模型文档，那么这一块有没有对应的工具可用呢？
+screw 算是一个解决方案，不过它主要解决的是数据库模型文档生成的问题，在文档管理能力方面还属于空白状态，为了填补这一块空白，Databasir 就诞生了。
+ 项目地址：https://github.com/vran-dev/databasir
+ 简介 Databasir 旨在解决数据库文档的管理问题，主要包含以下功能
+ 支持 mysql、postgresql 等常用数据库（理论拥有 JDBC 驱动的数据库都能支持） 自动或手动同步数据库 Schema 并生成文档 数据库历史版本文档查看 支持 markdown 等格式导出 扁平化的权限管理模式，团队管理、成员管理一应俱全 关注数据库安全，密码加密存储，并且不会再返回前端 &amp;hellip;&amp;hellip;  项目地址：
+ Github：https://github.com/vran-dev/databasir  项目预览：
+安装 Databasir 规划了以下安装方式
+ Jar docker（TODO） docker compose（TODO)  目前 Jar 安装方式已经可用，而 Docker 和 Docker-Compose 的安装方式还在开发中。
+接下来就演示一下通过 Jar 模式来部署 Databasir，更多细节也可以参考 Github 文档 。
+通过 Jar 部署的话，对系统环境有一定要求，需要有以下依赖</description>
+    </item>
+    
     <item>
       <title>Java17 之 Pattern Matching 初探</title>
       <link>https://blog.cc1234.cc/posts/java-pattern-matching/</link>
@@ -546,7 +567,7 @@ Nagle算法由John Nagle发明， 该算法旨在通过减少发送网络包的�
  A.length &amp;gt; B.length A.length &amp;lt;= B.length  下面用图来说明这两种情况， 在图中蓝色区域为A, 红色区域为B
 先看第一种情况: A.length &amp;gt; B.length
 这种情况下
-x &amp;lt; m, n &amp;lt; y, m &amp;lt; n, x &amp;lt; y;这种情况下使用二分查找计算得到的中间位置midle就落在蓝色区域内
+x &amp;lt; m, n &amp;lt; y, m &amp;lt; n, x &amp;lt; y; 这种情况下使用二分查找计算得到的中间位置midle就落在蓝色区域内
 如果 array[midle] &amp;lt; target : 红色部分肯定小于array[midle] , 而midle～y为升序， 我们就能确定值在 middle + 1 ~ y之间</description>
     </item>
     

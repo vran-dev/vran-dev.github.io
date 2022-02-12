@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.88.1" />
+		<meta name="generator" content="Hugo 0.81.0" />
 		<title>TCP之TCP_NODELAY &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -59,7 +59,7 @@
 <p>应用不断的提交小单为的数据， 经常只有<strong>1byte</strong>大小，而为了发送这<strong>1byte</strong>的数据， 还需要传输<strong>40byte</strong>的数据首部包(TCP首部 20byte + IPV4首部 20byte),  从而对网络造成了巨大的开销</p>
 </blockquote>
 <p>为了解决这个问题，Nagle算法就应运而生了， 下面是该算法的伪码</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#177500"># MSS代表最大分段大小， 可以理解为TCP愿意接受的数据的字节数最大值</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#177500"># MSS代表最大分段大小， 可以理解为TCP愿意接受的数据的字节数最大值</span>
 <span style="color:#177500"># the window size代表接收窗口的大小</span>
 
 <span style="color:#a90d91">if</span> there is new data to send
@@ -165,7 +165,7 @@ async>
     <footer id="footer">
     <p>
         
-        © 2021 <i></i> vran
+        © 2022 <i></i> vran
         
         ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/hugo-zenHo">ZenHo</a>
     </p>
