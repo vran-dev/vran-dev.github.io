@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.81.0" />
+		<meta name="generator" content="Hugo 0.88.1" />
 		<title>HashMap 的细节笔记 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -110,11 +110,11 @@
 <p>节点数大于 8 的概率少于一千万分之一</p>
 <h3 id="hashmap-的-capacity-为什么是-2-的次幂"><strong>HashMap 的 capacity 为什么是 2 的次幂？</strong></h3>
 <p>我们都知道在构造 HashMap 的时候可以指定初始容量</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">HashMap</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">initialCapacity</span><span style="color:#000">)</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">HashMap</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">initialCapacity</span><span style="color:#000">)</span>
 
 <span style="color:#a90d91">public</span> <span style="color:#000">HashMap</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">initialCapacity</span><span style="color:#000">,</span> <span style="color:#a90d91">float</span> <span style="color:#000">loadFactor</span><span style="color:#000">)</span>
 </code></pre></div><p>如果传入的 initialCapacity 不是 2 的 n 次方的话，HashMap 会调用 <code>tableSizeFor</code> 方法，该方法会返回大于 cap 的最小 2 次幂的值</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">int</span> <span style="color:#000">tableSizeFor</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">cap</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">static</span> <span style="color:#a90d91">final</span> <span style="color:#a90d91">int</span> <span style="color:#000">tableSizeFor</span><span style="color:#000">(</span><span style="color:#a90d91">int</span> <span style="color:#000">cap</span><span style="color:#000">)</span> <span style="color:#000">{</span>
   <span style="color:#a90d91">int</span> <span style="color:#000">n</span> <span style="color:#000">=</span> <span style="color:#000">-</span><span style="color:#000">1</span> <span style="color:#000">&gt;&gt;&gt;</span> <span style="color:#000">Integer</span><span style="color:#000">.</span><span style="color:#836c28">numberOfLeadingZeros</span><span style="color:#000">(</span><span style="color:#000">cap</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">);</span>
   <span style="color:#a90d91">return</span> <span style="color:#000">(</span><span style="color:#000">n</span> <span style="color:#000">&lt;</span> <span style="color:#000">0</span><span style="color:#000">)</span> <span style="color:#000">?</span> <span style="color:#000">1</span> <span style="color:#000">:</span> <span style="color:#000">(</span><span style="color:#000">n</span> <span style="color:#000">&gt;=</span> <span style="color:#000">MAXIMUM_CAPACITY</span><span style="color:#000">)</span> <span style="color:#000">?</span> <span style="color:#000">MAXIMUM_CAPACITY</span> <span style="color:#000">:</span> <span style="color:#000">n</span> <span style="color:#000">+</span> <span style="color:#000">1</span><span style="color:#000">;</span>
 <span style="color:#000">}</span>
@@ -125,27 +125,27 @@
 </ul>
 <p>先来看第一点</p>
 <p>我们指的 capacity 实际就是 bucket.length，每一个 key 对应的索引是根据下面的公式进行计算的</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-matlab" data-lang="matlab">   <span style="color:#000">index</span> = (<span style="color:#000">bucket</span>.<span style="color:#a90d91">length</span> <span style="color:#000">-</span> <span style="color:#1c01ce">1</span>) <span style="color:#000">&amp;</span> <span style="color:#000">hash</span>(<span style="color:#000">key</span>)
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-matlab" data-lang="matlab">   <span style="color:#000">index</span> = (<span style="color:#000">bucket</span>.<span style="color:#a90d91">length</span> <span style="color:#000">-</span> <span style="color:#1c01ce">1</span>) <span style="color:#000">&amp;</span> <span style="color:#000">hash</span>(<span style="color:#000">key</span>)
 </code></pre></div><p>假设 capacity 保证为 2 的次幂，那么 <code>capacity - 1</code> 就可以保证该数的二进制低位全部为 1</p>
 <p>比如</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">(</span><span style="color:#000">16</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0000_1111</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">(</span><span style="color:#000">16</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0000_1111</span>
 <span style="color:#000">(</span><span style="color:#000">32</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0001_1111</span>
 <span style="color:#000">(</span><span style="color:#000">64</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0011_1111</span>
 </code></pre></div><p>那么 在与 <code>hash(key) </code> 进行 <code>&amp;</code> 运算，可以保证最终得到的结果范围符合 [0, buket.length - 1]，即</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#000">0</span> <span style="color:#000">&lt;=</span> <span style="color:#000">index</span> <span style="color:#000">&lt;=</span> <span style="color:#000">buket</span><span style="color:#000">.</span><span style="color:#836c28">length</span> <span style="color:#000">-</span> <span style="color:#000">1</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#000">0</span> <span style="color:#000">&lt;=</span> <span style="color:#000">index</span> <span style="color:#000">&lt;=</span> <span style="color:#000">buket</span><span style="color:#000">.</span><span style="color:#836c28">length</span> <span style="color:#000">-</span> <span style="color:#000">1</span>
 </code></pre></div><p>再来看 resize</p>
 <p>众所周知，HashMap 在节点达到阈值时，会按当前容量的两倍进行扩容，也就是相当于当前容量值左移一位。</p>
 <p>比如当前容量为 16，向左移位 1 位就是 32，对应的二进制位</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">16</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0001_0000</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">16</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0001_0000</span>
 <span style="color:#000">32</span> <span style="color:#000">=</span> <span style="color:#000">0000_0000_0010_0000</span>  
 </code></pre></div><p>扩容以后，节点需要进行 REHASH，结合前面提到的 hash 算法</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#000">index</span> <span style="color:#000">=</span> <span style="color:#000">(</span><span style="color:#000">bucket</span><span style="color:#000">.</span><span style="color:#836c28">length</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">&amp;</span> <span style="color:#000">hash</span><span style="color:#000">(</span><span style="color:#000">key</span><span style="color:#000">)</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#000">index</span> <span style="color:#000">=</span> <span style="color:#000">(</span><span style="color:#000">bucket</span><span style="color:#000">.</span><span style="color:#836c28">length</span> <span style="color:#000">-</span> <span style="color:#000">1</span><span style="color:#000">)</span> <span style="color:#000">&amp;</span> <span style="color:#000">hash</span><span style="color:#000">(</span><span style="color:#000">key</span><span style="color:#000">)</span>
 </code></pre></div><p>由于低位不变，只是高位变成了 1，这样的话，就可以把一段冲突的链表节点分为两部分，高位为 1 与 高位为 0。</p>
 <p>假设新的容量为 32，两个节点 A 和 B 的 Hash 值如下</p>
-<pre><code class="language-properties" data-lang="properties">A = 0000_0000_0000_1011
+<pre tabindex="0"><code class="language-properties" data-lang="properties">A = 0000_0000_0000_1011
 B = 0000_0000_0001_1011
 </code></pre><p>那么新的索引</p>
-<pre><code class="language-math" data-lang="math">index(A) = 11111 &amp; A = 1011 即 11
+<pre tabindex="0"><code class="language-math" data-lang="math">index(A) = 11111 &amp; A = 1011 即 11
 index(B) = 11111 &amp; B = 11011 即 27
 </code></pre><p>很明显如果 index(B) = (old capacity - 1) + old index =  (16 - 1) + 11</p>
 <p>而这个也是得益于 capacity 是 2 的 n 次方这一特性</p>

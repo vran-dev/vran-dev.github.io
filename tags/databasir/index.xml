@@ -6,7 +6,39 @@
     <description>Recent content in databasir on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 11 Feb 2022 16:01:02 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/databasir/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 24 Mar 2022 16:19:46 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/databasir/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>也许是市面上最强的数据库文档管理工具了吧！</title>
+      <link>https://blog.cc1234.cc/posts/databasir-show/</link>
+      <pubDate>Thu, 24 Mar 2022 16:19:46 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/databasir-show/</guid>
+      <description>背景 在软件行业，API 文档的自动化由着非常广泛而成熟的方案，但数据库模型文档的自动化却还是一片蓝海，我曾在网上搜寻良久，但并没有找到一款能同时满足我以下需求点的产品
+ 自动化：基于数据库自动生成文档 版本化：文档历史版本回溯，版本差异对比 团队化：适应不同团队结构，多样性功能为跨团队协作赋能 个性化：给予使用者一定的文档定制能力  鉴于此，我利用业余的时间开发并开源了  这个项目，它专注于数据库文档的管理，核心能力就是上面提到的自动化、版本化、团队化和个性化四点。
+项目地址：https://github.com/vran-dev/databasir
+文档地址：https://doc.databasir.com
+问题 在进入正题之前，我想先聊一聊在数据库文档维护这个细分场景下，我们平时遇到的一些问题。
+一、没有文档
+这是最普遍的一个问题，没有人会否认文档对一个团队的价值，但文档的维护成本也经常让人望而却步
+二、时间有限，这次就不写文档了
+在人力、时间等资源都有限的情况下我们通常会暂时放弃文档的维护而优先完成业务目标（这本无可厚非），长此以往就会导致文档内容与业务模型之间的差异越来越大，即文档失真了。
+三、百家齐放，格式标准不统一
+每个人对文档的格式标准都有自己的想法，只是团队内部消化的话，大家的容忍度还是很高的，如果涉及跨团队协作的话，一个统一的格式标准能提高内容质量的最低下限。
+四、失忆症，忘记补充文档
+模型的变更 80% 的场景都是增量变化，比如加个字段、加一张表等，加了字段和表以后如果忘了更新文档就会造成前面提到的文档失真，但这非刻意为止，这类似于失忆症，根本原因与第二点区不同。
+现实中的问题远不止这些，但我们可以看看 Databasir 面对这些场景给出的答案，下面就进入 Show time 吧。
+自动化，文档的事儿你不用操心 Databasir 基于 JDBC 实现了对数据库表、列、索引、外键等结构的解析，通过解析后的元数据再自动生成标准化的文档内容，从而替代了人工输出文档这种传统方式，节省人力的同时又降低了错误率。
+目前 Databasir 生成的文档内容包含以下信息
+ 表信息 列信息 索引信息 外键信息 触发器信息（仅 Mysql 支持）  文档页面的布局采用了经典的两栏布局，左侧显示所有的表信息，右侧显示文档的详细内容，如下图所示
+到这儿还算不上自动化，只能算是半自动化，因为每次模型结构有变更的话还需要手动再同步一下，如果忘了同步就会造成前面提到的文档失真问题。
+为了完全的自动化，Databasir 提供了定时自动同步机制，用户可以通过 cron 表达式设置同步时间。
+系统会根据配置的时间定时检查模型是否有变更，如果有变更的话就会更新并生成一个新的文档版本，并通过邮件的形式将变更内容通知到相关方。
+下图展示了定时同步的配置页面
+除了标准的文档类容以外，Databasir 还支持 UML 格式文档生成，如果业务模型有使用到外键，那 UML 之间还能自动根据外键关系生成关联箭头。
+版本化，内容变更一目了然 文档版本化可以让我们将文档轻松的回溯到任意指定存档点，在 Databasir 中版本号目前是一个递增的数字，数字越大代表版本越新。
+在同步文档时检测到模型有变更才会创建新的版本号，这里的检测使用到了自研的 DIFF 引擎，目前支持以下内容的变更检测</description>
+    </item>
+    
     <item>
       <title>再也不用手写模型文档了，Databasir beta 初体验</title>
       <link>https://blog.cc1234.cc/posts/databasir-beta-experience/</link>

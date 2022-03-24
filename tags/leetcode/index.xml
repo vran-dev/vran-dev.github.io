@@ -26,7 +26,7 @@
  A.length &amp;gt; B.length A.length &amp;lt;= B.length  下面用图来说明这两种情况， 在图中蓝色区域为A, 红色区域为B
 先看第一种情况: A.length &amp;gt; B.length
 这种情况下
-x &amp;lt; m, n &amp;lt; y, m &amp;lt; n, x &amp;lt; y; 这种情况下使用二分查找计算得到的中间位置midle就落在蓝色区域内
+x &amp;lt; m, n &amp;lt; y, m &amp;lt; n, x &amp;lt; y;这种情况下使用二分查找计算得到的中间位置midle就落在蓝色区域内
 如果 array[midle] &amp;lt; target : 红色部分肯定小于array[midle] , 而midle～y为升序， 我们就能确定值在 middle + 1 ~ y之间</description>
     </item>
     

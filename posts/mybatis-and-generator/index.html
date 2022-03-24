@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.81.0" />
+		<meta name="generator" content="Hugo 0.88.1" />
 		<title>纵享丝滑，Mybatis Generator 代码持续生成实践 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -72,11 +72,11 @@
 <h2 id="集成-gradle">集成 Gradle</h2>
 <p>由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 <a href="https://github.com/kimichen13/mybatis-generator-plugin">Mybatis Generator Plugin</a> 来集成。</p>
 <p>集成方式很简单，首先需要在 <code>build.gradle</code> 中引入一下插件，并配置指定的版本</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">plugins</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">plugins</span> <span style="color:#000">{</span>
   <span style="color:#000">id</span> <span style="color:#c41a16">&#34;com.thinkimi.gradle.MybatisGenerator&#34;</span> <span style="color:#000">version</span> <span style="color:#c41a16">&#34;2.3&#34;</span>
 <span style="color:#000">}</span>
 </code></pre></div><p>刷新完 Gradle 以后，我们就可以在 build.gradle 中通过 mybatisGenerator 块来配置运行时依赖的 JDBC 驱动、mybatis-generator-core 的版本以及代码生成的规则文件</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mybatisGenerator</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mybatisGenerator</span> <span style="color:#000">{</span>
     <span style="color:#000">verbose</span> <span style="color:#000">=</span> <span style="color:#a90d91">true</span>
     <span style="color:#000">configFile</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#39;src/main/resources/mybatis-generator.xml&#39;</span>
 
@@ -94,7 +94,7 @@
 <li>&hellip;&hellip;</li>
 </ul>
 <p>更多详细的配置请参考<a href="http://mybatis.org/generator/">官方文档</a> ，下面展示了一个简单的 Demo 配置，完整配置示例可以通过 <a href="https://github.com/vran-dev/mybatis-continuous-generate-integration-demo">GitHub</a> 查看</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">&lt;!</span><span style="color:#000">DOCTYPE</span> <span style="color:#000">generatorConfiguration</span> <span style="color:#000">PUBLIC</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">&lt;!</span><span style="color:#000">DOCTYPE</span> <span style="color:#000">generatorConfiguration</span> <span style="color:#000">PUBLIC</span>
         <span style="color:#c41a16">&#34;-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN&#34;</span>
         <span style="color:#c41a16">&#34;http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd&#34;</span><span style="color:#000">&gt;</span>
 <span style="color:#000">&lt;</span><span style="color:#000">generatorConfiguration</span><span style="color:#000">&gt;</span>
@@ -121,7 +121,7 @@
 <p>目前所有的 Generated Code 都是存放在一个 targetProject （src/main/java）下，通过包路径来区分这些文件是不是由工具自动生成的，比如在  <strong>cc.cc1234.generate</strong> 下的代就是自动生成的。</p>
 <p>通过包路径的方式来隔离 Generated Code 这种方式可以再优化一下，我期望是达到一种形散神不散的组织方式，这就需要用到<strong>源码目录</strong>来做隔离。</p>
 <p>那什么是源码目录呢？一般默认的 Java 目录结构如下</p>
-<pre><code class="language-properties" data-lang="properties">project
+<pre tabindex="0"><code class="language-properties" data-lang="properties">project
 └── src
     ├── main
     │   ├── java
@@ -131,7 +131,7 @@
         └── resources
 </code></pre><p>这里的 main 就是源码目录，我要做的就是创建一个和 main 同级的目录专门用来存放 Generated Code，该目录的名称为 <strong>generator</strong>。</p>
 <p>新的项目结构就变成了下面这样</p>
-<pre><code class="language-properties" data-lang="properties">project
+<pre tabindex="0"><code class="language-properties" data-lang="properties">project
 └── src
     ├── generator
     │   ├── java
@@ -148,7 +148,7 @@
 <li>main 下的代码能引用到 <strong>generator</strong> 下的代码</li>
 </ol>
 <p>在 Gradle 中只需要在 build.gradle 中配置 SourceSet 就可以轻松实现</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">sourceSets</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">sourceSets</span> <span style="color:#000">{</span>
     <span style="color:#177500">// 将 generator 目录加入 main 所属的源码目录集合中去
 </span><span style="color:#177500"></span>    <span style="color:#000">main</span> <span style="color:#000">{</span>
         <span style="color:#000">java</span><span style="color:#000">.</span><span style="color:#836c28">srcDirs</span> <span style="color:#000">+=</span> <span style="color:#000">[</span><span style="color:#c41a16">&#39;src/generator/java&#39;</span><span style="color:#000">]</span>
@@ -157,19 +157,19 @@
 <span style="color:#000">}</span>
 </code></pre></div><p>接下来，我们只需要保证 Mybatis Generaor 生成的代码在 <code>src/generator/java</code> 目录下即可。</p>
 <p>但这里直接将 XML 配置中的 targetProject 改成 <code>src/generator/java</code> 是没有用的，生成代码的时候会报错</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#000">[</span>ant:mbgenerator<span style="color:#000">]</span> Cannot create directory <span style="color:#000">{</span>user.home<span style="color:#000">}</span>/.gradle/daemon/7.1/src/generator/java/cc/cc1234/dao/mapper
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#000">[</span>ant:mbgenerator<span style="color:#000">]</span> Cannot create directory <span style="color:#000">{</span>user.home<span style="color:#000">}</span>/.gradle/daemon/7.1/src/generator/java/cc/cc1234/dao/mapper
 </code></pre></div><p>看来插件这一块还是有问题的，好在插件可以引用系统变量，通过系统变量将 targetProject 配置成绝对路径就可以解决这个问题。</p>
 <p>首先修改 <code>dao/build.gradle</code>，配置系统变量（注意 <code>System.setProperty</code> 这一行）</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mbGenerator</span><span style="color:#000">.</span><span style="color:#836c28">dependsOn</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mbGenerator</span><span style="color:#000">.</span><span style="color:#836c28">dependsOn</span> <span style="color:#000">{</span>
     <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">setProperty</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;mybatis.generator.baseDir&#34;</span><span style="color:#000">,</span> <span style="color:#000">projectDir</span><span style="color:#000">.</span><span style="color:#836c28">getAbsolutePath</span><span style="color:#000">())</span>
 <span style="color:#000">}</span>
 </code></pre></div><p>再修改 XML 中的 targetProject 属性，通过 ${mybatis.generator.baseDir} 引用变量即可</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;javaModelGenerator</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.model&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;${mybatis.generator.baseDir}/src/generator/java&#34;</span><span style="color:#000">/&gt;</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;javaModelGenerator</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.model&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;${mybatis.generator.baseDir}/src/generator/java&#34;</span><span style="color:#000">/&gt;</span>
 
 <span style="color:#000">&lt;javaClientGenerator</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;ANNOTATEDMAPPER&#34;</span> <span style="color:#836c28">targetPackage=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper&#34;</span> <span style="color:#836c28">targetProject=</span><span style="color:#c41a16">&#34;${mybatis.generator.baseDir}/src/generator/java&#34;</span><span style="color:#000">/&gt;</span>
 </code></pre></div><p>最后执行 mbGenerator 任务， 这样就完成了将 Generated Code 通过源码目录隔离开了。</p>
 <p>为了保证每次生成的代码都是最新的，不会有遗留的一些文件，我为 mbGenerator 添加了一个前置处理逻辑：先删除目录下已生成的旧代码</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mbGenerator</span><span style="color:#000">.</span><span style="color:#836c28">dependsOn</span> <span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">mbGenerator</span><span style="color:#000">.</span><span style="color:#836c28">dependsOn</span> <span style="color:#000">{</span>
     <span style="color:#000">cleanGeneratedCode</span>
 <span style="color:#000">}</span>
 
@@ -215,11 +215,11 @@
 </ul>
 <p>我刻意禁用了 XML 文件的生成，这些函数都是使用 Mybatis 自带的 Annotation 和 SqlProvider 实现的。</p>
 <p>如果提供的函数无法满足需求，这时候就可以通过继承该 Mapper 来进行扩展，就像这样</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">UserGeneratedMapper</span><span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">UserGeneratedMapper</span><span style="color:#000">{</span>
     
 <span style="color:#000">}</span>
 </code></pre></div><p>自定义 CRUD 既可以使用 Annotation，也可以使用传统的 XML</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">UserGeneratedMapper</span><span style="color:#000">{</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">UserGeneratedMapper</span><span style="color:#000">{</span>
     
     <span style="color:#177500">/**
 </span><span style="color:#177500">    * 使用 Annotation 写 SQL
@@ -239,7 +239,7 @@
     
 <span style="color:#000">}</span>
 </code></pre></div><p>对应的 XML</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#633820">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
 <span style="color:#633820">&lt;!DOCTYPE mapper PUBLIC &#34;-//mybatis.org//DTD Mapper 3.0//EN&#34; &#34;http://mybatis.org/dtd/mybatis-3-mapper.dtd&#34;&gt;</span>
 <span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
 
@@ -272,7 +272,7 @@
 <p>这两种方案并不是互斥的，如果条件允许的话，完全可以结合起来应用。</p>
 <p>对于维护 Database 的 Schema 变更记录，目前社区已经有了很多成熟的产品可以开箱即用，我这里选择了 <a href="https://flywaydb.org/">Flyway</a> 。</p>
 <p>Flyway 将 Schema 的变更操作称之为 Migration，每个 Migration 是一个有版本标识的 SQL 文件，像下面这样</p>
-<pre><code class="language-properties" data-lang="properties">migration
+<pre tabindex="0"><code class="language-properties" data-lang="properties">migration
 ├── v1__init.sql
 ├── v2_1__user_table.sql
 ├── v2_2__order_table.sql
