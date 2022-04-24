@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		
+		<meta name="google-site-verification" content="WQzn_X1rrhY2HHCuTYlY750m0YcuY3H73Z3T-OFsDOM" />
+        
+
+		<meta name="author" content="vran">
+		
+		<meta name="generator" content="Hugo 0.88.1" />
+		<title>Java，基于 JDBC 实现数据库文档的自动生成 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
+
+
+<body>
+    <section id="single" class="wrapper">
+    <nav class="nav-main" style="display: flex;">
+         <div style="margin-left:auto;">
+            
+            <a href='https://blog.cc1234.cc/'> Home</a>
+            <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+            <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+            <a href='https://blog.cc1234.cc/about'>About</a>
+   
+           
+         </div>
+</nav>
+
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    <img src='img/figure.jpg' alt="" />
+                </div>
+                <div class = "title" >
+                    Java，基于 JDBC 实现数据库文档的自动生成
+                </div>
+                <div class="meta">
+                2022/04/19
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="前言">前言</h2>
+<p>在工作中经常会遇到需要交付数据库文档的场景，而编写这样的文档又是一个很枯燥、重复的事情，完全可以通过自动化的方式来完成这样的工作。</p>
+<p>本文提供了一个在 JAVA 中如何基于 JDBC 来实现生成数据库文档的思路，希望对你有所帮助。</p>
+<h2 id="第一步可行性">第一步：可行性？</h2>
+<p>JDBC 是 Java Database Connectivity  的缩写，从名字就能看出来是 Java 定义的连接数据库的一个标准，这个标准的具体体现就是一系列接口</p>
+<ul>
+<li><code>java.sql.Connection</code></li>
+<li><code>java.sql.DatabaseMetaData</code></li>
+<li><code>java.sql.Driver</code></li>
+<li><code>java.sql.Statement</code></li>
+<li><code>javax.sql.DataSource</code></li>
+<li>&hellip;</li>
+</ul>
+<p>其中 <code>java.sql.DatabaseMetaData</code> （以下简称 <code>DatabaseMetaData</code> ）接口就是对数据库元信息的抽象，这里的元信息就包含了 schema、table、index、column 等我们熟知的概念。</p>
+<p>通过 IDEA 我们可以很轻松的查看 <code>DatabaseMetaData</code> 接口定义的方法列表，比如</p>
+<ul>
+<li>getTables：获取表信息</li>
+<li>getColumns：获取列信息</li>
+<li>getIndexInfo：获取索引信息</li>
+<li>getPrimaryKeys：获取主键信息</li>
+<li>&hellip;</li>
+</ul>
+<p><img src="img/1-api.png" alt=""></p>
+<p>由此可见， 基于 JDBC 来生成数据库文档的可行性是没问题的，那么接下来我们就进入实验阶段。</p>
+<h2 id="第二步demo">第二步：Demo</h2>
+<p><strong>实验环境</strong>：</p>
+<ol>
+<li>Mysql</li>
+<li>Java</li>
+<li>Mysql 数据准备</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">DATABASE</span> <span style="color:#a90d91">IF</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">EXISTS</span> <span style="color:#000">demo</span>;
+
+<span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">TABLE</span> <span style="color:#000">demo</span>.<span style="color:#a90d91">user</span>
+(
+    <span style="color:#000">id</span>        <span style="color:#a90d91">INT</span> <span style="color:#a90d91">PRIMARY</span> <span style="color:#a90d91">KEY</span> <span style="color:#000">AUTO_INCREMENT</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+    <span style="color:#000">username</span>  <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                   <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+    <span style="color:#000">nickname</span>  <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                   <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span> <span style="color:#a90d91">DEFAULT</span> <span style="color:#c41a16">&#39;&#39;</span>,
+    <span style="color:#000">create_at</span> <span style="color:#a90d91">TIMESTAMP</span>                               <span style="color:#a90d91">DEFAULT</span> <span style="color:#a90d91">CURRENT_TIMESTAMP</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+    <span style="color:#a90d91">CONSTRAINT</span> <span style="color:#000">uk_user_username</span> <span style="color:#a90d91">UNIQUE</span> (<span style="color:#000">username</span>)
+) <span style="color:#000">CHARSET</span> <span style="color:#000">utf8mb4</span>
+  <span style="color:#a90d91">COLLATE</span> <span style="color:#000">utf8mb4_unicode_ci</span> <span style="color:#a90d91">COMMENT</span> <span style="color:#c41a16">&#39;用户&#39;</span>;
+
+<span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">TABLE</span> <span style="color:#000">demo</span>.<span style="color:#000">post</span>
+(
+    <span style="color:#000">id</span>        <span style="color:#a90d91">INT</span> <span style="color:#a90d91">PRIMARY</span> <span style="color:#a90d91">KEY</span> <span style="color:#000">AUTO_INCREMENT</span>      <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+    <span style="color:#000">user_id</span>   <span style="color:#a90d91">INT</span>                                 <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+    <span style="color:#000">title</span>     <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                        <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+    <span style="color:#000">content</span>   <span style="color:#a90d91">TEXT</span>                                <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+    <span style="color:#000">create_at</span> <span style="color:#a90d91">TIMESTAMP</span> <span style="color:#a90d91">DEFAULT</span> <span style="color:#a90d91">CURRENT_TIMESTAMP</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>
+) <span style="color:#000">CHARSET</span> <span style="color:#000">utf8mb4</span>
+  <span style="color:#a90d91">COLLATE</span> <span style="color:#000">utf8mb4_unicode_ci</span> <span style="color:#a90d91">COMMENT</span> <span style="color:#c41a16">&#39;文章&#39;</span>;
+</code></pre></div><p><strong>实验目标：</strong></p>
+<ul>
+<li>获取 demo 库中的 user、post 表数据</li>
+</ul>
+<p><strong>实验流程：</strong></p>
+<p>首先我们需要通过  <code>java.sql.Connection</code> （以下简称 <code>Connection</code>）的 <code>getMetaData</code> 方法来获取上一节提到的 <code>DatabaseMetaData</code> 类。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">Connection</span>  <span style="color:#a90d91">extends</span> <span style="color:#000">Wrapper</span><span style="color:#000">,</span> <span style="color:#000">AutoCloseable</span> <span style="color:#000">{</span>
+	<span style="color:#000">DatabaseMetaData</span> <span style="color:#000">getMetaData</span><span style="color:#000">()</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
+
+</code></pre></div><p><code>Connection</code>  的获取需要依赖数据库驱动，以 Mysql 为例，就得通过通过构建工具引入 <code>mysql-connector-java</code> 这个库。</p>
+<p>下面的代码展示了在 Gradle 中引入的方式</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">dependencies</span> <span style="color:#000">{</span>
+	<span style="color:#000">implementation</span> <span style="color:#c41a16">&#34;mysql:mysql-connector-java:8.0.27&#34;</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>依赖刷新完成以后就可以创建 <code>Connection</code> 并获取 <code>DatabaseMetaData</code> 对象了：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Demo</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">main</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
+        <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">metaData</span> <span style="color:#000">=</span> <span style="color:#000">getMetaData</span><span style="color:#000">();</span> <span style="color:#177500">// 成功获取 metaData 对象
+</span><span style="color:#177500"></span>    <span style="color:#000">}</span>
+
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">getMetaData</span><span style="color:#000">()</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
+        <span style="color:#a90d91">try</span> <span style="color:#000">{</span>
+            <span style="color:#177500">// 加载驱动
+</span><span style="color:#177500"></span>            <span style="color:#000">Class</span><span style="color:#000">.</span><span style="color:#836c28">forName</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;com.mysql.cj.jdbc.Driver&#34;</span><span style="color:#000">);</span>
+        <span style="color:#000">}</span> <span style="color:#a90d91">catch</span> <span style="color:#000">(</span><span style="color:#000">ClassNotFoundException</span> <span style="color:#000">e</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+            <span style="color:#a90d91">throw</span> <span style="color:#a90d91">new</span> <span style="color:#000">IllegalStateException</span><span style="color:#000">(</span><span style="color:#000">e</span><span style="color:#000">);</span>
+        <span style="color:#000">}</span>
+
+        <span style="color:#000">Properties</span> <span style="color:#000">info</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">Properties</span><span style="color:#000">();</span>
+        <span style="color:#177500">// 填入你的用户名、密码和连接地址
+</span><span style="color:#177500"></span>        <span style="color:#000">info</span><span style="color:#000">.</span><span style="color:#836c28">put</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;user&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;root&#34;</span><span style="color:#000">);</span>
+        <span style="color:#000">info</span><span style="color:#000">.</span><span style="color:#836c28">put</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;password&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;123456&#34;</span><span style="color:#000">);</span>
+        <span style="color:#000">String</span> <span style="color:#000">jdbcUrl</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;jdbc:mysql://127.0.0.1:3306/demo&#34;</span><span style="color:#000">;</span>
+        <span style="color:#000">Connection</span> <span style="color:#000">connection</span> <span style="color:#000">=</span> <span style="color:#000">DriverManager</span><span style="color:#000">.</span><span style="color:#836c28">getConnection</span><span style="color:#000">(</span><span style="color:#000">jdbcUrl</span><span style="color:#000">,</span> <span style="color:#000">info</span><span style="color:#000">);</span>
+        <span style="color:#a90d91">return</span> <span style="color:#000">connection</span><span style="color:#000">.</span><span style="color:#836c28">getMetaData</span><span style="color:#000">();</span>
+    <span style="color:#000">}</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>前面我们已经简单展示过 <code>DatabaseMetaData</code> 的 API 了，其中 <code>getTables</code> 就是获取所有表的方法，完整查看一下该方法的定义</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">ResultSet</span> <span style="color:#000">getTables</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">catalog</span><span style="color:#000">,</span>
+                    <span style="color:#000">String</span> <span style="color:#000">schemaPattern</span><span style="color:#000">,</span>
+                    <span style="color:#000">String</span> <span style="color:#000">tableNamePattern</span><span style="color:#000">,</span>
+                    <span style="color:#000">String</span> <span style="color:#000">types</span><span style="color:#000">[])</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span><span style="color:#000">;</span>
+</code></pre></div><p>在源码中有完整的注释，限于篇幅我就不贴了，直接说明一下这些参数</p>
+<ul>
+<li>catalog：catalog 名称，可以为 null</li>
+<li>schemaPattern：schema 名称模糊查询，可以为 null</li>
+<li>tableNamePattern：表名模糊查询，表名称，可以为 null</li>
+<li>types：类型，比如 VIEW、TABLE 等，可以为 null</li>
+</ul>
+<p>在 Mysql 中，catalog 和 schema 的其实是一样的，都代表着 database 的名称。</p>
+<p>该方法返回的 ResultSet 在取值是也需要遵循 JDBC 的规范，一个 ResultSet 代表返回的一行数据，其中我们关注的列定义如下（完整定义可以查看该方法的源码注释）</p>
+<table>
+<thead>
+<tr>
+<th>列名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TABLE_CAT</td>
+<td>表所属的 catalog</td>
+</tr>
+<tr>
+<td>TABLE_SCHEM</td>
+<td>表所属的 schema</td>
+</tr>
+<tr>
+<td>TABLE_NAME</td>
+<td>表名称</td>
+</tr>
+<tr>
+<td>TABLE_TYPE</td>
+<td>表类型，如 TABLE、VIEWSYSTEM TABLE 等</td>
+</tr>
+<tr>
+<td>REMARKS</td>
+<td>备注，即通过 comment 语句指定的说明</td>
+</tr>
+<tr>
+<td>&hellip;</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>方法的参数和返回值都确认以后我们就可以继续完善前面的 <code>main</code> 方法了：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Demo</span> <span style="color:#000">{</span>
+    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">main</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
+        <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">metaData</span> <span style="color:#000">=</span> <span style="color:#000">getMetaData</span><span style="color:#000">();</span>
+        <span style="color:#177500">// 获取 demo 库下所有表
+</span><span style="color:#177500"></span>        <span style="color:#000">ResultSet</span> <span style="color:#000">result</span> <span style="color:#000">=</span> <span style="color:#000">metaData</span><span style="color:#000">.</span><span style="color:#836c28">getTables</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;demo&#34;</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">);</span>
+        <span style="color:#a90d91">while</span> <span style="color:#000">(</span><span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">next</span><span style="color:#000">())</span> <span style="color:#000">{</span>
+            <span style="color:#000">String</span> <span style="color:#000">msg</span> <span style="color:#000">=</span> <span style="color:#000">String</span><span style="color:#000">.</span><span style="color:#836c28">format</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;Table：%s, Type: %s, Comment: %s&#34;</span><span style="color:#000">,</span>
+                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;TABLE_NAME&#34;</span><span style="color:#000">),</span>
+                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;TABLE_TYPE&#34;</span><span style="color:#000">),</span>
+                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;REMARKS&#34;</span><span style="color:#000">));</span>
+            <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">msg</span><span style="color:#000">);</span>
+        <span style="color:#000">}</span>
+    <span style="color:#000">}</span>
+    
+    <span style="color:#177500">// 忽略 getMetaData() 方法
+</span><span style="color:#177500"></span><span style="color:#000">}</span>
+</code></pre></div><p>不出意外控制台就会打印以下信息</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">Table：post, Type: TABLE, Comment: 文章
+Table：user, Type: TABLE, Comment: 用户
+</code></pre></div><h2 id="第三步完善">第三步：完善</h2>
+<p>获取到表的信息以后，还需要根据表名去获取对应的列、索引、外键、主键等内容，得到这些数据以后就能生成一份完整的数据库文档了。</p>
+<p>这些类容的获取在 <code>DatabaeMetaData</code> 中都有对应的方法</p>
+<ul>
+<li><code>ResultSet getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern)</code></li>
+<li><code>ResultSet getIndexInfo(catalog,  schema,  table, unique,  approximate)</code></li>
+<li><code>ResultSet getPrimaryKeys(catalog,  schema,table)</code></li>
+<li><code>ResultSet getImportedKeys(catalog, schema,  table)</code></li>
+</ul>
+<p>方法的调用和取值整体思路与第二步中的代码基本一致，如果你还是没有思路的话，可以在<a href="https://github.com/vran-dev/databasir/tree/master/plugin">这里</a>查看我已经实现了的代码：</p>
+<blockquote>
+<p><a href="https://github.com/vran-dev/databasir/tree/master/plugin">https://github.com/vran-dev/databasir/tree/master/plugin</a></p>
+</blockquote>
+<p>除此之外，基于这个思路我还将其完善成了一个产品 <a href="https://github.com/vran-dev/databasir">Databasir</a> ，它是一个在线的数据库文档管理平台，或许你可以直接使用：</p>
+<p><img src="img/2-databasir.gif" alt=""></p>
+<h2 id="参考">参考</h2>
+<ol>
+<li>Databasir，https://github.com/vran-dev/databasir</li>
+</ol>
+
+            </section>
+
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
+        <div class = "social">
+
+    
+        <a href="https://github.com/vran-dev">
+            <svg t="1612751476854" class="social-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="9196" width="22" height="22">
+                <path d="M63.681087 516.285293c0 210.288698 144.593659 387.06044 340.109608 435.411104 8.963443 2.334559 18.979018-5.66029 18.685506-14.948855V740.533933c0-9.954615 5.899616-19.5096 16.818309-25.228593 11.097059-5.5474 8.380932-25.607902-3.738907-28.030515-56.790299-11.356705-105.233532-34.160427-139.233656-64.471315-33.930132-30.367333-53.245562-67.216792-53.245561-106.518217 0-27.359951 9.783022-53.611324 27.084499-77.566521a14.623733 14.623733 0 0 0 2.817728-8.365127v-142.999656l118.721594 63.536587c3.619244 1.971054 8.143864 2.291661 12.088231 0.889571 33.284403-9.868819 69.433946-14.890153 108.385412-14.890153 38.949208 0 75.096494 5.021334 108.385413 14.948856a15.36429 15.36429 0 0 0 12.146933-0.891829l118.662892-63.59529v142.91386a15.115932 15.115932 0 0 0 2.801922 8.42383c17.346633 23.925846 27.098046 50.235922 27.098047 77.564263 0 39.333033-19.268016 76.180235-53.200406 106.547568-34.043022 30.310888-82.5427 53.083-139.278811 64.471315-12.115324 2.363911-14.77049 22.42667-3.73665 27.971813 10.923209 5.723508 16.822825 15.240111 16.822825 25.23085v196.215867c-0.295771 9.28405 9.749156 17.281157 18.685505 14.948855C816.104564 903.343476 960.668872 726.517546 960.668872 516.285293c0-247.50392-201.00239-448.495021-448.492764-448.495021-247.50392 0-448.495021 200.991101-448.495021 448.495021z m448.495021-418.595052c231.37198 0 418.590537 187.236619 418.590537 418.595052 0 189.266376-126.779662 345.246091-298.995176 397.046664v-172.800282c0-11.970825-4.610416-22.60052-11.209949-31.769422 49.723403-13.666429 95.127645-35.156114 127.946942-64.471315 38.922115-34.600697 62.660564-78.952807 62.660564-128.005645 0-32.381285-11.794717-62.003545-29.897711-88.808078v-165.336015c0.085796-10.469392-13.314213-18.322-22.428928-13.068113l-137.34614 73.755365c-34.108498-9.254699-70.578648-15.840684-109.320139-15.840685-38.718913 0-75.277118 6.525025-109.322397 15.840685l-137.352913-73.726013c-9.094395-5.253887-22.510209 2.598721-22.424412 13.068113v165.336014c-18.116541 26.806791-29.899969 56.429051-29.899969 88.808079 0 49.025744 23.7678 93.375596 62.617665 127.978551 32.878 29.373903 78.32514 50.804886 127.962747 64.532275-6.572439 9.137293-11.185113 19.737637-11.185113 31.737813v50.482022c-32.584486 12.149191-54.015469 14.718561-67.275495 12.149191-14.291838-2.829016-21.999947-10.189425-30.787282-22.426671-17.70788-24.646082-35.083865-69.989364-92.546986-84.820814-19.547983-5.222278-26.161062 23.912299-7.475557 28.996852 45.081378 11.67957 53.972571 43.329329 75.638365 73.579256 10.889342 15.068519 26.497473 29.084905 49.578904 33.636619 19.227376 3.736649 42.498461 0.878282 72.863535-9.372104v90.600767c-172.156811-51.825409-298.995176-207.834475-298.995175-397.100851 0.009031-231.360691 187.24565-418.59731 418.604083-418.59731z" fill="#707070" p-id="9197"></path>
+            </svg>  
+        </a>
+    
+
+    
+        <a href='#'>
+            <svg t="1612751098681" class="social-icon" viewBox="0 0 1026 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="16516" width="22" height="22">
+                <path d="M512.034307 0C229.72222 0 0.002375 229.655981 0.002375 512S229.72222 1024 512.034307 1024 1024.066239 794.344019 1024.066239 512 794.346394 0 512.034307 0z m0 989.89647C248.530253 989.89647 34.169769 775.504054 34.169769 512S248.530253 34.10353 512.034307 34.10353 989.898845 248.495946 989.898845 512 775.538361 989.89647 512.034307 989.89647z" fill="#828282" p-id="16517"></path><path d="M792.845583 353.808158a119.106898 119.106898 0 0 0 8.717476-20.532369 17.083697 17.083697 0 0 0-24.939005-19.893726 192.646626 192.646626 0 0 1-52.560309 21.490333 122.332044 122.332044 0 0 0-81.810154-31.517026 121.980791 121.980791 0 0 0-121.789198 126.866409 281.673444 281.673444 0 0 1-183.130847-101.480355 17.115629 17.115629 0 0 0-27.972558 2.235251 121.757266 121.757266 0 0 0-2.107522 118.819508 20.053387 20.053387 0 0 0-6.833478 2.490707 18.233254 18.233254 0 0 0-8.430087 15.359362c0 36.242984 16.125733 69.516278 42.118499 92.124236l-1.117625 1.117625a17.051765 17.051765 0 0 0-3.448672 16.54085 121.853062 121.853062 0 0 0 69.739803 75.519521 195.871772 195.871772 0 0 1-108.760883 18.488712 17.403019 17.403019 0 0 0-18.073594 11.240115 17.115629 17.115629 0 0 0 6.865411 20.117251 314.244231 314.244231 0 0 0 169.847075 49.782212c197.340651 0 315.297992-160.299364 315.297992-315.266059l-0.031932-5.236872a227.420731 227.420731 0 0 0 49.207434-53.007359 17.083697 17.083697 0 0 0-20.787826-25.258326z m-55.721591 56.040913a17.083697 17.083697 0 0 0-7.088936 14.720718c0.191593 4.215043 0.287389 8.49395 0.287389 12.708994 0 138.20232-105.152551 281.16253-281.130598 281.162529a279.725583 279.725583 0 0 1-92.1881-15.582886 225.856056 225.856056 0 0 0 97.233379-44.385681 17.083697 17.083697 0 0 0-10.218286-30.495197 87.877261 87.877261 0 0 1-70.059124-37.105152c8.078832-0.542846 15.998004-1.883997 23.693651-3.959586a17.051765 17.051765 0 0 0-1.149558-33.20943 87.526007 87.526007 0 0 1-66.450792-60.830734c8.49395 2.139454 17.211426 3.384807 25.928901 3.672196 7.504054-0.031932 14.465261-4.630161 16.796308-11.846825s-0.415118-15.167768-6.769614-19.382812a87.685668 87.685668 0 0 1-36.498441-94.040164 315.585381 315.585381 0 0 0 209.730323 94.902332c5.620057 0.031932 10.537608-1.979793 13.954347-6.099039s4.725957-9.579643 3.512536-14.816515a87.813397 87.813397 0 0 1 149.506299-80.021954 17.083697 17.083697 0 0 0 15.774479 5.077211c5.268804-1.053761 10.473743-2.267182 15.614819-3.672196a81.043782 81.043782 0 0 1-7.216665 4.821753 17.083697 17.083697 0 0 0 10.793065 31.548959l5.81165-0.734439a178.979668 178.979668 0 0 1-9.867032 7.567918z" fill="#828282" p-id="16518"></path>
+            </svg>
+        </a>
+    
+
+    
+        <a href='#' >
+            <svg t="1612751005803" class="social-icon" viewBox="0 0 1026 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13371" width="22" height="22">
+                <path d="M512.034307 0C229.72222 0 0.002375 229.655981 0.002375 512S229.72222 1024 512.034307 1024 1024.066239 794.344019 1024.066239 512 794.346394 0 512.034307 0z m0 989.89647C248.530253 989.89647 34.169769 775.504054 34.169769 512S248.530253 34.10353 512.034307 34.10353 989.898845 248.495946 989.898845 512 775.538361 989.89647 512.034307 989.89647z" fill="#828282" p-id="13372"></path><path d="M623.796812 224.610702h-85.194961C430.096425 223.525009 416.237875 290.678309 416.237875 363.355869V416.203567h-47.898217a14.209804 14.209804 0 0 0-15.966072 15.966073v95.796432a14.209804 14.209804 0 0 0 15.966072 15.966072H416.237875v239.491082a14.337533 14.337533 0 0 0 16.061868 15.966072h97.552701c9.419983 1.085693 17.051765-6.54609 14.050143-15.966072L543.966451 543.932144h79.830361a14.209804 14.209804 0 0 0 15.966072-15.966072v-95.796432a14.209804 14.209804 0 0 0-15.966072-15.966073h-79.926157L543.966451 368.305351c3.097418-20.40464 3.097418-17.083697 22.03318-15.966072h57.126606c4.438568-0.989896 9.164525-0.44705 12.485468-3.672197 3.320943-3.225147 5.236872-7.631782 4.119247-12.293875v-95.796433A14.177872 14.177872 0 0 0 623.796812 224.610702z m-17.083697 94.008233l-40.042909-1.532743c-49.59062 0-53.741799 26.918798-53.741799 54.476238l-0.127728 60.543345a17.051765 17.051765 0 0 0 17.051765 17.083697H607.83074v61.692903h-77.914432a17.083697 17.083697 0 0 0-17.083697 17.051765L512.800679 767.457154H448.170019v-239.491082c0-9.419983-6.418361-17.051765-15.870276-17.051765H384.30573v-61.692902h47.994013a17.051765 17.051765 0 0 0 12.070351-4.981415c3.193214-3.225147 3.767993-7.567918 3.767993-12.102283v-68.81377c0-71.591867 14.465261-105.695397 90.431832-105.695398h68.111263v60.990396z" fill="#828282" p-id="13373"></path>
+            </svg>
+        </a>
+    
+
+    
+
+</div>
+        
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
+
+</script>
+        </div>
+        
+
+    </section>
+
+    <footer id="footer">
+    <p>
+        
+        © 2022 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/hugo-zenHo">ZenHo</a>
+    </p>
+</footer>
+
+
+<script>
+    var token = 'bacd84bd97ed2e6eef56ec4cae65acdb';
+    var _hmt = _hmt || [];
+    (function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?" + token;
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+</body>
