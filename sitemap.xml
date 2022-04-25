@@ -11,9 +11,6 @@
     <loc>https://blog.cc1234.cc/tags/java/</loc>
     <lastmod>2022-04-19T09:11:30+08:00</lastmod>
   </url><url>
-    <loc>https://blog.cc1234.cc/posts/how-to-generate-doc-by-jdbc/</loc>
-    <lastmod>2022-04-19T09:11:30+08:00</lastmod>
-  </url><url>
     <loc>https://blog.cc1234.cc/tags/jdbc/</loc>
     <lastmod>2022-04-19T09:11:30+08:00</lastmod>
   </url><url>
@@ -21,6 +18,9 @@
     <lastmod>2022-04-19T09:11:30+08:00</lastmod>
   </url><url>
     <loc>https://blog.cc1234.cc/tags/</loc>
+    <lastmod>2022-04-19T09:11:30+08:00</lastmod>
+  </url><url>
+    <loc>https://blog.cc1234.cc/posts/how-to-generate-doc-by-jdbc/</loc>
     <lastmod>2022-04-19T09:11:30+08:00</lastmod>
   </url><url>
     <loc>https://blog.cc1234.cc/</loc>

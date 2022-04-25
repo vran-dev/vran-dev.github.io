@@ -8,7 +8,7 @@
     <language>en-us</language>
     <lastBuildDate>Tue, 19 Apr 2022 09:11:30 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/jdbc/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Java，基于 JDBC 实现数据库文档的自动生成</title>
+      <title>【Java】如何用 JDBC 写一个数据库文档生成工具？</title>
       <link>https://blog.cc1234.cc/posts/how-to-generate-doc-by-jdbc/</link>
       <pubDate>Tue, 19 Apr 2022 09:11:30 +0800</pubDate>
       
