@@ -152,7 +152,7 @@
 <li>types：类型，比如 VIEW、TABLE 等，可以为 null</li>
 </ul>
 <p>在 Mysql 中，catalog 和 schema 的其实是一样的，都代表着 database 的名称。</p>
-<p>该方法返回的 ResultSet 在取值是也需要遵循 JDBC 的规范，一个 ResultSet 代表返回的一行数据，其中我们关注的列定义如下（完整定义可以查看该方法的源码注释）</p>
+<p>该方法返回的 ResultSet 在取值也需要遵循 JDBC 的规范，一个 ResultSet 代表返回的一行数据，其中我们关注的列定义如下（完整定义可以查看该方法的源码注释）</p>
 <table>
 <thead>
 <tr>
@@ -209,7 +209,7 @@
 Table：user, Type: TABLE, Comment: 用户
 </code></pre></div><h2 id="第三步完善">第三步：完善</h2>
 <p>获取到表的信息以后，还需要根据表名去获取对应的列、索引、外键、主键等内容，得到这些数据以后就能生成一份完整的数据库文档了。</p>
-<p>这些类容的获取在 <code>DatabaeMetaData</code> 中都有对应的方法</p>
+<p>这些内容的获取在 <code>DatabaeMetaData</code> 中都有对应的方法</p>
 <ul>
 <li><code>ResultSet getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern)</code></li>
 <li><code>ResultSet getIndexInfo(catalog,  schema,  table, unique,  approximate)</code></li>
