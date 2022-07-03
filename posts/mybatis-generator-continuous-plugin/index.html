@@ -63,7 +63,7 @@
 <h2 id="mapperplusplugin">MapperPlusPlugin</h2>
 <h3 id="当前问题">当前问题</h3>
 <p>很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是<strong>不修改由 Mybatis generator 生成的文件</strong>，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。</p>
-<p>为了实现扩展，一般会选择继承有 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 <!-- raw HTML omitted -->、<!-- raw HTML omitted --> 等元素</p>
+<p>为了实现扩展，一般会选择继承由 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 <!-- raw HTML omitted -->、<!-- raw HTML omitted --> 等元素</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
     <span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectByUsername&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;generated.UserGeneratedMapper.BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
         select *
