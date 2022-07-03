@@ -6,7 +6,23 @@
     <description>Recent content in Java on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 19 Apr 2022 09:11:30 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 03 Jul 2022 22:11:58 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>写几个插件让 Mybatis generator 更好用！</title>
+      <link>https://blog.cc1234.cc/posts/mybatis-generator-continuous-plugin/</link>
+      <pubDate>Sun, 03 Jul 2022 22:11:58 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/mybatis-generator-continuous-plugin/</guid>
+      <description>前言 最近团队统一了技术栈，Mybatis 正是其中一项，为了加强自己的开发体验，我再度花时间研究了一下 Mybatis Generator 并开发了几款插件。
+主要目标还是为了将有限的时间投入到高创造性的产出活动中（说的再高大上也是为了少写代码 ing），以及减少低级错误的发生。
+本文就是对这几款插件的一个介绍，插件源码已经放在 github 上了
+ https://github.com/vran-dev/mybatis-generator-continuous-plugin  关于我是如何集成 generator 的，可以在 github 上查看另一个演示项目
+ https://github.com/vran-dev/mybatis-continuous-generate-integration-demo  MapperPlusPlugin 当前问题 很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是不修改由 Mybatis generator 生成的文件，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。
+为了实现扩展，一般会选择继承有 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 、等元素
+&amp;lt;mapper namespace=&amp;#34;cc.cc1234.dao.mapper.UserMapper&amp;#34;&amp;gt; &amp;lt;select id=&amp;#34;selectByUsername&amp;#34; resultMap=&amp;#34;generated.UserGeneratedMapper.BaseResultMap&amp;#34;&amp;gt; select * from user where username = #{username} &amp;lt;/select&amp;gt; &amp;lt;/mapper&amp;gt; 但这种引用方式不是很便捷，如果能直接通过 id 引用而不需要加 namepace 前缀是最好的了。
+&amp;lt;mapper namespace=&amp;#34;cc.cc1234.dao.mapper.UserMapper&amp;#34;&amp;gt; &amp;lt;!-- 期望直接通过 ID 应用 --&amp;gt; &amp;lt;select id=&amp;#34;selectByUsername&amp;#34; resultMap=&amp;#34;BaseResultMap&amp;#34;&amp;gt; select * from user where username = #{username} &amp;lt;/select&amp;gt; &amp;lt;/mapper&amp;gt; 其实 generator 生成的 Java Mapper 的方法都差不多（只是参数、返回值类型不同），完全可以将这些方法通过泛型设计放到一个通用的 BaseMapper 接口中去，那么扩展的时候就不是继承各自的 XxxMapper，而都是同一个 BaseMapper 了。</description>
+    </item>
+    
     <item>
       <title>【Java】如何用 JDBC 写一个数据库文档生成工具？</title>
       <link>https://blog.cc1234.cc/posts/how-to-generate-doc-by-jdbc/</link>

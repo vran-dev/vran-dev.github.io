@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		
+		<meta name="google-site-verification" content="WQzn_X1rrhY2HHCuTYlY750m0YcuY3H73Z3T-OFsDOM" />
+        
+
+		<meta name="author" content="vran">
+		
+		<meta name="generator" content="Hugo 0.88.1" />
+		<title>写几个插件让 Mybatis generator 更好用！ &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
+
+
+<body>
+    <section id="single" class="wrapper">
+    <nav class="nav-main" style="display: flex;">
+         <div style="margin-left:auto;">
+            
+            <a href='https://blog.cc1234.cc/'> Home</a>
+            <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+            <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+            <a href='https://blog.cc1234.cc/about'>About</a>
+   
+           
+         </div>
+</nav>
+
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    <img src='' alt="" />
+                </div>
+                <div class = "title" >
+                    写几个插件让 Mybatis generator 更好用！
+                </div>
+                <div class="meta">
+                2022/07/03
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="前言">前言</h2>
+<p>最近团队统一了技术栈，Mybatis 正是其中一项，为了加强自己的开发体验，我再度花时间研究了一下 Mybatis Generator 并开发了几款插件。</p>
+<p>主要目标还是为了将有限的时间投入到高创造性的产出活动中（说的再高大上也是为了少写代码 ing），以及减少低级错误的发生。</p>
+<p>本文就是对这几款插件的一个介绍，插件源码已经放在 github 上了</p>
+<ul>
+<li><a href="https://github.com/vran-dev/mybatis-generator-continuous-plugin">https://github.com/vran-dev/mybatis-generator-continuous-plugin</a></li>
+</ul>
+<p>关于我是如何集成 generator 的，可以在 github 上查看另一个演示项目</p>
+<ul>
+<li><a href="https://github.com/vran-dev/mybatis-continuous-generate-integration-demo">https://github.com/vran-dev/mybatis-continuous-generate-integration-demo</a></li>
+</ul>
+<h2 id="mapperplusplugin">MapperPlusPlugin</h2>
+<h3 id="当前问题">当前问题</h3>
+<p>很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是<strong>不修改由 Mybatis generator 生成的文件</strong>，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。</p>
+<p>为了实现扩展，一般会选择继承有 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 <!-- raw HTML omitted -->、<!-- raw HTML omitted --> 等元素</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectByUsername&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;generated.UserGeneratedMapper.BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
+        select *
+        from user
+        where username = #{username}
+    <span style="color:#000">&lt;/select&gt;</span>
+<span style="color:#000">&lt;/mapper&gt;</span>
+</code></pre></div><p>但这种引用方式不是很便捷，如果能直接通过 id 引用而不需要加 namepace 前缀是最好的了。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
+		<span style="color:#177500">&lt;!-- 期望直接通过 ID 应用 --&gt;</span>
+    <span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectByUsername&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
+        select *
+        from user
+        where username = #{username}
+    <span style="color:#000">&lt;/select&gt;</span>
+<span style="color:#000">&lt;/mapper&gt;</span>
+</code></pre></div><p>其实 generator 生成的 Java Mapper  的方法都差不多（只是参数、返回值类型不同），完全可以将这些方法通过泛型设计放到一个通用的 BaseMapper 接口中去，那么扩展的时候就不是继承各自的 XxxMapper，而都是同一个 BaseMapper 了。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">BaseMapper</span><span style="color:#000">&lt;</span><span style="color:#000">User</span><span style="color:#000">,</span> <span style="color:#000">UserExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{}</span>
+
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AddressMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">BaseMapper</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">,</span> <span style="color:#000">AddressExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{}</span>
+</code></pre></div><p>另一个问题就是 Mybatis generator 默认生成的 Example 查询方法缺少一个常用的 <code>selectOneByExample(Example)</code> 方法，虽然 <code>selectByExample</code> 也能取单个结果，但肯定没有直接调用 <code>selectOneByExample</code> 香。</p>
+<h3 id="使用方式">使用方式</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.MapperPlusPlugin&#34;</span><span style="color:#000">&gt;</span>
+		<span style="color:#177500">&lt;!-- BaseMapper 配置目录--&gt;</span>    
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.target.project&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.javaProjectDir}&#34;</span><span style="color:#000">/&gt;</span> 
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.target.package&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.mapper.package}&#34;</span><span style="color:#000">/&gt;</span>
+		<span style="color:#177500">&lt;!-- BaseMapper 的名称 --&gt;</span>
+    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.name&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;OneMapper&#34;</span><span style="color:#000">/&gt;</span>
+		<span style="color:#177500">&lt;!-- 每个 Table 对应的 mapper 配置目录 --&gt;</span>
+    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;java-mapper.target.project&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;src/main/java&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;java-mapper.target.package&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.mapper.package}&#34;</span><span style="color:#000">/&gt;</span>
+		<span style="color:#177500">&lt;!-- 是否禁用 selectOneByExample，默认为 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;select-one-by-example.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+<span style="color:#000">&lt;/plugin&gt;</span>
+</code></pre></div><h3 id="插件作用">插件作用</h3>
+<ol>
+<li>会在指定目录生成一个通用的 BaseMapper</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">,</span> <span style="color:#000">E</span><span style="color:#000">&gt;</span>  <span style="color:#000">{</span>
+    <span style="color:#a90d91">long</span> <span style="color:#000">countByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">deleteByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">deleteByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">insert</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">insertSelective</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
+
+    <span style="color:#000">Optional</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">&gt;</span> <span style="color:#000">selectOneByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#000">T</span> <span style="color:#000">selectByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">updateByExampleSelective</span><span style="color:#000">(</span><span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;row&#34;</span><span style="color:#000">)</span> <span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">,</span> <span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;example&#34;</span><span style="color:#000">)</span> <span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">updateByExample</span><span style="color:#000">(</span><span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;row&#34;</span><span style="color:#000">)</span> <span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">,</span> <span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;example&#34;</span><span style="color:#000">)</span> <span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">updateByPrimaryKeySelective</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
+<span style="color:#000">}</span>
+</code></pre></div><ol start="2">
+<li>重命名所有生成的 xxxMapper.xml 文件为 xxxGeneratedMapper.xml</li>
+<li>会为 Mapper 生成一个 selectOneByExample 方法</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">,</span> <span style="color:#000">E</span><span style="color:#000">&gt;</span>  <span style="color:#000">{</span>
+		<span style="color:#177500">/* ... */</span>
+    <span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">&gt;</span> <span style="color:#000">selectByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+		<span style="color:#177500">/* ... */</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>每个表对应的 mapper.xml 也会生成对应的 SQL</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectOneByExample&#34;</span> <span style="color:#836c28">parameterType=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.model.UserExample&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
+  <span style="color:#177500">&lt;!--
+</span><span style="color:#177500">    WARNING - @mbg.generated
+</span><span style="color:#177500">    This element is automatically generated by MyBatis Generator, do not modify.
+</span><span style="color:#177500">  --&gt;</span>
+  select
+  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;distinct&#34;</span><span style="color:#000">&gt;</span>
+    distinct
+  <span style="color:#000">&lt;/if&gt;</span>
+  <span style="color:#000">&lt;include</span> <span style="color:#836c28">refid=</span><span style="color:#c41a16">&#34;Base_Column_List&#34;</span> <span style="color:#000">/&gt;</span>
+  from user
+  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;_parameter != null&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#000">&lt;include</span> <span style="color:#836c28">refid=</span><span style="color:#c41a16">&#34;Example_Where_Clause&#34;</span> <span style="color:#000">/&gt;</span>
+  <span style="color:#000">&lt;/if&gt;</span>
+  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;orderByClause != null&#34;</span><span style="color:#000">&gt;</span>
+    order by ${orderByClause}
+  <span style="color:#000">&lt;/if&gt;</span>
+   limit 1
+<span style="color:#000">&lt;/select&gt;</span>
+</code></pre></div><ol start="4">
+<li>会在指定目录生成表对应的 Java Mapper，该 Mapper 会自动继承 BaseMapper 接口，生成的 XML 对应的 namespace 也指向了该 Java Mapper</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">import</span> <span style="color:#000">cc.cc1234.dao.model.Address</span><span style="color:#000">;</span>
+<span style="color:#a90d91">import</span> <span style="color:#000">cc.cc1234.dao.model.AddressExample</span><span style="color:#000">;</span>
+
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">AddressMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">,</span> <span style="color:#000">AddressExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{</span>
+
+<span style="color:#000">}</span>
+</code></pre></div><p>用户可以在该 Mapper 中添加方法，插件不会覆盖已存在的 Java Mapper，并且所有的 XML 的 namespace 都是指向的该 Java 接口（包括 generator 生成的 xml），这就代表在用户自定义的 XML 中可以直接通过 id 引用 geneartor 生成的 xml 中的内容，比如 <!-- raw HTML omitted -->， <!-- raw HTML omitted --> 等。</p>
+<h2 id="examplemodelplusplugin">ExampleModelPlusPlugin</h2>
+<h3 id="当前问题-1">当前问题</h3>
+<ol>
+<li>Example 需要通过 new 来构建，不够便捷</li>
+<li>无法链式的构造多个查询条件</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">AddressExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">AddressExample</span><span style="color:#000">();</span>
+<span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andCityIsNotNull</span><span style="color:#000">();</span>
+<span style="color:#177500">// NOTE: or 条件不能链式的构造，需要使用 example 单独构造 criteria
+</span><span style="color:#177500"></span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">or</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andStreetIsNull</span><span style="color:#000">();</span>
+<span style="color:#000">addressMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
+</code></pre></div><ol start="3">
+<li>排序条件无法像查询条件一样通过方法名称构建</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">AddressExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">AddressExample</span><span style="color:#000">();</span>
+<span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andCityIsNotNull</span><span style="color:#000">();</span>
+<span style="color:#177500">// NOTE: 排序条件需要写真实的列名称，无法像查询条件一样通过调用方法构造
+</span><span style="color:#177500"></span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">setOrderByClause</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;create_at desc&#34;</span><span style="color:#000">);</span>
+<span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">&gt;</span> <span style="color:#000">addresses</span> <span style="color:#000">=</span> <span style="color:#000">addressMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
+</code></pre></div><p>为了优化 Example 的体验，ExampleModelPlusPlugin 针对以上问题做了优化，不仅使得 Example 的查询构造可以链式到底，还提供了类型安全的查询条件构造方法。</p>
+<h3 id="使用方式-1">使用方式</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.ExampleModelPlusPlugin&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#177500">&lt;!-- 禁用 order by 增强，默认 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;example.order-by.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 禁用生成 Example 的静态工厂方法，默认 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;example.static-factory.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 禁用生成 Criteria 的 example() 方法生成，默认 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;criteria.example.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+<span style="color:#000">&lt;/plugin&gt;</span>
+</code></pre></div><h3 id="插件作用-1">插件作用</h3>
+<ol>
+<li>为 Example 生成一个便捷的静态工厂方法 <code>create()</code></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 使用示例
+</span><span style="color:#177500"></span><span style="color:#000">XxxExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">XxxExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">();</span>
+</code></pre></div><ol start="2">
+<li>为 Criteria 创建一个 <code>example()</code> 方法，可以直接返回当前 Example 类型</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 使用示例
+</span><span style="color:#177500"></span><span style="color:#000">XxxExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">XxxExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">()</span>
+            <span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+            <span style="color:#000">.</span><span style="color:#836c28">andUsernameLike</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;root%&#34;</span><span style="color:#000">)</span>
+            <span style="color:#000">.</span><span style="color:#836c28">andCreateAtLessThan</span><span style="color:#000">(</span><span style="color:#000">LocalDateTime</span><span style="color:#000">.</span><span style="color:#836c28">now</span><span style="color:#000">())</span>
+            <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">();</span> <span style="color:#177500">// 返回当前 Example 实例
+</span></code></pre></div><ol start="3">
+<li>为 Example 创建一个 <code>orderBy()</code> 方法，该方法返回新增的 OrderByCriteria 类型，使得字段排序也可以如同查询条件一样通过方法构建</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 使用示例
+</span><span style="color:#177500"></span><span style="color:#000">UserExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">UserExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andUsernameLike</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;root%&#34;</span><span style="color:#000">)</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andCreateAtLessThan</span><span style="color:#000">(</span><span style="color:#000">LocalDateTime</span><span style="color:#000">.</span><span style="color:#836c28">now</span><span style="color:#000">())</span>
+        <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">orderBy</span><span style="color:#000">()</span> <span style="color:#177500">// 获取一个 OrderByCriteria 类
+</span><span style="color:#177500"></span>        <span style="color:#000">.</span><span style="color:#836c28">idDesc</span><span style="color:#000">()</span> <span style="color:#177500">// 该类为所有字段都生成了排序方法
+</span><span style="color:#177500"></span>        <span style="color:#000">.</span><span style="color:#836c28">createAtDesc</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">();</span> <span style="color:#177500">// 获取当前 Example 的实例
+</span><span style="color:#177500"></span>
+<span style="color:#177500">// select * from user where username like &#39;root%&#39; and create_at &lt;= now() order by id desc, create_at desc
+</span><span style="color:#177500"></span><span style="color:#000">userMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
+</code></pre></div><h2 id="nullsafeplugin">NullsafePlugin</h2>
+<h3 id="当前问题-2">当前问题</h3>
+<p>默认情况下 mybatis generator 生成的 model 会丢失一个很重要的信息： <strong>model 中某个属性对应的列字段是否为空。</strong></p>
+<p>为了避免 NullPointerException，开发只好</p>
+<ul>
+<li>对于不确定的字段都用 if 判空再做处理</li>
+<li>或者就是去查看一下当前数据库的原始 schema</li>
+</ul>
+<p>第一种造成了过度的防御式编程，第二种有上下文的切换烦恼。</p>
+<p>那能不能直接从生成的 Java model 中就能得知某字段可能为空呢？这里我用 NullsafePlugin 给出了确定的答案：可以。</p>
+<h3 id="使用方式-2">使用方式</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.NullSafePlugin&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#177500">&lt;!-- 会忽略对指定列的处理 --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;ignore.columns&#34;</span>
+              <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;*.create_time,*.update_time,*.create_at,*.active_from,*.active_to,*.operation_time,point_rule.start_time,point_rule.end_time,*.event_properties,*.reward&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 是否生成返回值为 Optional 的 get 方法 --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;optional.getter&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 是否添加 spring 的 @Nullable 注解 --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;spring.nullable&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
+<span style="color:#000">&lt;/plugin&gt;</span>
+</code></pre></div><h3 id="插件作用-2">插件作用</h3>
+<p>如果表中的某一列可为空</p>
+<ol>
+<li>那么生成的 Java model 中对应字段属性会被加上 <code>@Nullable</code> 注解</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.lang</span><span style="color:#000">;</span><span style="color:#000">Nullable</span><span style="color:#000">;</span>
+
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Model</span> <span style="color:#000">{</span>
+	<span style="color:#000">@Nullable</span>
+	<span style="color:#a90d91">private</span> <span style="color:#000">String</span> <span style="color:#000">xxx</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
+</code></pre></div><p><code>Nullable</code> 注解可以让开发集成工具（IDE）或静态检查工具（比如 findbugs、sonarQuebe）帮你检查出可能造成 NPE （NullPointerException）的代码，未来插件会支持更多符合 JSR-305 标准的注解。</p>
+<ol start="2">
+<li>该字段会额外生成一个 getXxxOptional 的方法</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">Type</span> <span style="color:#000">getXxx</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+	<span style="color:#a90d91">return</span> <span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">xxx</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
+
+<span style="color:#177500">/**
+</span><span style="color:#177500">* 返回类型为 Optional&lt;T&gt;
+</span><span style="color:#177500">*/</span>
+<span style="color:#a90d91">public</span> <span style="color:#000">Optional</span><span style="color:#000">&lt;</span><span style="color:#000">Type</span><span style="color:#000">&gt;</span> <span style="color:#000">getXxxOptional</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+	<span style="color:#a90d91">return</span> <span style="color:#000">Optional</span><span style="color:#000">.</span><span style="color:#836c28">ofNullable</span><span style="color:#000">(</span><span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">xxx</span><span style="color:#000">);</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>为什么不直接将 getXxx 方法的返回值替代为 Optional 呢？因为 mybatis 会根据 get 方法的返回值去匹配对应的 TypeHandler，如果没有一个通用的 OptionalTypeHandler 的话就出现映射异常。</p>
+
+            </section>
+
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
+        <div class = "social">
+
+    
+        <a href="https://github.com/vran-dev">
+            <svg t="1612751476854" class="social-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="9196" width="22" height="22">
+                <path d="M63.681087 516.285293c0 210.288698 144.593659 387.06044 340.109608 435.411104 8.963443 2.334559 18.979018-5.66029 18.685506-14.948855V740.533933c0-9.954615 5.899616-19.5096 16.818309-25.228593 11.097059-5.5474 8.380932-25.607902-3.738907-28.030515-56.790299-11.356705-105.233532-34.160427-139.233656-64.471315-33.930132-30.367333-53.245562-67.216792-53.245561-106.518217 0-27.359951 9.783022-53.611324 27.084499-77.566521a14.623733 14.623733 0 0 0 2.817728-8.365127v-142.999656l118.721594 63.536587c3.619244 1.971054 8.143864 2.291661 12.088231 0.889571 33.284403-9.868819 69.433946-14.890153 108.385412-14.890153 38.949208 0 75.096494 5.021334 108.385413 14.948856a15.36429 15.36429 0 0 0 12.146933-0.891829l118.662892-63.59529v142.91386a15.115932 15.115932 0 0 0 2.801922 8.42383c17.346633 23.925846 27.098046 50.235922 27.098047 77.564263 0 39.333033-19.268016 76.180235-53.200406 106.547568-34.043022 30.310888-82.5427 53.083-139.278811 64.471315-12.115324 2.363911-14.77049 22.42667-3.73665 27.971813 10.923209 5.723508 16.822825 15.240111 16.822825 25.23085v196.215867c-0.295771 9.28405 9.749156 17.281157 18.685505 14.948855C816.104564 903.343476 960.668872 726.517546 960.668872 516.285293c0-247.50392-201.00239-448.495021-448.492764-448.495021-247.50392 0-448.495021 200.991101-448.495021 448.495021z m448.495021-418.595052c231.37198 0 418.590537 187.236619 418.590537 418.595052 0 189.266376-126.779662 345.246091-298.995176 397.046664v-172.800282c0-11.970825-4.610416-22.60052-11.209949-31.769422 49.723403-13.666429 95.127645-35.156114 127.946942-64.471315 38.922115-34.600697 62.660564-78.952807 62.660564-128.005645 0-32.381285-11.794717-62.003545-29.897711-88.808078v-165.336015c0.085796-10.469392-13.314213-18.322-22.428928-13.068113l-137.34614 73.755365c-34.108498-9.254699-70.578648-15.840684-109.320139-15.840685-38.718913 0-75.277118 6.525025-109.322397 15.840685l-137.352913-73.726013c-9.094395-5.253887-22.510209 2.598721-22.424412 13.068113v165.336014c-18.116541 26.806791-29.899969 56.429051-29.899969 88.808079 0 49.025744 23.7678 93.375596 62.617665 127.978551 32.878 29.373903 78.32514 50.804886 127.962747 64.532275-6.572439 9.137293-11.185113 19.737637-11.185113 31.737813v50.482022c-32.584486 12.149191-54.015469 14.718561-67.275495 12.149191-14.291838-2.829016-21.999947-10.189425-30.787282-22.426671-17.70788-24.646082-35.083865-69.989364-92.546986-84.820814-19.547983-5.222278-26.161062 23.912299-7.475557 28.996852 45.081378 11.67957 53.972571 43.329329 75.638365 73.579256 10.889342 15.068519 26.497473 29.084905 49.578904 33.636619 19.227376 3.736649 42.498461 0.878282 72.863535-9.372104v90.600767c-172.156811-51.825409-298.995176-207.834475-298.995175-397.100851 0.009031-231.360691 187.24565-418.59731 418.604083-418.59731z" fill="#707070" p-id="9197"></path>
+            </svg>  
+        </a>
+    
+
+    
+        <a href='#'>
+            <svg t="1612751098681" class="social-icon" viewBox="0 0 1026 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="16516" width="22" height="22">
+                <path d="M512.034307 0C229.72222 0 0.002375 229.655981 0.002375 512S229.72222 1024 512.034307 1024 1024.066239 794.344019 1024.066239 512 794.346394 0 512.034307 0z m0 989.89647C248.530253 989.89647 34.169769 775.504054 34.169769 512S248.530253 34.10353 512.034307 34.10353 989.898845 248.495946 989.898845 512 775.538361 989.89647 512.034307 989.89647z" fill="#828282" p-id="16517"></path><path d="M792.845583 353.808158a119.106898 119.106898 0 0 0 8.717476-20.532369 17.083697 17.083697 0 0 0-24.939005-19.893726 192.646626 192.646626 0 0 1-52.560309 21.490333 122.332044 122.332044 0 0 0-81.810154-31.517026 121.980791 121.980791 0 0 0-121.789198 126.866409 281.673444 281.673444 0 0 1-183.130847-101.480355 17.115629 17.115629 0 0 0-27.972558 2.235251 121.757266 121.757266 0 0 0-2.107522 118.819508 20.053387 20.053387 0 0 0-6.833478 2.490707 18.233254 18.233254 0 0 0-8.430087 15.359362c0 36.242984 16.125733 69.516278 42.118499 92.124236l-1.117625 1.117625a17.051765 17.051765 0 0 0-3.448672 16.54085 121.853062 121.853062 0 0 0 69.739803 75.519521 195.871772 195.871772 0 0 1-108.760883 18.488712 17.403019 17.403019 0 0 0-18.073594 11.240115 17.115629 17.115629 0 0 0 6.865411 20.117251 314.244231 314.244231 0 0 0 169.847075 49.782212c197.340651 0 315.297992-160.299364 315.297992-315.266059l-0.031932-5.236872a227.420731 227.420731 0 0 0 49.207434-53.007359 17.083697 17.083697 0 0 0-20.787826-25.258326z m-55.721591 56.040913a17.083697 17.083697 0 0 0-7.088936 14.720718c0.191593 4.215043 0.287389 8.49395 0.287389 12.708994 0 138.20232-105.152551 281.16253-281.130598 281.162529a279.725583 279.725583 0 0 1-92.1881-15.582886 225.856056 225.856056 0 0 0 97.233379-44.385681 17.083697 17.083697 0 0 0-10.218286-30.495197 87.877261 87.877261 0 0 1-70.059124-37.105152c8.078832-0.542846 15.998004-1.883997 23.693651-3.959586a17.051765 17.051765 0 0 0-1.149558-33.20943 87.526007 87.526007 0 0 1-66.450792-60.830734c8.49395 2.139454 17.211426 3.384807 25.928901 3.672196 7.504054-0.031932 14.465261-4.630161 16.796308-11.846825s-0.415118-15.167768-6.769614-19.382812a87.685668 87.685668 0 0 1-36.498441-94.040164 315.585381 315.585381 0 0 0 209.730323 94.902332c5.620057 0.031932 10.537608-1.979793 13.954347-6.099039s4.725957-9.579643 3.512536-14.816515a87.813397 87.813397 0 0 1 149.506299-80.021954 17.083697 17.083697 0 0 0 15.774479 5.077211c5.268804-1.053761 10.473743-2.267182 15.614819-3.672196a81.043782 81.043782 0 0 1-7.216665 4.821753 17.083697 17.083697 0 0 0 10.793065 31.548959l5.81165-0.734439a178.979668 178.979668 0 0 1-9.867032 7.567918z" fill="#828282" p-id="16518"></path>
+            </svg>
+        </a>
+    
+
+    
+        <a href='#' >
+            <svg t="1612751005803" class="social-icon" viewBox="0 0 1026 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13371" width="22" height="22">
+                <path d="M512.034307 0C229.72222 0 0.002375 229.655981 0.002375 512S229.72222 1024 512.034307 1024 1024.066239 794.344019 1024.066239 512 794.346394 0 512.034307 0z m0 989.89647C248.530253 989.89647 34.169769 775.504054 34.169769 512S248.530253 34.10353 512.034307 34.10353 989.898845 248.495946 989.898845 512 775.538361 989.89647 512.034307 989.89647z" fill="#828282" p-id="13372"></path><path d="M623.796812 224.610702h-85.194961C430.096425 223.525009 416.237875 290.678309 416.237875 363.355869V416.203567h-47.898217a14.209804 14.209804 0 0 0-15.966072 15.966073v95.796432a14.209804 14.209804 0 0 0 15.966072 15.966072H416.237875v239.491082a14.337533 14.337533 0 0 0 16.061868 15.966072h97.552701c9.419983 1.085693 17.051765-6.54609 14.050143-15.966072L543.966451 543.932144h79.830361a14.209804 14.209804 0 0 0 15.966072-15.966072v-95.796432a14.209804 14.209804 0 0 0-15.966072-15.966073h-79.926157L543.966451 368.305351c3.097418-20.40464 3.097418-17.083697 22.03318-15.966072h57.126606c4.438568-0.989896 9.164525-0.44705 12.485468-3.672197 3.320943-3.225147 5.236872-7.631782 4.119247-12.293875v-95.796433A14.177872 14.177872 0 0 0 623.796812 224.610702z m-17.083697 94.008233l-40.042909-1.532743c-49.59062 0-53.741799 26.918798-53.741799 54.476238l-0.127728 60.543345a17.051765 17.051765 0 0 0 17.051765 17.083697H607.83074v61.692903h-77.914432a17.083697 17.083697 0 0 0-17.083697 17.051765L512.800679 767.457154H448.170019v-239.491082c0-9.419983-6.418361-17.051765-15.870276-17.051765H384.30573v-61.692902h47.994013a17.051765 17.051765 0 0 0 12.070351-4.981415c3.193214-3.225147 3.767993-7.567918 3.767993-12.102283v-68.81377c0-71.591867 14.465261-105.695397 90.431832-105.695398h68.111263v60.990396z" fill="#828282" p-id="13373"></path>
+            </svg>
+        </a>
+    
+
+    
+
+</div>
+        
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
+
+</script>
+        </div>
+        
+
+    </section>
+
+    <footer id="footer">
+    <p>
+        
+        © 2022 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/hugo-zenHo">ZenHo</a>
+    </p>
+</footer>
+
+
+<script>
+    var token = 'bacd84bd97ed2e6eef56ec4cae65acdb';
+    var _hmt = _hmt || [];
+    (function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?" + token;
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+</body>
