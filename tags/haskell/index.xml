@@ -15,10 +15,10 @@
       <guid>https://blog.cc1234.cc/posts/typeclasses-1/</guid>
       <description>前言 作为一个 Java 开发者， class 的概念肯定是耳熟能详了，可是在山的另一边还有拥有别样风情的 type classes，但不翻过 Java 这座山，它就始终隔着一层纱。
 一个经典的问题 在编程中，经常需要判断两个值是否相等，这就是判等问题， 然而在很长的一段时间内这个问题都没有一个标准的解决方案。
- 我这里统一使用 “值” 来代替对象、基本类型等等概念，以便于简化沟通
- 在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
+我这里统一使用 “值” 来代替对象、基本类型等等概念，以便于简化沟通
+在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
 public void test() { boolean res = &amp;#34;hello&amp;#34; == &amp;#34;world&amp;#34;; boolean res2 = &amp;#34;hello&amp;#34;.equals(&amp;#34;hello&amp;#34;); boolean res3 = 3 == 3; boolean res4 = 5 == 9; } 熟悉 Java 的同学都知道对于非基础类型， equals 方法的默认实现其实就是调用 == 操作符，而 == 操作比较的是对象的引用地址
-public class Object { // ......  public boolean equals(Object obj) { return (this == obj); } // .</description>
+public class Object { // ...... public boolean equals(Object obj) { return (this == obj); } // .</description>
     </item>
     
   </channel>

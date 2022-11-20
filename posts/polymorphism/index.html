@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.88.1" />
+		<meta name="generator" content="Hugo 0.106.0">
 		<title>多态都不知道，谈什么对象 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -71,26 +71,26 @@
 </ul>
 <p><strong>函数重载</strong>指的是多个函数拥有相同的名称，但却拥有不同的实现。</p>
 <p>比如下面的函数重载示例，展示了两个名为 <code>print</code> 的 函数，一个打印字符串，一个打印图像。</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">void</span> <span style="color:#000">print</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">word</span><span style="color:#000">)</span> <span style="color:#000">{</span>
-  <span style="color:#000">...</span>
-<span style="color:#000">}</span>
-
-<span style="color:#a90d91">public</span> <span style="color:#a90d91">void</span> <span style="color:#000">print</span><span style="color:#000">(</span><span style="color:#000">Image</span> <span style="color:#000">image</span><span style="color:#000">)</span> <span style="color:#000">{</span>
-  <span style="color:#000">...</span>
-<span style="color:#000">}</span>
-</code></pre></div><p><strong>操作符重载</strong>本质上是一个语法糖，实际的体验与函数重载相似，以 Java 中的 <code>+</code> 操作符为例：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">void</span> <span style="color:#000">print</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">word</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">void</span> <span style="color:#000">print</span><span style="color:#000">(</span><span style="color:#000">Image</span> <span style="color:#000">image</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p><strong>操作符重载</strong>本质上是一个语法糖，实际的体验与函数重载相似，以 Java 中的 <code>+</code> 操作符为例：</p>
 <blockquote>
 <p>实际上 Java 的 + 不完全算是操作符重载，因为它针对于字符串的操作其实是将 + 转译成了 StringBuilder 来处理的，算是语法糖。</p>
 <p>但仍可以借助于它来理解操作符重载</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">1</span> <span style="color:#000">+</span> <span style="color:#000">1</span>
-
-<span style="color:#000">1</span> <span style="color:#000">+</span> <span style="color:#000">1</span><span style="color:#000">.</span><span style="color:#836c28">3</span>
-  
-<span style="color:#c41a16">&#34;hello&#34;</span> <span style="color:#000">+</span> <span style="color:#c41a16">&#34; world&#34;</span>
- 
-<span style="color:#000">1</span> <span style="color:#000">+</span> <span style="color:#c41a16">&#34; ok&#34;</span>
-</code></pre></div><p>编译器会根据 <code>+</code> 左右两边的类型执行不同的操作</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#000">1</span> <span style="color:#000">+</span> <span style="color:#000">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">1</span> <span style="color:#000">+</span> <span style="color:#000">1</span><span style="color:#000">.</span><span style="color:#836c28">3</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span><span style="color:#c41a16">&#34;hello&#34;</span> <span style="color:#000">+</span> <span style="color:#c41a16">&#34; world&#34;</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#000">1</span> <span style="color:#000">+</span> <span style="color:#c41a16">&#34; ok&#34;</span>
+</span></span></code></pre></div><p>编译器会根据 <code>+</code> 左右两边的类型执行不同的操作</p>
 <ul>
 <li><code>1 + 1 </code>  执行求和运算，返回值为 int</li>
 <li><code>1 + 1.3 </code> 执行求和运算，返回值提升为 double</li>
@@ -121,16 +121,16 @@
 <h2 id="subtyping子类型多态">Subtyping（子类型多态）</h2>
 <p><strong>子类型多态</strong>有时也被称之为<strong>包含多态</strong>（inclusion polymorphism），它表达的是一种替代关系。</p>
 <p>以下面的  Java 代码为例， Car 分别有 SmallCar、BigCar 两个子类</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">abstract</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Car</span> <span style="color:#000">{}</span>
-
-<span style="color:#a90d91">class</span> <span style="color:#3f6e75">SmallCar</span> <span style="color:#a90d91">extends</span> <span style="color:#000">Car</span> <span style="color:#000">{}</span>
-
-<span style="color:#a90d91">class</span> <span style="color:#3f6e75">BigCar</span> <span style="color:#a90d91">extends</span> <span style="color:#000">Car</span> <span style="color:#000">{}</span>
-</code></pre></div><p>那么在 priceOfCar函数内，BigCar 和 SmallCar 就是可以相互替换的了</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">BigDecimal</span> <span style="color:#000">priceOfCar</span><span style="color:#000">(</span><span style="color:#000">Car</span> <span style="color:#000">car</span><span style="color:#000">)</span> <span style="color:#000">{</span>
-	<span style="color:#177500">//TODO
-</span><span style="color:#177500"></span><span style="color:#000">}</span>
-</code></pre></div><p>要注意<strong>子类型</strong>和<strong>继承</strong>这两者之间是不一样的。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">abstract</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Car</span> <span style="color:#000">{}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">SmallCar</span> <span style="color:#a90d91">extends</span> <span style="color:#000">Car</span> <span style="color:#000">{}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">BigCar</span> <span style="color:#a90d91">extends</span> <span style="color:#000">Car</span> <span style="color:#000">{}</span>
+</span></span></code></pre></div><p>那么在 priceOfCar函数内，BigCar 和 SmallCar 就是可以相互替换的了</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#000">BigDecimal</span> <span style="color:#000">priceOfCar</span><span style="color:#000">(</span><span style="color:#000">Car</span> <span style="color:#000">car</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#177500">//TODO
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>要注意<strong>子类型</strong>和<strong>继承</strong>这两者之间是不一样的。</p>
 <p>子类型更多的是描述一种关系：如果 S 是 T 的子类型，即 <strong>S &lt;: T</strong> ），那么在任何使用 T 类型的上下文中也都可以使用 S，相当于 S 可以替换掉 T。（有没有想起<strong>里氏替换原则</strong> ？）</p>
 <blockquote>
 <p><strong>&lt;:</strong> 是来源于类型论的符号，表示子类型关系</p>
@@ -142,60 +142,60 @@
 <p>在 Java 中我们判断类型是否兼容或对等是根据名称来的，这种类型系统一般被称之为<strong>基于名称的类型</strong>（或<strong>标明类型系统</strong>）， 而结构化类型则是基于类型的<strong>实际结构或定义</strong>来判断类型的兼容性和对等性。</p>
 <p>由于 Java 不支持 Row Polymorphism，所以下面会用 Scala 来进行展示。</p>
 <p>假设我们现在有一个特质 (类似于 Java 的接口)  <code>Event</code> ，它是对业务事件的抽象， EventListener 则是事件的处理类， 它的 listen 函数接受 Event 对象作为参数。</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">trait</span> <span style="color:#3f6e75">Event</span> <span style="color:#000">{</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span>
-<span style="color:#000">}</span>
-
-<span style="color:#a90d91">class</span> <span style="color:#3f6e75">InitEvent</span> <span style="color:#a90d91">extends</span> <span style="color:#3f6e75">Event</span> <span style="color:#000">{</span>
-  <span style="color:#a90d91">override</span> <span style="color:#a90d91">def</span> <span style="color:#000">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span> <span style="color:#000">=</span> <span style="color:#000">{</span>
-    <span style="color:#177500">// TODO
-</span><span style="color:#177500"></span>  <span style="color:#000">}</span>
-<span style="color:#000">}</span>
-
-<span style="color:#a90d91">class</span> <span style="color:#3f6e75">EventListener</span> <span style="color:#000">{</span>
-    <span style="color:#a90d91">def</span> <span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#000">event</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Event</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Unit</span> <span style="color:#000">=</span> <span style="color:#000">{</span>
-        <span style="color:#177500">//TODO
-</span><span style="color:#177500"></span>    <span style="color:#000">}</span>
-<span style="color:#000">}</span>
-</code></pre></div><p>正常情况下我们会这样来使用</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">val</span> <span style="color:#000">listener</span> <span style="color:#a90d91">=</span> <span style="color:#a90d91">new</span> <span style="color:#3f6e75">EventListener</span><span style="color:#000">()</span>
-<span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">InitEvent</span><span style="color:#000">())</span>
-</code></pre></div><p>如果此时有一个 <code>OldEvent</code>，它没有实现 <code>Event</code> 特质 ， 但却有相同的 payload 方法定义</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">class</span> <span style="color:#3f6e75">OldEvent</span> <span style="color:#000">{</span>
-  <span style="color:#a90d91">def</span> <span style="color:#000">palyload</span><span style="color:#000">()</span> <span style="color:#a90d91">=</span> <span style="color:#000">{</span>
-    <span style="color:#177500">// TODO
-</span><span style="color:#177500"></span>  <span style="color:#000">}</span>
-<span style="color:#000">}</span>
-</code></pre></div><p>熟悉 Java 的同学都知道，EventListener 是无法接受 OldEvent 对象的 ，因为 OldEvent 不是 Event 的子类</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#177500">// 编译失败: OldCall 不是 Event 类型
-</span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">OldCall</span><span style="color:#000">())</span>
-</code></pre></div><p>再来看看结构化类型在该场景下的表现，将 EventListener 的 listen 函数参数由 Event 类改为结构化对象</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">class</span> <span style="color:#3f6e75">EventListener</span> <span style="color:#000">{</span>
-    <span style="color:#177500">/**
-</span><span style="color:#177500">    * event 是结构类型的名称
-</span><span style="color:#177500">    * {def payload(): String} 表示这个结构的具体定义：拥有一个无参，返回值为 String 的 payload 函数
-</span><span style="color:#177500">    */</span>
-  <span style="color:#a90d91">def</span> <span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#000">event</span><span style="color:#a90d91">:</span> <span style="color:#000">{</span><span style="color:#a90d91">def</span> <span style="color:#a90d91">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span><span style="color:#000">})</span> <span style="color:#000">{</span>
-  	<span style="color:#177500">// TODO
-</span><span style="color:#177500"></span>  <span style="color:#000">}</span>
-<span style="color:#000">}</span>
-</code></pre></div><p>以前是只接受类型为 Event 的对象，现在是接受有  payload 函数定义的结构对象就可以了</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#177500">// 编译通过
-</span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">InitEvent</span><span style="color:#000">())</span>
-<span style="color:#177500">// 编译通过
-</span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">OldEvent</span><span style="color:#000">())</span>
-</code></pre></div><p>即使 OldEvent 里面的方法不止一个 payload 也是没问题的（结构的部分匹配）</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#a90d91">class</span> <span style="color:#3f6e75">OldEvent</span> <span style="color:#000">{</span>
-  
-  <span style="color:#a90d91">def</span> <span style="color:#000">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span> <span style="color:#000">=</span> <span style="color:#000">{}</span>
-  
-  <span style="color:#a90d91">def</span> <span style="color:#000">someOtherMehod</span> <span style="color:#a90d91">=</span> <span style="color:#000">{}</span>
-
-<span style="color:#000">}</span>
-
-<span style="color:#177500">// 编译通过
-</span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">OldEvent</span><span style="color:#000">())</span>
-</code></pre></div><p>正是因为部分匹配的特性，结构化多态也经常被称之为类型安全的鸭子类型（<a href="https://en.wikipedia.org/wiki/Duck_typing">duck typing</a>）</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#a90d91">trait</span> <span style="color:#3f6e75">Event</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">InitEvent</span> <span style="color:#a90d91">extends</span> <span style="color:#3f6e75">Event</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a90d91">override</span> <span style="color:#a90d91">def</span> <span style="color:#000">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span> <span style="color:#000">=</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500">// TODO
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>  <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">EventListener</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#000">event</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Event</span><span style="color:#000">)</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">Unit</span> <span style="color:#000">=</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500">//TODO
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>正常情况下我们会这样来使用</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#a90d91">val</span> <span style="color:#000">listener</span> <span style="color:#a90d91">=</span> <span style="color:#a90d91">new</span> <span style="color:#3f6e75">EventListener</span><span style="color:#000">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">InitEvent</span><span style="color:#000">())</span>
+</span></span></code></pre></div><p>如果此时有一个 <code>OldEvent</code>，它没有实现 <code>Event</code> 特质 ， 但却有相同的 payload 方法定义</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">OldEvent</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a90d91">def</span> <span style="color:#000">palyload</span><span style="color:#000">()</span> <span style="color:#a90d91">=</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500">// TODO
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>  <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>熟悉 Java 的同学都知道，EventListener 是无法接受 OldEvent 对象的 ，因为 OldEvent 不是 Event 的子类</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#177500">// 编译失败: OldCall 不是 Event 类型
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">OldCall</span><span style="color:#000">())</span>
+</span></span></code></pre></div><p>再来看看结构化类型在该场景下的表现，将 EventListener 的 listen 函数参数由 Event 类改为结构化对象</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">EventListener</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#177500">    * event 是结构类型的名称
+</span></span></span><span style="display:flex;"><span><span style="color:#177500">    * {def payload(): String} 表示这个结构的具体定义：拥有一个无参，返回值为 String 的 payload 函数
+</span></span></span><span style="display:flex;"><span><span style="color:#177500">    */</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a90d91">def</span> <span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#000">event</span><span style="color:#a90d91">:</span> <span style="color:#000">{</span><span style="color:#a90d91">def</span> <span style="color:#a90d91">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span><span style="color:#000">})</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>  	<span style="color:#177500">// TODO
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>  <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>以前是只接受类型为 Event 的对象，现在是接受有  payload 函数定义的结构对象就可以了</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#177500">// 编译通过
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">InitEvent</span><span style="color:#000">())</span>
+</span></span><span style="display:flex;"><span><span style="color:#177500">// 编译通过
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">OldEvent</span><span style="color:#000">())</span>
+</span></span></code></pre></div><p>即使 OldEvent 里面的方法不止一个 payload 也是没问题的（结构的部分匹配）</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">OldEvent</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#a90d91">def</span> <span style="color:#000">payload</span><span style="color:#000">()</span><span style="color:#a90d91">:</span> <span style="color:#a90d91">String</span> <span style="color:#000">=</span> <span style="color:#000">{}</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#a90d91">def</span> <span style="color:#000">someOtherMehod</span> <span style="color:#a90d91">=</span> <span style="color:#000">{}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500">// 编译通过
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">listener</span><span style="color:#000">.</span><span style="color:#000">listen</span><span style="color:#000">(</span><span style="color:#a90d91">new</span> <span style="color:#3f6e75">OldEvent</span><span style="color:#000">())</span>
+</span></span></code></pre></div><p>正是因为部分匹配的特性，结构化多态也经常被称之为类型安全的鸭子类型（<a href="https://en.wikipedia.org/wiki/Duck_typing">duck typing</a>）</p>
 <h2 id="最后">最后</h2>
 <p>如果你还是为上面的概念而感到混乱，那么就忘了他们吧，只需要记住我们平常使用的函数重载、继承、泛型等都是多态的具体体现即可。</p>
 <p>回到标题，现在你们都知道多态了，那么放心的去谈对象吧&hellip;&hellip;</p>

@@ -16,9 +16,9 @@
       <description>前言 最近团队统一了技术栈，Mybatis 正是其中一项，为了加强自己的开发体验，我再度花时间研究了一下 Mybatis Generator 并开发了几款插件。
 主要目标还是为了将有限的时间投入到高创造性的产出活动中（说的再高大上也是为了少写代码 ing），以及减少低级错误的发生。
 本文就是对这几款插件的一个介绍，插件源码已经放在 github 上了
- https://github.com/vran-dev/mybatis-generator-continuous-plugin  关于我是如何集成 generator 的，可以在 github 上查看另一个演示项目
- https://github.com/vran-dev/mybatis-continuous-generate-integration-demo  MapperPlusPlugin 当前问题 很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是不修改由 Mybatis generator 生成的文件，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。
-为了实现扩展，一般会选择继承由 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 、等元素
+https://github.com/vran-dev/mybatis-generator-continuous-plugin 关于我是如何集成 generator 的，可以在 github 上查看另一个演示项目
+https://github.com/vran-dev/mybatis-continuous-generate-integration-demo MapperPlusPlugin 当前问题 很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是不修改由 Mybatis generator 生成的文件，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。
+为了实现扩展，一般会选择继承由 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 、 等元素
 &amp;lt;mapper namespace=&amp;#34;cc.cc1234.dao.mapper.UserMapper&amp;#34;&amp;gt; &amp;lt;select id=&amp;#34;selectByUsername&amp;#34; resultMap=&amp;#34;generated.UserGeneratedMapper.BaseResultMap&amp;#34;&amp;gt; select * from user where username = #{username} &amp;lt;/select&amp;gt; &amp;lt;/mapper&amp;gt; 但这种引用方式不是很便捷，如果能直接通过 id 引用而不需要加 namepace 前缀是最好的了。
 &amp;lt;mapper namespace=&amp;#34;cc.cc1234.dao.mapper.UserMapper&amp;#34;&amp;gt; &amp;lt;!-- 期望直接通过 ID 应用 --&amp;gt; &amp;lt;select id=&amp;#34;selectByUsername&amp;#34; resultMap=&amp;#34;BaseResultMap&amp;#34;&amp;gt; select * from user where username = #{username} &amp;lt;/select&amp;gt; &amp;lt;/mapper&amp;gt; 其实 generator 生成的 Java Mapper 的方法都差不多（只是参数、返回值类型不同），完全可以将这些方法通过泛型设计放到一个通用的 BaseMapper 接口中去，那么扩展的时候就不是继承各自的 XxxMapper，而都是同一个 BaseMapper 了。</description>
     </item>
@@ -35,7 +35,7 @@
 项目源码请通过 Github 查看。
 目标 我期望的是只要每次数据库有变动都可以使用 Mybatis Generator 来生成代码，而不仅仅是项目首次初始化使用。要实现这样的目标就得解决代码重复生成时可能引入冲突，生成的代码功能不满足需求等问题。
 也就是说项目得有以下几个特性
- 隔离：自动生成的代码能够以某种形式与手写的代码隔离 扩展性：用户不需要（也不允许）去修改生成的代码  可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等 能够以某种非侵入性的方式去扩展生成的代码的功能   一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响  接下来就正式开始尝试把
+隔离：自动生成的代码能够以某种形式与手写的代码隔离 扩展性：用户不需要（也不允许）去修改生成的代码 可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等 能够以某种非侵入性的方式去扩展生成的代码的功能 一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响 接下来就正式开始尝试把
 集成 Gradle 由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 Mybatis Generator Plugin 来集成。
 集成方式很简单，首先需要在 build.gradle 中引入一下插件，并配置指定的版本
 plugins { id &amp;#34;com.thinkimi.gradle.MybatisGenerator&amp;#34; version &amp;#34;2.3&amp;#34; } 刷新完 Gradle 以后，我们就可以在 build.gradle 中通过 mybatisGenerator 块来配置运行时依赖的 JDBC 驱动、mybatis-generator-core 的版本以及代码生成的规则文件</description>
@@ -52,7 +52,7 @@ plugins { id &amp;#34;com.thinkimi.gradle.MybatisGenerator&amp;#34; version &amp
 那 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。而本文是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。
 整个项目我已经放在 Github （Mybatis-Dynamic-SQL-integration-demo） ，如果你感兴趣可以点个 star，我会持续更新。
 观察维度 在开始实际写代码体验之前，我列了四个维度来观察框架是否能符合自己的期望，它们分别是
- Mybatis 生态兼容性 代码生成能力 无 XML DSL 完备度  下面一个一个来过一下
+Mybatis 生态兼容性 代码生成能力 无 XML DSL 完备度 下面一个一个来过一下
 一、Mybatis 生态兼容性
 就是要和 Mybatis 既有的生态保持兼容性，比如一些 SQL 日志插件、分页查询插件以及通用的 TypeHandler，二级缓存等
 二、代码生成能力
