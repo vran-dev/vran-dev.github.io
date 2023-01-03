@@ -6,7 +6,17 @@
     <description>Recent content on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 20 Nov 2022 14:00:43 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 03 Jan 2023 22:39:08 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Spring6 新特性之 Http Interface Client 初探</title>
+      <link>https://blog.cc1234.cc/posts/spring6-http-interface/</link>
+      <pubDate>Tue, 03 Jan 2023 22:39:08 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/spring6-http-interface/</guid>
+      <description>前言 Spring Cloud 在 2022.0.0 版本 Release 的时候宣布 Spring Cloud Openfeign 进入维护模式了：不再添加新特性，只处理 bug 修复、安全修复以及社区 PR 审查。
+Since Spring now provides its own interface HTTP clients solution, starting with 2022.0.0, we’re going to treat Spring Cloud OpenFeign as feature complete. This means that the Spring Cloud team will no longer be adding new features to the module. We will still fix bugs and security issues, and we will also consider and review small pull requests from the community.</description>
+    </item>
+    
     <item>
       <title>PrettyZoo 2.0 重大更新，支持暗黑模式</title>
       <link>https://blog.cc1234.cc/posts/prettyzoo-2/</link>

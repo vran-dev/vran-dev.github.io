@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		
+		<meta name="google-site-verification" content="WQzn_X1rrhY2HHCuTYlY750m0YcuY3H73Z3T-OFsDOM" />
+        
+
+		<meta name="author" content="vran">
+		
+		<meta name="generator" content="Hugo 0.106.0">
+		<title>Spring6 新特性之 Http Interface Client 初探 &middot; 且徐行</title>
+		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
+        <link rel="stylesheet" href="https://blog.cc1234.cc/css/highlight.css">
+</head>
+
+
+<body>
+    <section id="single" class="wrapper">
+    <nav class="nav-main" style="display: flex;">
+         <div style="margin-left:auto;">
+            
+            <a href='https://blog.cc1234.cc/'> Home</a>
+            <a href='https://blog.cc1234.cc/posts'>Archive</a> 
+            <a href='https://blog.cc1234.cc/tags'>Tags</a> 
+            <a href='https://blog.cc1234.cc/about'>About</a>
+   
+           
+         </div>
+</nav>
+
+        <article class = "post">
+            <header>
+                <div class = "post-img">
+                    <img src='img/spring.png' alt="" />
+                </div>
+                <div class = "title" >
+                    Spring6 新特性之 Http Interface Client 初探
+                </div>
+                <div class="meta">
+                2023/01/03
+                · vran
+                </div>
+            </header>
+            <div class = "line"></div>
+            
+            <section class="content">
+                <h2 id="前言">前言</h2>
+<p>Spring Cloud 在 2022.0.0 版本 Release 的时候宣布 <a href="https://github.com/spring-cloud/spring-cloud-openfeign">Spring Cloud Openfeign</a>  进入维护模式了：不再添加新特性，只处理 bug 修复、安全修复以及社区 PR 审查。</p>
+<blockquote>
+<p>Since Spring now provides its own interface HTTP clients solution, starting with 2022.0.0, we’re going to treat Spring Cloud OpenFeign as feature complete. This means that the Spring Cloud team will no longer be adding new features to the module. We will still fix bugs and security issues, and we will also consider and review small pull requests from the community.</p>
+</blockquote>
+<p>原因之一就是 Spring 现在已经自带了基于 Interface 的  Http 客户端解决方案，这不由得也引起了我的兴趣。</p>
+<h2 id="是什么">是什么？</h2>
+<p>第一个疑惑就是这个基于 interface 的 http client 到底是什么？我在 Spring6 的 <a href="https://github.com/spring-projects/spring-framework/wiki/What's-New-in-Spring-Framework-6.x">release note</a> 中找到了答案</p>
+<p><img src="img/a.png" alt="Untitled"></p>
+<p>它就是 <a href="https://docs.spring.io/spring-framework/docs/6.0.3/reference/html/integration.html#rest-http-interface">HTTP Interface client</a>，与 Openfeign 一样是一个声明式的 Java HTTP 网络调用框架。</p>
+<p>目前 Http Interface Client 实现在 <code>spring-web</code> 模块下，它设计了专门的适配层用于适配第三方 Http 网络框架，官方目前提供了 webflux 的适配实现，未来会计划适配 <code>RestTemplate</code> 、<code>Retrofit</code> 等框架。</p>
+<p><img src="img/b.png" alt="Untitled"></p>
+<h2 id="怎么用">怎么用？</h2>
+<p><strong>第一步</strong>：引入依赖</p>
+<p>使用 Http Interface 的话需要引入 <code>web</code> 和 <code>webflux</code> 两个依赖</p>
+<ul>
+<li>Gradle</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span><span style="color:#000">implementation</span> <span style="color:#c41a16">&#39;org.springframework.boot:spring-boot-starter-web:3.0.0&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">implementation</span> <span style="color:#c41a16">&#39;org.springframework.boot:spring-boot-starter-webflux:3.0.0&#39;</span>
+</span></span></code></pre></div><ul>
+<li>Maven</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#000">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#000">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;artifactId&gt;</span>spring-boot-starter-web<span style="color:#000">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#000">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;artifactId&gt;</span>spring-boot-starter-webflux<span style="color:#000">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/dependency&gt;</span>
+</span></span></code></pre></div><p><strong>第二步</strong>：定义接口</p>
+<p>Http Interfaces 基本兼容 spring MVC 的注解，唯一特殊的就是 <code>@RequestMapping</code> 需要使用 <code>@HttpExchange</code> 替代</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">lombok.Data</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.bind.annotation.PathVariable</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.bind.annotation.RequestBody</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.service.annotation.*</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">javax.validation.constraints.NotBlank</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">javax.validation.constraints.NotNull</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@HttpExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/users&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserRestClient</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@GetExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">get</span><span style="color:#000">(</span><span style="color:#000">@PathVariable</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">)</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@DeleteExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">delete</span><span style="color:#000">(</span><span style="color:#000">@PathVariable</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">)</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PutExchange</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">update</span><span style="color:#000">(</span><span style="color:#000">@RequestBody</span> <span style="color:#000">UserUpdateReq</span> <span style="color:#000">user</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PostExchange</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">create</span><span style="color:#000">(</span><span style="color:#000">@RequestBody</span> <span style="color:#000">UserCreateReq</span> <span style="color:#000">user</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Data</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">class</span> <span style="color:#3f6e75">User</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">private</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">private</span> <span style="color:#000">String</span> <span style="color:#000">nickname</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Data</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserCreateReq</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">@NotBlank</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">private</span> <span style="color:#000">String</span> <span style="color:#000">nickname</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Data</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserUpdateReq</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">@NotNull</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">private</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">@NotBlank</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">private</span> <span style="color:#000">String</span> <span style="color:#000">nickname</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p><strong>第三步</strong>：使用 <code>WebClient</code> 注册 Bean</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.context.annotation.Bean</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.context.annotation.Configuration</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.reactive.function.client.WebClient</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.reactive.function.client.support.WebClientAdapter</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.service.invoker.HttpServiceProxyFactory</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">RestClientConfig</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#000">UserRestClient</span> <span style="color:#000">userRestClient</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">WebClient</span> <span style="color:#000">client</span> <span style="color:#000">=</span> <span style="color:#000">WebClient</span><span style="color:#000">.</span><span style="color:#836c28">builder</span><span style="color:#000">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">baseUrl</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;http://localhost:8080&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">build</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">HttpServiceProxyFactory</span> <span style="color:#000">factory</span> <span style="color:#000">=</span> <span style="color:#000">HttpServiceProxyFactory</span><span style="color:#000">.</span><span style="color:#836c28">builder</span><span style="color:#000">(</span><span style="color:#000">WebClientAdapter</span><span style="color:#000">.</span><span style="color:#836c28">forClient</span><span style="color:#000">(</span><span style="color:#000">client</span><span style="color:#000">))</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">build</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">factory</span><span style="color:#000">.</span><span style="color:#836c28">createClient</span><span style="color:#000">(</span><span style="color:#000">UserRestClient</span><span style="color:#000">.</span><span style="color:#836c28">class</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p><strong>第四步</strong>：使用</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#000">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRemoteService</span><span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#000">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">private</span> <span style="color:#000">UserRestClient</span> <span style="color:#000">userRestClient</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#000">UserRestClient</span><span style="color:#000">.</span><span style="color:#836c28">User</span> <span style="color:#000">create</span><span style="color:#000">(</span><span style="color:#000">UserRestClient</span><span style="color:#000">.</span><span style="color:#836c28">UserCreateReq</span> <span style="color:#000">req</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">userRestClient</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">(</span><span style="color:#000">req</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>		
+</span></span><span style="display:flex;"><span>		<span style="color:#177500">// 省略其他接口...
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>目前官方支持的参数类型、注解类型、返回值类型都在文档里有说明，我在这里直接引用一下链接</p>
+<ul>
+<li>Http Interface 支持的参数类型、注解：<a href="https://docs.spring.io/spring-framework/docs/6.0.3/reference/html/integration.html#rest-http-interface-method-parameters">https://docs.spring.io/spring-framework/docs/6.0.3/reference/html/integration.html#rest-http-interface-method-parameters</a></li>
+<li>Http Interface 支持的返回值类型：<a href="https://docs.spring.io/spring-framework/docs/6.0.3/reference/html/integration.html#rest-http-interface-return-values">https://docs.spring.io/spring-framework/docs/6.0.3/reference/html/integration.html#rest-http-interface-return-values</a></li>
+</ul>
+<h2 id="让-httpexchange-的-url-参数支持配置引用">让 @HttpExchange 的 url 参数支持配置引用</h2>
+<p><code>@HttpExchange</code> 的 url 参数其实是支持配置引用的，但是需要我们主动进行配置：构建 <code>HttpServiceProxyFactory</code> 的时候指定一下 <code>StringValueResolver</code> 参数</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">lombok.RequiredArgsConstructor</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.context.annotation.Bean</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.context.annotation.Configuration</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.core.env.Environment</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.reactive.function.client.WebClient</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.reactive.function.client.support.WebClientAdapter</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.service.invoker.HttpServiceProxyFactory</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@RequiredArgsConstructor</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">RestClientConfig</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">private</span> <span style="color:#a90d91">final</span> <span style="color:#000">Environment</span> <span style="color:#000">environment</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#000">UserRestClient</span> <span style="color:#000">httpBinClient</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">WebClient</span> <span style="color:#000">client</span> <span style="color:#000">=</span> <span style="color:#000">WebClient</span><span style="color:#000">.</span><span style="color:#836c28">builder</span><span style="color:#000">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">build</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">HttpServiceProxyFactory</span> <span style="color:#000">factory</span> <span style="color:#000">=</span> <span style="color:#000">HttpServiceProxyFactory</span><span style="color:#000">.</span><span style="color:#836c28">builder</span><span style="color:#000">(</span><span style="color:#000">WebClientAdapter</span><span style="color:#000">.</span><span style="color:#836c28">forClient</span><span style="color:#000">(</span><span style="color:#000">client</span><span style="color:#000">))</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">embeddedValueResolver</span><span style="color:#000">(</span><span style="color:#000">environment</span><span style="color:#000">::</span><span style="color:#000">resolvePlaceholders</span><span style="color:#000">)</span> <span style="color:#177500">// 使用 environment 来解析 url 配置
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>            <span style="color:#000">.</span><span style="color:#836c28">build</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">factory</span><span style="color:#000">.</span><span style="color:#836c28">createClient</span><span style="color:#000">(</span><span style="color:#000">UserRestClient</span><span style="color:#000">.</span><span style="color:#836c28">class</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>这样我们就可以在 <code>@HttpExchange</code> 中引用配置了</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#177500">// 通过 SPEL 表达式引用配置项
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">@HttpExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;${user-service.url}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserRestClient</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@GetExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Json</span><span style="color:#000">&lt;</span><span style="color:#000">User</span><span style="color:#000">&gt;</span> <span style="color:#000">get</span><span style="color:#000">(</span><span style="color:#000">@PathVariable</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">)</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><h2 id="扩展-httpserviceargumentresolver-支持-query-object">扩展 HttpServiceArgumentResolver 支持 Query Object</h2>
+<p>虽然 Http Interface Client 支持使用 <code>@RequestParam</code> 来指定 Query 参数，但在查询参数多的时候我们更习惯所有参数封装成一个 Bean，就像下面这样</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#000">@HttpExchange</span><span style="color:#000">(</span><span style="color:#000">url</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;${user-service.url}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserRestApi</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@GetExchange</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">User</span><span style="color:#000">&gt;</span> <span style="color:#000">list</span><span style="color:#000">(</span><span style="color:#000">Query</span> <span style="color:#000">query</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Data</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Query</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">private</span> <span style="color:#a90d91">int</span> <span style="color:#000">page</span> <span style="color:#000">=</span> <span style="color:#000">0</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">private</span> <span style="color:#a90d91">int</span> <span style="color:#000">size</span> <span style="color:#000">=</span> <span style="color:#000">10</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>但目前 Http Interface Client 还不支持这样的参数定义，好在其提供了 <code>HttpServiceArgumentResolver</code>  扩展点，基于该扩展点可以实现自定义的参数类型解析。</p>
+<p>下面就是一个简化版的 Query Object 对象参数解析实现</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">lombok.RequiredArgsConstructor</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">lombok.extern.slf4j.Slf4j</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.cglib.beans.BeanMap</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.core.MethodParameter</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.core.annotation.AnnotationUtils</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.core.convert.ConversionService</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.lang.Nullable</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.stereotype.Component</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.util.ClassUtils</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.service.annotation.HttpExchange</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.service.invoker.HttpRequestValues</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.service.invoker.HttpServiceArgumentResolver</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">java.lang.reflect.Method</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@RequiredArgsConstructor</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@Component</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">QueryObjectArgumentResolver</span> <span style="color:#a90d91">implements</span> <span style="color:#000">HttpServiceArgumentResolver</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Nullable</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">private</span> <span style="color:#a90d91">final</span> <span style="color:#000">ConversionService</span> <span style="color:#000">conversionService</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#a90d91">boolean</span> <span style="color:#000">resolve</span><span style="color:#000">(</span><span style="color:#000">Object</span> <span style="color:#000">argument</span><span style="color:#000">,</span> <span style="color:#000">MethodParameter</span> <span style="color:#000">parameter</span><span style="color:#000">,</span> <span style="color:#000">HttpRequestValues</span><span style="color:#000">.</span><span style="color:#836c28">Builder</span> <span style="color:#000">requestValues</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">Method</span> <span style="color:#000">method</span> <span style="color:#000">=</span> <span style="color:#000">parameter</span><span style="color:#000">.</span><span style="color:#836c28">getMethod</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">HttpExchange</span> <span style="color:#000">annotation</span> <span style="color:#000">=</span> <span style="color:#000">AnnotationUtils</span><span style="color:#000">.</span><span style="color:#836c28">getAnnotation</span><span style="color:#000">(</span><span style="color:#000">method</span><span style="color:#000">,</span> <span style="color:#000">HttpExchange</span><span style="color:#000">.</span><span style="color:#836c28">class</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">annotation</span> <span style="color:#000">==</span> <span style="color:#a90d91">null</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a90d91">return</span> <span style="color:#a90d91">false</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">parameter</span><span style="color:#000">.</span><span style="color:#836c28">hasParameterAnnotations</span><span style="color:#000">())</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a90d91">return</span> <span style="color:#a90d91">false</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">BeanMap</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">(</span><span style="color:#000">argument</span><span style="color:#000">).</span><span style="color:#836c28">forEach</span><span style="color:#000">((</span><span style="color:#000">key</span><span style="color:#000">,</span> <span style="color:#000">value</span><span style="color:#000">)</span> <span style="color:#000">-&gt;</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#177500">// 忽略基本类型
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>            <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">.</span><span style="color:#836c28">getClass</span><span style="color:#000">().</span><span style="color:#836c28">isPrimitive</span><span style="color:#000">()</span> <span style="color:#000">||</span> <span style="color:#000">ClassUtils</span><span style="color:#000">.</span><span style="color:#836c28">isPrimitiveWrapper</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">.</span><span style="color:#836c28">getClass</span><span style="color:#000">()))</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000">requestValues</span><span style="color:#000">.</span><span style="color:#836c28">addRequestParameter</span><span style="color:#000">(</span><span style="color:#000">key</span><span style="color:#000">.</span><span style="color:#836c28">toString</span><span style="color:#000">(),</span> <span style="color:#000">value</span><span style="color:#000">.</span><span style="color:#836c28">toString</span><span style="color:#000">());</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">}</span> <span style="color:#a90d91">else</span> <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">value</span> <span style="color:#000">!=</span> <span style="color:#a90d91">null</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">conversionService</span> <span style="color:#000">!=</span> <span style="color:#a90d91">null</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">requestVawlues</span><span style="color:#000">.</span><span style="color:#836c28">addRequestParameter</span><span style="color:#000">(</span><span style="color:#000">key</span><span style="color:#000">.</span><span style="color:#836c28">toString</span><span style="color:#000">(),</span> <span style="color:#000">conversionService</span><span style="color:#000">.</span><span style="color:#836c28">convert</span><span style="color:#000">(</span><span style="color:#000">value</span><span style="color:#000">,</span> <span style="color:#000">String</span><span style="color:#000">.</span><span style="color:#836c28">class</span><span style="color:#000">));</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000">}</span> <span style="color:#a90d91">else</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">requestValues</span><span style="color:#000">.</span><span style="color:#836c28">addRequestParameter</span><span style="color:#000">(</span><span style="color:#000">key</span><span style="color:#000">.</span><span style="color:#836c28">toString</span><span style="color:#000">(),</span> <span style="color:#000">value</span><span style="color:#000">.</span><span style="color:#836c28">toString</span><span style="color:#000">());</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">}</span> <span style="color:#a90d91">else</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a90d91">if</span> <span style="color:#000">(</span><span style="color:#000">log</span><span style="color:#000">.</span><span style="color:#836c28">isDebugEnabled</span><span style="color:#000">())</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">log</span><span style="color:#000">.</span><span style="color:#836c28">debug</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;Skip null value for query parameter: {}&#34;</span><span style="color:#000">,</span> <span style="color:#000">key</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">});</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#a90d91">true</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>最后通过 <code>HttpServiceProxyFactory</code> 配置即可</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">com.example.springdemo.extension.QueryObjectArgumentResolver</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">lombok.RequiredArgsConstructor</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.context.annotation.Bean</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.context.annotation.Configuration</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.core.env.Environment</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.reactive.function.client.WebClient</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.reactive.function.client.support.WebClientAdapter</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.web.service.invoker.HttpServiceProxyFactory</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@RequiredArgsConstructor</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">RestClientConfig</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">private</span> <span style="color:#a90d91">final</span> <span style="color:#000">QueryObjectArgumentResolver</span> <span style="color:#000">queryObjectArgumentResolver</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">private</span> <span style="color:#a90d91">final</span> <span style="color:#000">Environment</span> <span style="color:#000">environment</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#000">UserRestClient</span> <span style="color:#000">httpBinClient</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">WebClient</span> <span style="color:#000">client</span> <span style="color:#000">=</span> <span style="color:#000">WebClient</span><span style="color:#000">.</span><span style="color:#836c28">builder</span><span style="color:#000">()</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">build</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">HttpServiceProxyFactory</span> <span style="color:#000">factory</span> <span style="color:#000">=</span> <span style="color:#000">HttpServiceProxyFactory</span><span style="color:#000">.</span><span style="color:#836c28">builder</span><span style="color:#000">(</span><span style="color:#000">WebClientAdapter</span><span style="color:#000">.</span><span style="color:#836c28">forClient</span><span style="color:#000">(</span><span style="color:#000">client</span><span style="color:#000">))</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">embeddedValueResolver</span><span style="color:#000">(</span><span style="color:#000">environment</span><span style="color:#000">::</span><span style="color:#000">resolvePlaceholders</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">customArgumentResolver</span><span style="color:#000">(</span><span style="color:#000">queryObjectArgumentResolver</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">build</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">factory</span><span style="color:#000">.</span><span style="color:#836c28">createClient</span><span style="color:#000">(</span><span style="color:#000">UserRestClient</span><span style="color:#000">.</span><span style="color:#836c28">class</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><h2 id="其他扩展点">其他扩展点</h2>
+<ul>
+<li><code>HttpClientAdapter</code> ：可以适配其他 http 调用库，比如 okHttp、Retrofit 等</li>
+</ul>
+<h2 id="为什么不使用-requestmapping-而要新增一套注解">为什么不使用 @RequestMapping 而要新增一套注解？</h2>
+<p>Spring Cloud Openfeign 基本兼容 spring-web 的注解，所以接口的定义可以同时用于实现服务端的 controller 和生成客户端的 proxy client</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#177500">// 模块 rest-api 定义接口
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">@RequestMapping</span><span style="color:#000">(</span><span style="color:#000">value</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;/api/users&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserRestClient</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@GetMapping</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">get</span><span style="color:#000">(</span><span style="color:#000">@PathVariable</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">)</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@DeleteMapping</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">delete</span><span style="color:#000">(</span><span style="color:#000">@PathVariable</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">)</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PutMapping</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">update</span><span style="color:#000">(</span><span style="color:#000">@RequestBody</span> <span style="color:#000">UserUpdateReq</span> <span style="color:#000">user</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PostMapping</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">create</span><span style="color:#000">(</span><span style="color:#000">@RequestBody</span> <span style="color:#000">UserCreateReq</span> <span style="color:#000">user</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500">// 服务端 controller
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">@RestController</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserRestController</span> <span style="color:#a90d91">implements</span> <span style="color:#000">UserRestClient</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500">// 略...
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500">// 客户端
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">@FeignClient</span><span style="color:#000">(</span><span style="color:#000">name</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;order-api&#34;</span><span style="color:#000">,</span> <span style="color:#000">url</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;${order-api.host}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserApiClient</span> <span style="color:#a90d91">extends</span> <span style="color:#000">UserRestClient</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>   
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>interface 和 controller 实现通常放在不同的模块下，比如</p>
+<ul>
+<li>UserRestApi 位于 rest-api 模块，该模块可以打包为 jar 包发布</li>
+<li>UserRestController 位于 application 模块，该模块是 server 端实现</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user-service/
+</span></span><span style="display:flex;"><span>├─ rest-api/
+</span></span><span style="display:flex;"><span>│  ├─ src/main/java/
+</span></span><span style="display:flex;"><span>│  │  ├─ UserRestApi.java
+</span></span><span style="display:flex;"><span>├─ application/
+</span></span><span style="display:flex;"><span>│  ├─ src/main/java/
+</span></span><span style="display:flex;"><span>│  │  ├─ UserRestController
+</span></span></code></pre></div><p>这样的好处就是，其他 JAVA 服务可以直接引用 rest-api 作为依赖项，然后进行简单的配置就能执行 API 调用了，大大的减少了开发工作量。</p>
+<p>但是现在使用 Http Interface client 的话，接口就得定义两套路由注解了</p>
+<ul>
+<li>一套用于服务端的 spring-mvc</li>
+<li>一套用于客户端的 http interface client</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#000">@RequestMapping</span><span style="color:#000">(</span><span style="color:#000">value</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;/api/users&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">@HttpExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/api/users&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">UserRestClient</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@GetMapping</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@GetExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">get</span><span style="color:#000">(</span><span style="color:#000">@PathVariable</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">)</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@DeleteMapping</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@DeleteExchange</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;/{id}&#34;</span><span style="color:#000">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">delete</span><span style="color:#000">(</span><span style="color:#000">@PathVariable</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;id&#34;</span><span style="color:#000">)</span> <span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PutMapping</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PutExchange</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">update</span><span style="color:#000">(</span><span style="color:#000">@RequestBody</span> <span style="color:#000">UserUpdateReq</span> <span style="color:#000">user</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PostMapping</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">@PostExchange</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">User</span> <span style="color:#000">create</span><span style="color:#000">(</span><span style="color:#000">@RequestBody</span> <span style="color:#000">UserCreateReq</span> <span style="color:#000">user</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>这样看着就非常的冗余，那为什么 http interface client 要单独定义一套注解呢？</p>
+<p>经过我不懈的寻找，终于在 github 上找到了答案，参考以下链接</p>
+<ul>
+<li><a href="https://github.com/spring-projects/spring-framework/issues/29476">https://github.com/spring-projects/spring-framework/issues/29476</a></li>
+<li><a href="https://youtu.be/5LNOnVJKW_4?t=1156">https://youtu.be/5LNOnVJKW_4?t=1156</a></li>
+</ul>
+<p>简单来说是因为 <code>@RequestMapping</code> 是为服务端而生的注解，对于 Client 端来说它并不是很精准，比如</p>
+<ul>
+<li>在服务端可以为路径设置通配符来接受请求，但客户端调用时是不支持为路径设置通配符的</li>
+<li><code>@RequestMapping</code> 的 <code>produces</code> 参数不适用于客户端</li>
+</ul>
+<p>总结一句话：<code>@RequestMapping</code> 就不是为 http 客户端设计的。</p>
+<h2 id="总结">总结</h2>
+<p>Http Interface Client  作为一个新的框架，它的优点和缺点都很明显</p>
+<p>优点</p>
+<ul>
+<li>没有历史包袱，设计简洁，扩展能力优秀</li>
+<li>默认支持 reactive</li>
+<li>天然适配 spring 生态，毕竟出自 spring 官方团队</li>
+<li>默认支持 AOT，毕竟 native build 是未来的方向</li>
+</ul>
+<p>缺点</p>
+<ul>
+<li>生态不如 <em>Spring Cloud Openfeign</em> 等老牌框架丰富，比如目前网络调用层默认只有 webflux 的实现、默认不支持 Query Object 等</li>
+<li>缺少工程最佳实践，这个只能靠时间去踩坑、摸索</li>
+</ul>
+<h2 id="参考">参考</h2>
+<ol>
+<li><strong><strong><a href="https://spring.io/blog/2022/12/16/spring-cloud-2022-0-0-codename-kilburn-has-been-released">Spring Cloud 2022.0.0 (codename Kilburn) Has Been Released</a></strong></strong></li>
+</ol>
+
+            </section>
+
+            <div class="over">
+                <div class="line"></div>
+                <span>over</span>
+                <div class="line"></div>
+            </div>
+        </article>
+        <div class = "social">
+
+    
+        <a href="https://github.com/vran-dev">
+            <svg t="1612751476854" class="social-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="9196" width="22" height="22">
+                <path d="M63.681087 516.285293c0 210.288698 144.593659 387.06044 340.109608 435.411104 8.963443 2.334559 18.979018-5.66029 18.685506-14.948855V740.533933c0-9.954615 5.899616-19.5096 16.818309-25.228593 11.097059-5.5474 8.380932-25.607902-3.738907-28.030515-56.790299-11.356705-105.233532-34.160427-139.233656-64.471315-33.930132-30.367333-53.245562-67.216792-53.245561-106.518217 0-27.359951 9.783022-53.611324 27.084499-77.566521a14.623733 14.623733 0 0 0 2.817728-8.365127v-142.999656l118.721594 63.536587c3.619244 1.971054 8.143864 2.291661 12.088231 0.889571 33.284403-9.868819 69.433946-14.890153 108.385412-14.890153 38.949208 0 75.096494 5.021334 108.385413 14.948856a15.36429 15.36429 0 0 0 12.146933-0.891829l118.662892-63.59529v142.91386a15.115932 15.115932 0 0 0 2.801922 8.42383c17.346633 23.925846 27.098046 50.235922 27.098047 77.564263 0 39.333033-19.268016 76.180235-53.200406 106.547568-34.043022 30.310888-82.5427 53.083-139.278811 64.471315-12.115324 2.363911-14.77049 22.42667-3.73665 27.971813 10.923209 5.723508 16.822825 15.240111 16.822825 25.23085v196.215867c-0.295771 9.28405 9.749156 17.281157 18.685505 14.948855C816.104564 903.343476 960.668872 726.517546 960.668872 516.285293c0-247.50392-201.00239-448.495021-448.492764-448.495021-247.50392 0-448.495021 200.991101-448.495021 448.495021z m448.495021-418.595052c231.37198 0 418.590537 187.236619 418.590537 418.595052 0 189.266376-126.779662 345.246091-298.995176 397.046664v-172.800282c0-11.970825-4.610416-22.60052-11.209949-31.769422 49.723403-13.666429 95.127645-35.156114 127.946942-64.471315 38.922115-34.600697 62.660564-78.952807 62.660564-128.005645 0-32.381285-11.794717-62.003545-29.897711-88.808078v-165.336015c0.085796-10.469392-13.314213-18.322-22.428928-13.068113l-137.34614 73.755365c-34.108498-9.254699-70.578648-15.840684-109.320139-15.840685-38.718913 0-75.277118 6.525025-109.322397 15.840685l-137.352913-73.726013c-9.094395-5.253887-22.510209 2.598721-22.424412 13.068113v165.336014c-18.116541 26.806791-29.899969 56.429051-29.899969 88.808079 0 49.025744 23.7678 93.375596 62.617665 127.978551 32.878 29.373903 78.32514 50.804886 127.962747 64.532275-6.572439 9.137293-11.185113 19.737637-11.185113 31.737813v50.482022c-32.584486 12.149191-54.015469 14.718561-67.275495 12.149191-14.291838-2.829016-21.999947-10.189425-30.787282-22.426671-17.70788-24.646082-35.083865-69.989364-92.546986-84.820814-19.547983-5.222278-26.161062 23.912299-7.475557 28.996852 45.081378 11.67957 53.972571 43.329329 75.638365 73.579256 10.889342 15.068519 26.497473 29.084905 49.578904 33.636619 19.227376 3.736649 42.498461 0.878282 72.863535-9.372104v90.600767c-172.156811-51.825409-298.995176-207.834475-298.995175-397.100851 0.009031-231.360691 187.24565-418.59731 418.604083-418.59731z" fill="#707070" p-id="9197"></path>
+            </svg>  
+        </a>
+    
+
+    
+        <a href='#'>
+            <svg t="1612751098681" class="social-icon" viewBox="0 0 1026 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="16516" width="22" height="22">
+                <path d="M512.034307 0C229.72222 0 0.002375 229.655981 0.002375 512S229.72222 1024 512.034307 1024 1024.066239 794.344019 1024.066239 512 794.346394 0 512.034307 0z m0 989.89647C248.530253 989.89647 34.169769 775.504054 34.169769 512S248.530253 34.10353 512.034307 34.10353 989.898845 248.495946 989.898845 512 775.538361 989.89647 512.034307 989.89647z" fill="#828282" p-id="16517"></path><path d="M792.845583 353.808158a119.106898 119.106898 0 0 0 8.717476-20.532369 17.083697 17.083697 0 0 0-24.939005-19.893726 192.646626 192.646626 0 0 1-52.560309 21.490333 122.332044 122.332044 0 0 0-81.810154-31.517026 121.980791 121.980791 0 0 0-121.789198 126.866409 281.673444 281.673444 0 0 1-183.130847-101.480355 17.115629 17.115629 0 0 0-27.972558 2.235251 121.757266 121.757266 0 0 0-2.107522 118.819508 20.053387 20.053387 0 0 0-6.833478 2.490707 18.233254 18.233254 0 0 0-8.430087 15.359362c0 36.242984 16.125733 69.516278 42.118499 92.124236l-1.117625 1.117625a17.051765 17.051765 0 0 0-3.448672 16.54085 121.853062 121.853062 0 0 0 69.739803 75.519521 195.871772 195.871772 0 0 1-108.760883 18.488712 17.403019 17.403019 0 0 0-18.073594 11.240115 17.115629 17.115629 0 0 0 6.865411 20.117251 314.244231 314.244231 0 0 0 169.847075 49.782212c197.340651 0 315.297992-160.299364 315.297992-315.266059l-0.031932-5.236872a227.420731 227.420731 0 0 0 49.207434-53.007359 17.083697 17.083697 0 0 0-20.787826-25.258326z m-55.721591 56.040913a17.083697 17.083697 0 0 0-7.088936 14.720718c0.191593 4.215043 0.287389 8.49395 0.287389 12.708994 0 138.20232-105.152551 281.16253-281.130598 281.162529a279.725583 279.725583 0 0 1-92.1881-15.582886 225.856056 225.856056 0 0 0 97.233379-44.385681 17.083697 17.083697 0 0 0-10.218286-30.495197 87.877261 87.877261 0 0 1-70.059124-37.105152c8.078832-0.542846 15.998004-1.883997 23.693651-3.959586a17.051765 17.051765 0 0 0-1.149558-33.20943 87.526007 87.526007 0 0 1-66.450792-60.830734c8.49395 2.139454 17.211426 3.384807 25.928901 3.672196 7.504054-0.031932 14.465261-4.630161 16.796308-11.846825s-0.415118-15.167768-6.769614-19.382812a87.685668 87.685668 0 0 1-36.498441-94.040164 315.585381 315.585381 0 0 0 209.730323 94.902332c5.620057 0.031932 10.537608-1.979793 13.954347-6.099039s4.725957-9.579643 3.512536-14.816515a87.813397 87.813397 0 0 1 149.506299-80.021954 17.083697 17.083697 0 0 0 15.774479 5.077211c5.268804-1.053761 10.473743-2.267182 15.614819-3.672196a81.043782 81.043782 0 0 1-7.216665 4.821753 17.083697 17.083697 0 0 0 10.793065 31.548959l5.81165-0.734439a178.979668 178.979668 0 0 1-9.867032 7.567918z" fill="#828282" p-id="16518"></path>
+            </svg>
+        </a>
+    
+
+    
+        <a href='#' >
+            <svg t="1612751005803" class="social-icon" viewBox="0 0 1026 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13371" width="22" height="22">
+                <path d="M512.034307 0C229.72222 0 0.002375 229.655981 0.002375 512S229.72222 1024 512.034307 1024 1024.066239 794.344019 1024.066239 512 794.346394 0 512.034307 0z m0 989.89647C248.530253 989.89647 34.169769 775.504054 34.169769 512S248.530253 34.10353 512.034307 34.10353 989.898845 248.495946 989.898845 512 775.538361 989.89647 512.034307 989.89647z" fill="#828282" p-id="13372"></path><path d="M623.796812 224.610702h-85.194961C430.096425 223.525009 416.237875 290.678309 416.237875 363.355869V416.203567h-47.898217a14.209804 14.209804 0 0 0-15.966072 15.966073v95.796432a14.209804 14.209804 0 0 0 15.966072 15.966072H416.237875v239.491082a14.337533 14.337533 0 0 0 16.061868 15.966072h97.552701c9.419983 1.085693 17.051765-6.54609 14.050143-15.966072L543.966451 543.932144h79.830361a14.209804 14.209804 0 0 0 15.966072-15.966072v-95.796432a14.209804 14.209804 0 0 0-15.966072-15.966073h-79.926157L543.966451 368.305351c3.097418-20.40464 3.097418-17.083697 22.03318-15.966072h57.126606c4.438568-0.989896 9.164525-0.44705 12.485468-3.672197 3.320943-3.225147 5.236872-7.631782 4.119247-12.293875v-95.796433A14.177872 14.177872 0 0 0 623.796812 224.610702z m-17.083697 94.008233l-40.042909-1.532743c-49.59062 0-53.741799 26.918798-53.741799 54.476238l-0.127728 60.543345a17.051765 17.051765 0 0 0 17.051765 17.083697H607.83074v61.692903h-77.914432a17.083697 17.083697 0 0 0-17.083697 17.051765L512.800679 767.457154H448.170019v-239.491082c0-9.419983-6.418361-17.051765-15.870276-17.051765H384.30573v-61.692902h47.994013a17.051765 17.051765 0 0 0 12.070351-4.981415c3.193214-3.225147 3.767993-7.567918 3.767993-12.102283v-68.81377c0-71.591867 14.465261-105.695397 90.431832-105.695398h68.111263v60.990396z" fill="#828282" p-id="13373"></path>
+            </svg>
+        </a>
+    
+
+    
+
+</div>
+        
+        
+        <div>
+            <script src="https://utteranc.es/client.js"
+repo='vran-dev/vran-dev.github.io'
+issue-term="pathname"
+label="Comment"
+theme="github-light"
+crossorigin="anonymous"
+async>
+
+</script>
+        </div>
+        
+
+    </section>
+
+    <footer id="footer">
+    <p>
+        
+        © 2023 <i></i> vran
+        
+        ∘ Powered by <a href="http://www.gohugo.io/">Hugo</a>  ∘  Theme <a href="https://github.com/vran-dev/hugo-zenHo">ZenHo</a>
+    </p>
+</footer>
+
+
+<script>
+    var token = 'bacd84bd97ed2e6eef56ec4cae65acdb';
+    var _hmt = _hmt || [];
+    (function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?" + token;
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+</body>

@@ -2,8 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://blog.cc1234.cc/tags/java/</loc>
+    <lastmod>2023-01-03T22:39:08+08:00</lastmod>
+  </url><url>
     <loc>https://blog.cc1234.cc/posts/</loc>
-    <lastmod>2022-11-20T14:00:43+08:00</lastmod>
+    <lastmod>2023-01-03T22:39:08+08:00</lastmod>
+  </url><url>
+    <loc>https://blog.cc1234.cc/tags/spring/</loc>
+    <lastmod>2023-01-03T22:39:08+08:00</lastmod>
+  </url><url>
+    <loc>https://blog.cc1234.cc/posts/spring6-http-interface/</loc>
+    <lastmod>2023-01-03T22:39:08+08:00</lastmod>
+  </url><url>
+    <loc>https://blog.cc1234.cc/tags/</loc>
+    <lastmod>2023-01-03T22:39:08+08:00</lastmod>
+  </url><url>
+    <loc>https://blog.cc1234.cc/</loc>
+    <lastmod>2023-01-03T22:39:08+08:00</lastmod>
   </url><url>
     <loc>https://blog.cc1234.cc/tags/prettyzoo/</loc>
     <lastmod>2022-11-20T14:00:43+08:00</lastmod>
@@ -11,17 +26,8 @@
     <loc>https://blog.cc1234.cc/posts/prettyzoo-2/</loc>
     <lastmod>2022-11-20T14:00:43+08:00</lastmod>
   </url><url>
-    <loc>https://blog.cc1234.cc/tags/</loc>
-    <lastmod>2022-11-20T14:00:43+08:00</lastmod>
-  </url><url>
     <loc>https://blog.cc1234.cc/tags/zookeeper/</loc>
     <lastmod>2022-11-20T14:00:43+08:00</lastmod>
-  </url><url>
-    <loc>https://blog.cc1234.cc/</loc>
-    <lastmod>2022-11-20T14:00:43+08:00</lastmod>
-  </url><url>
-    <loc>https://blog.cc1234.cc/tags/java/</loc>
-    <lastmod>2022-07-03T22:11:58+08:00</lastmod>
   </url><url>
     <loc>https://blog.cc1234.cc/tags/mybatis/</loc>
     <lastmod>2022-07-03T22:11:58+08:00</lastmod>
@@ -136,9 +142,6 @@
   </url><url>
     <loc>https://blog.cc1234.cc/posts/xingren-wx-service-refactor/</loc>
     <lastmod>2020-05-10T23:48:05+08:00</lastmod>
-  </url><url>
-    <loc>https://blog.cc1234.cc/tags/spring/</loc>
-    <lastmod>2020-05-04T11:40:46+08:00</lastmod>
   </url><url>
     <loc>https://blog.cc1234.cc/posts/spring-ant-matcher-note/</loc>
     <lastmod>2020-05-04T11:40:46+08:00</lastmod>
