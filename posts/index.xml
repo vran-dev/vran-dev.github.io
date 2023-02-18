@@ -6,7 +6,26 @@
     <description>Recent content in Posts on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 03 Jan 2023 22:39:08 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 18 Feb 2023 13:12:15 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分库分表之分片键</title>
+      <link>https://blog.cc1234.cc/posts/sharding-database-shardkey/</link>
+      <pubDate>Sat, 18 Feb 2023 13:12:15 +0800</pubDate>
+      
+      <guid>https://blog.cc1234.cc/posts/sharding-database-shardkey/</guid>
+      <description>前言 分库分表是面向海量数据、高并发系统设计的屠龙技之一，而分片键的选择、设计正是入门这门屠龙技的基础。
+分片键是什么？ 先看看业内的回答
+Shardingsphere：用于将数据库（表）水平拆分的数据库字段
+SingleStore：The shard key is a table column or multiple columns used to control how the rows of that table are distributed
+MongoDB：The shard key is either a single indexed field or multiple fields covered by a compound index that determines the distribution of the collection&amp;rsquo;s documents among the cluster&amp;rsquo;s shards.
+几者的说法基本一致，简单总结一下：分片键是用于决定数据会被分布在哪个分片中的字段。
+比如在关系型数据库中，它通常是一个或多个列字段。
+分片键算法 分片键决定了数据会被分布在哪个分片，实际就是根据分片键的值计算出数据所分布的分片 ID.
+这个计算指的就是分片键算法，即 f(shardKey) = shardID，常见的算法有三种
+Range Hash Lookup Range 范围分片算法，按照字段的取值范围来计算数据所属分片
+优点 1.</description>
+    </item>
+    
     <item>
       <title>Spring 团队打造的下一代 http client 初体验</title>
       <link>https://blog.cc1234.cc/posts/spring6-http-interface/</link>
