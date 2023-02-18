@@ -306,7 +306,7 @@
 <tr>
 <td>用户 ID</td>
 <td>Hash</td>
-<td>假设分为 n 个库，其中 1 个库挂掉，那么 1/n 的用户会收影响</td>
+<td>假设分为 n 个库，其中 1 个库挂掉，那么 1/n 的用户会受影响</td>
 <td>有些用户下单数据多，有些用户下单数据少，很容易造成数据倾斜带来热点问题</td>
 <td>在未分库分表前<!-- raw HTML omitted -->- 后台会根据用户 ID 查询订单（低频）<!-- raw HTML omitted -->- 用户自己也经常会在平台上查询订单，也是基于用户 ID （高频）</td>
 <td>复杂，需要重新分布数据</td>
@@ -349,7 +349,7 @@
 </ul>
 <p>这种方案在大厂是很常见的，比如你现在打开淘宝的订单列表就会发现订单的后几位都是一致的。</p>
 <h2 id="最后">最后</h2>
-<p>实际业务中分片键的选择、设计本质上就是在做一个平衡，没有一个标准的满分答案，甚至分库分表这一步都是最后的选择，因为使用这样的杀器解决一个问题的同时必然也会带来新的问题。</p>
+<p>实际业务中分片键的选择、设计本质上就是在做一个平衡，没有一个标准的满分答案，甚至连选择分库分表都是最后的选择，因为使用这样的杀器解决一个问题的同时必然也会带来新的问题。</p>
 <h2 id="参考">参考</h2>
 <ol>
 <li>ShardingSphere document, <a href="https://shardingsphere.apache.org/document/current/cn/features/sharding/concept">https://shardingsphere.apache.org/document/current/cn/features/sharding/concept</a></li>
