@@ -52,7 +52,7 @@
                 <h2 id="前言">前言</h2>
 <p>分库分表是面向海量数据、高并发系统设计的屠龙技之一，而分片键的选择、设计正是入门这门屠龙技的基础。</p>
 <h2 id="分片键是什么">分片键是什么？</h2>
-<p>先看看业内的回答</p>
+<p>分片键是什么？直接看看业内知名行家的回答</p>
 <blockquote>
 <p><a href="https://shardingsphere.apache.org/">Shardingsphere</a>：用于将数据库（表）水平拆分的数据库字段</p>
 </blockquote>
@@ -63,10 +63,10 @@
 <p><a href="https://www.mongodb.com/docs/manual/core/sharding-shard-key/">MongoDB</a>：The shard key is either a single indexed <a href="https://www.mongodb.com/docs/manual/reference/glossary/#std-term-field">field</a> or multiple fields covered by a <a href="https://www.mongodb.com/docs/manual/reference/glossary/#std-term-compound-index">compound index</a> that determines the distribution of the collection&rsquo;s <a href="https://www.mongodb.com/docs/manual/reference/glossary/#std-term-document">documents</a> among the cluster&rsquo;s <a href="https://www.mongodb.com/docs/manual/reference/glossary/#std-term-shard">shards.</a></p>
 </blockquote>
 <p>几者的说法基本一致，简单总结一下：<strong>分片键是用于决定数据会被分布在哪个分片中的字段</strong>。</p>
-<p>比如在关系型数据库中，它通常是一个或多个列字段。</p>
+<p>以关系型数据库为例，分片键通常是一个或多个列字段。</p>
 <h2 id="分片键算法">分片键算法</h2>
-<p>分片键决定了数据会被分布在哪个分片，实际就是<strong>根据分片键的值计算出数据所分布的分片 ID.</strong></p>
-<p>这个计算指的就是分片键算法，即 <code>f(shardKey) = shardID</code>，常见的算法有三种</p>
+<p>分片键决定了数据会被分布在哪个分片，原理就是<strong>根据分片键的值计算出数据所分布的分片 ID.</strong></p>
+<p>计算的过程就是分片键算法，即 <code>f(shardKey) = shardID</code>，常见的算法有三种</p>
 <ul>
 <li>Range</li>
 <li>Hash</li>
