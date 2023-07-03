@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.106.0">
+		<meta name="generator" content="Hugo 0.81.0" />
 		<title>操作系统之保护模式简谈 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -77,7 +77,7 @@
 <p>为了兼容， 该模式默认是关闭的， 要由程序（通常是系统内核）主动切换。</p>
 <p>为什么要有保护模式呢？因为<a href="https://zh.wikipedia.org/wiki/80286">80286</a>的内存寻址空间达到<code>16MB</code>， 而<a href="https://zh.wikipedia.org/wiki/Intel_80386">80386</a>更是达到了<code>4GB</code>, 实模式没法满足寻址的要求了。</p>
 <p>下面我们就来讲一下<strong>保护模式</strong>是如何实现以上特性的。</p>
-<p>在我们切换到<strong>保护模式</strong>之前我们要准备一个数据结构**<a href="https://zh.wikipedia.org/wiki/%E5%85%A8%E5%B1%80%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8">全局描述符表</a><strong>， 它的本质是一个数组， 数组中的每一个元素称为</strong>全局描述符**， 这是一个64位的数据结构。</p>
+<p>在我们切换到<strong>保护模式</strong>之前我们要准备一个数据结构**<a href="https://zh.wikipedia.org/wiki/%E5%85%A8%E5%B1%80%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8">全局描述符表</a>**， 它的本质是一个数组， 数组中的每一个元素称为**全局描述符**， 这是一个64位的数据结构。</p>
 <blockquote>
 <p>数据结构看着有点怪是不是？这其实是历史原因</p>
 </blockquote>

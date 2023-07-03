@@ -14,7 +14,7 @@
       
       <guid>https://blog.cc1234.cc/posts/spring6-http-interface/</guid>
       <description>前言 Spring Cloud 在 2022.0.0 版本 Release 的时候宣布 Spring Cloud Openfeign 进入维护模式了：不再添加新特性，只处理 bug 修复、安全修复以及社区 PR 审查。
-Since Spring now provides its own interface HTTP clients solution, starting with 2022.0.0, we’re going to treat Spring Cloud OpenFeign as feature complete. This means that the Spring Cloud team will no longer be adding new features to the module. We will still fix bugs and security issues, and we will also consider and review small pull requests from the community.</description>
+ Since Spring now provides its own interface HTTP clients solution, starting with 2022.0.0, we’re going to treat Spring Cloud OpenFeign as feature complete. This means that the Spring Cloud team will no longer be adding new features to the module. We will still fix bugs and security issues, and we will also consider and review small pull requests from the community.</description>
     </item>
     
     <item>
@@ -26,9 +26,9 @@ Since Spring now provides its own interface HTTP clients solution, starting with
       <description>前言 最近团队统一了技术栈，Mybatis 正是其中一项，为了加强自己的开发体验，我再度花时间研究了一下 Mybatis Generator 并开发了几款插件。
 主要目标还是为了将有限的时间投入到高创造性的产出活动中（说的再高大上也是为了少写代码 ing），以及减少低级错误的发生。
 本文就是对这几款插件的一个介绍，插件源码已经放在 github 上了
-https://github.com/vran-dev/mybatis-generator-continuous-plugin 关于我是如何集成 generator 的，可以在 github 上查看另一个演示项目
-https://github.com/vran-dev/mybatis-continuous-generate-integration-demo MapperPlusPlugin 当前问题 很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是不修改由 Mybatis generator 生成的文件，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。
-为了实现扩展，一般会选择继承由 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 、 等元素
+ https://github.com/vran-dev/mybatis-generator-continuous-plugin  关于我是如何集成 generator 的，可以在 github 上查看另一个演示项目
+ https://github.com/vran-dev/mybatis-continuous-generate-integration-demo  MapperPlusPlugin 当前问题 很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是不修改由 Mybatis generator 生成的文件，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。
+为了实现扩展，一般会选择继承由 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 、等元素
 &amp;lt;mapper namespace=&amp;#34;cc.cc1234.dao.mapper.UserMapper&amp;#34;&amp;gt; &amp;lt;select id=&amp;#34;selectByUsername&amp;#34; resultMap=&amp;#34;generated.UserGeneratedMapper.BaseResultMap&amp;#34;&amp;gt; select * from user where username = #{username} &amp;lt;/select&amp;gt; &amp;lt;/mapper&amp;gt; 但这种引用方式不是很便捷，如果能直接通过 id 引用而不需要加 namepace 前缀是最好的了。
 &amp;lt;mapper namespace=&amp;#34;cc.cc1234.dao.mapper.UserMapper&amp;#34;&amp;gt; &amp;lt;!-- 期望直接通过 ID 应用 --&amp;gt; &amp;lt;select id=&amp;#34;selectByUsername&amp;#34; resultMap=&amp;#34;BaseResultMap&amp;#34;&amp;gt; select * from user where username = #{username} &amp;lt;/select&amp;gt; &amp;lt;/mapper&amp;gt; 其实 generator 生成的 Java Mapper 的方法都差不多（只是参数、返回值类型不同），完全可以将这些方法通过泛型设计放到一个通用的 BaseMapper 接口中去，那么扩展的时候就不是继承各自的 XxxMapper，而都是同一个 BaseMapper 了。</description>
     </item>
@@ -42,11 +42,11 @@ https://github.com/vran-dev/mybatis-continuous-generate-integration-demo MapperP
       <description>前言 在工作中经常会遇到需要交付数据库文档的场景，而编写这样的文档又是一个很枯燥、重复的事情，完全可以通过自动化的方式来完成这样的工作。
 本文提供了一个在 JAVA 中如何基于 JDBC 来实现生成数据库文档的思路，希望对你有所帮助。
 第一步：可行性？ JDBC 是 Java Database Connectivity 的缩写，从名字就能看出来是 Java 定义的连接数据库的一个标准，这个标准的具体体现就是一系列接口
-java.sql.Connection java.sql.DatabaseMetaData java.sql.Driver java.sql.Statement javax.sql.DataSource &amp;hellip; 其中 java.sql.DatabaseMetaData （以下简称 DatabaseMetaData ）接口就是对数据库元信息的抽象，这里的元信息就包含了 schema、table、index、column 等我们熟知的概念。
+ java.sql.Connection java.sql.DatabaseMetaData java.sql.Driver java.sql.Statement javax.sql.DataSource &amp;hellip;  其中 java.sql.DatabaseMetaData （以下简称 DatabaseMetaData ）接口就是对数据库元信息的抽象，这里的元信息就包含了 schema、table、index、column 等我们熟知的概念。
 通过 IDEA 我们可以很轻松的查看 DatabaseMetaData 接口定义的方法列表，比如
-getTables：获取表信息 getColumns：获取列信息 getIndexInfo：获取索引信息 getPrimaryKeys：获取主键信息 &amp;hellip; 由此可见， 基于 JDBC 来生成数据库文档的可行性是没问题的，那么接下来我们就进入实验阶段。
+ getTables：获取表信息 getColumns：获取列信息 getIndexInfo：获取索引信息 getPrimaryKeys：获取主键信息 &amp;hellip;  由此可见， 基于 JDBC 来生成数据库文档的可行性是没问题的，那么接下来我们就进入实验阶段。
 第二步：Demo 实验环境：
-Mysql Java Mysql 数据准备 CREATE DATABASE IF NOT EXISTS demo; CREATE TABLE demo.user ( id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, username VARCHAR(255) NOT NULL, nickname VARCHAR(255) NOT NULL DEFAULT &amp;#39;&amp;#39;, create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, CONSTRAINT uk_user_username UNIQUE (username) ) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT &amp;#39;用户&amp;#39;; CREATE TABLE demo.</description>
+ Mysql Java Mysql 数据准备  CREATE DATABASE IF NOT EXISTS demo; CREATE TABLE demo.user ( id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, username VARCHAR(255) NOT NULL, nickname VARCHAR(255) NOT NULL DEFAULT &amp;#39;&amp;#39;, create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, CONSTRAINT uk_user_username UNIQUE (username) ) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT &amp;#39;用户&amp;#39;; CREATE TABLE demo.</description>
     </item>
     
     <item>
@@ -61,7 +61,7 @@ Pattern Matching 一般译作模式匹配，它其实并不是什么新的概念
 回首过往 由于现在 Java 改进了迭代速度和发布周期， 采取了”小步快跑，快速迭代“的策略，所以像 Pattern Matching 这种大的改进也被拆分成了多个 Roadmap。
 从 Java12 开始，Java 团队就在为引入 Pattern Matching 而努力了，他们不想做得跟 Scala 完全一样，而是希望有过之而无不及。
 最开始的 Pattern Matching 是针对 instanceof 操作符的强化，光这项改进就经历了三个版本：从 Java14 开始，直到 Java16 后才 Release。
-JEP 305 Pattern Matching for instanceof (Preview) JEP 375 Pattern Matching for instanceof (Second Preview) JEP 394 Pattern Matching for instanceof Java 团队认为 ”switch 语句就是一种完美的模式匹配“，所以它们也为 switch 语句作了改进，该功能已经在 Java14 中 Release</description>
+ JEP 305 Pattern Matching for instanceof (Preview) JEP 375 Pattern Matching for instanceof (Second Preview) JEP 394 Pattern Matching for instanceof  Java 团队认为 ”switch 语句就是一种完美的模式匹配“，所以它们也为 switch 语句作了改进，该功能已经在 Java14 中 Release</description>
     </item>
     
     <item>
@@ -76,7 +76,7 @@ JEP 305 Pattern Matching for instanceof (Preview) JEP 375 Pattern Matching for i
 项目源码请通过 Github 查看。
 目标 我期望的是只要每次数据库有变动都可以使用 Mybatis Generator 来生成代码，而不仅仅是项目首次初始化使用。要实现这样的目标就得解决代码重复生成时可能引入冲突，生成的代码功能不满足需求等问题。
 也就是说项目得有以下几个特性
-隔离：自动生成的代码能够以某种形式与手写的代码隔离 扩展性：用户不需要（也不允许）去修改生成的代码 可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等 能够以某种非侵入性的方式去扩展生成的代码的功能 一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响 接下来就正式开始尝试把
+ 隔离：自动生成的代码能够以某种形式与手写的代码隔离 扩展性：用户不需要（也不允许）去修改生成的代码  可以修改代码生成的规则，比如通过修改配置或扩展代码生成工具等 能够以某种非侵入性的方式去扩展生成的代码的功能   一致性：生成的代码结构只和项目有关，而不会受系统环境、构建工具等外部依赖的影响  接下来就正式开始尝试把
 集成 Gradle 由于 Mybatis Generator 官方没有提供 Gradle Plugin，所以我选择了通过社区开源的 Gradle 插件 Mybatis Generator Plugin 来集成。
 集成方式很简单，首先需要在 build.gradle 中引入一下插件，并配置指定的版本
 plugins { id &amp;#34;com.thinkimi.gradle.MybatisGenerator&amp;#34; version &amp;#34;2.3&amp;#34; } 刷新完 Gradle 以后，我们就可以在 build.gradle 中通过 mybatisGenerator 块来配置运行时依赖的 JDBC 驱动、mybatis-generator-core 的版本以及代码生成的规则文件</description>
@@ -93,7 +93,7 @@ plugins { id &amp;#34;com.thinkimi.gradle.MybatisGenerator&amp;#34; version &amp
 那 mybatis 生态有没有类似于这样的框架呢？还真巧了，官方还真就有一个叫 Mybatis-dynamic-SQL 项目。而本文是记录我在集成 Mybatis dynamic SQL、Mybatis Generator 时的一些历程。
 整个项目我已经放在 Github （Mybatis-Dynamic-SQL-integration-demo） ，如果你感兴趣可以点个 star，我会持续更新。
 观察维度 在开始实际写代码体验之前，我列了四个维度来观察框架是否能符合自己的期望，它们分别是
-Mybatis 生态兼容性 代码生成能力 无 XML DSL 完备度 下面一个一个来过一下
+ Mybatis 生态兼容性 代码生成能力 无 XML DSL 完备度  下面一个一个来过一下
 一、Mybatis 生态兼容性
 就是要和 Mybatis 既有的生态保持兼容性，比如一些 SQL 日志插件、分页查询插件以及通用的 TypeHandler，二级缓存等
 二、代码生成能力
@@ -118,9 +118,9 @@ Mybatis 生态兼容性 代码生成能力 无 XML DSL 完备度 下面一个一
 int i; public synchronized void mutex() { i++; } public void mutext2() { synchronized(this) { i++; } } 当线程请求进入临界区时都需要先获取一个 monitor 对象（类似于准入许可证），获取 monitor 对象是通过 compare-and-swap (CAS) 操作来实现的。
 从 CPU 的角度来看，CAS 其实是一个开销很昂贵的操作，有没有什么方法可以避免呢？
 我们先看一个 JAVA 团队观察到的现象：
-在大多数对象的生命周期内，基本上只会有一个线程访问临界区
-基于此可以得出一个优化方案：当某个线程首次访问临界区时记录下该线程的信息，当再有线程访问该临界区时判断是否是首次访问的线程
-如果是：就直接放行，这样就避免了通过 CAS 获取 monitor 的操作 如果不是：就升级为轻量级锁 这个优化方案其实就是偏向锁了，在 JVM 的实际实现中，锁升级其实有 4 个状态，并且是只可升级不可降级。</description>
+ 在大多数对象的生命周期内，基本上只会有一个线程访问临界区
+ 基于此可以得出一个优化方案：当某个线程首次访问临界区时记录下该线程的信息，当再有线程访问该临界区时判断是否是首次访问的线程
+ 如果是：就直接放行，这样就避免了通过 CAS 获取 monitor 的操作 如果不是：就升级为轻量级锁  这个优化方案其实就是偏向锁了，在 JVM 的实际实现中，锁升级其实有 4 个状态，并且是只可升级不可降级。</description>
     </item>
     
     <item>
@@ -131,10 +131,10 @@ int i; public synchronized void mutex() { i++; } public void mutext2() { synchro
       <guid>https://blog.cc1234.cc/posts/how-to-develop-prettyzoo/</guid>
       <description>背景 PrettyZoo 是在去年国庆（2019 年）时开发的一个用于管理 Zookeeper 的桌面图形化工具，当时是因为在学习 Elastic-Job-Lite 框架的源码时涉及到了 Zookeeper，想着借助图形化工具去更直观的了解整个框架的设计，但在市面上却找不到一款符合自己期望的产品，那就只能自己动手丰衣足食了，这算是 PrettyZoo 诞生的初衷了。
 其实我已经写过一篇文章来简单介绍过这个产品的研发历程（从 Java8 到 Java11 ： PrettyZoo 开发回顾（模块化在 GUI 中的实践））, 不过那篇文章主要侧重于产品的技术演进过程，这一篇文章是基于国庆重构后的全新版本来写的，记录了自己在这个重构的过程中各个阶段所做的事情，主要包括以下内容
-需求分析 原型设计 技术选型 架构设计 成品展示 需求分析 上一节的背景描述了我为什么要开发这样一款软件，而这一节的主要内容则是分析我想要开发的软件应该有的功能点。
+ 需求分析 原型设计 技术选型 架构设计 成品展示  需求分析 上一节的背景描述了我为什么要开发这样一款软件，而这一节的主要内容则是分析我想要开发的软件应该有的功能点。
 该产品是用于管理 Zookeeper 数据，那么需求其实也需要围绕着 Zookeeper 的功能来分析，这就像为人作肖像画一样，得先去分析目标的特性。
 我将分析后的需求整理成了下面的一个表格，并对功能的优先级、必要性做了标注
-需求 优先级 是否必须 连接创建 高 √ 连接删除 高 √ 节点展示 高 √ 节点创建 高 √ 节点删除 高 √ 节点数据更新 高 √ 递归操作支持 中 √ 节点数据格式化（JSON、YAML） 低 × SSH Tunnel 支持 中 × ACL 支持 中 √ 配置导入/导出 中 × 当然实际的产品开发中还会去调查类同类产品，去参考它们的功能、设计等， 这方面我就略过了。</description>
+   需求 优先级 是否必须     连接创建 高 √   连接删除 高 √   节点展示 高 √   节点创建 高 √   节点删除 高 √   节点数据更新 高 √   递归操作支持 中 √   节点数据格式化（JSON、YAML） 低 ×   SSH Tunnel 支持 中 ×   ACL 支持 中 √   配置导入/导出 中 ×         当然实际的产品开发中还会去调查类同类产品，去参考它们的功能、设计等， 这方面我就略过了。</description>
     </item>
     
     <item>
@@ -151,9 +151,9 @@ VAVR 可不是默默无闻之辈，它的前身是发布于 2014 年的 Javaslan
 这翻译过来不就是颠覆 Java 吗？
 食用指南 阅读本文需要读者对 Java8 的 lambda 语法和常用 API 有一定的了解。
 由于是一篇框架的介绍文（地推 ing），为了避免写成官方文档的翻译，本文会有一些约束
-不会穷尽所有特性和 API，仅做抛砖引玉 不会深入到源码细节 关于示例代码，基本会以单元测试的形式给出并保证运行通过
-注：本文使用的 VAVR 版本为 0.10.3，JDK 版本为 11。
-先来个概览
+ 不会穷尽所有特性和 API，仅做抛砖引玉 不会深入到源码细节  关于示例代码，基本会以单元测试的形式给出并保证运行通过
+ 注：本文使用的 VAVR 版本为 0.10.3，JDK 版本为 11。
+ 先来个概览
 集合，全新的开始 不得不说 Java8 的集合库引入 Stream 以后确实很好用，但也正是因为使用了 Stream，不得不写很多样板代码，反而降低了不少体验。
 // of 方法是 Java9 开始提供的静态工厂 java.</description>
     </item>
@@ -166,10 +166,10 @@ VAVR 可不是默默无闻之辈，它的前身是发布于 2014 年的 Javaslan
       <guid>https://blog.cc1234.cc/posts/typeclasses-1/</guid>
       <description>前言 作为一个 Java 开发者， class 的概念肯定是耳熟能详了，可是在山的另一边还有拥有别样风情的 type classes，但不翻过 Java 这座山，它就始终隔着一层纱。
 一个经典的问题 在编程中，经常需要判断两个值是否相等，这就是判等问题， 然而在很长的一段时间内这个问题都没有一个标准的解决方案。
-我这里统一使用 “值” 来代替对象、基本类型等等概念，以便于简化沟通
-在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
+ 我这里统一使用 “值” 来代替对象、基本类型等等概念，以便于简化沟通
+ 在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
 public void test() { boolean res = &amp;#34;hello&amp;#34; == &amp;#34;world&amp;#34;; boolean res2 = &amp;#34;hello&amp;#34;.equals(&amp;#34;hello&amp;#34;); boolean res3 = 3 == 3; boolean res4 = 5 == 9; } 熟悉 Java 的同学都知道对于非基础类型， equals 方法的默认实现其实就是调用 == 操作符，而 == 操作比较的是对象的引用地址
-public class Object { // ...... public boolean equals(Object obj) { return (this == obj); } // .</description>
+public class Object { // ......  public boolean equals(Object obj) { return (this == obj); } // .</description>
     </item>
     
     <item>
@@ -181,15 +181,13 @@ public class Object { // ...... public boolean equals(Object obj) { return (this
       <description>前言 封装、继承、多态作为 OOP 世界的老三样，几乎是必背的关键词。
 而在刚学习 Java 的很长一段时间，我对多态的理解一直处理很迷糊的状态，重载是多态吗？泛型是多态吗？继承关系是多态吗？
 实际上都是，无论重载、泛型，还是继承关系都是多态的一个具体体现，也被归属为不同的多态分类
-Ad hoc polymorphism（特定多态，也译作特设多态） Parametric polymorphism（参数化多态） Subtyping（子类型多态） 当然不止上面三种分类，像 Scala 就还有另外一种多态分类
-Row polymorphism（行多态） 别被这些名词概念唬住，下面我们就通过代码实例来一一过一遍。
+ Ad hoc polymorphism（特定多态，也译作特设多态） Parametric polymorphism（参数化多态） Subtyping（子类型多态）  当然不止上面三种分类，像 Scala 就还有另外一种多态分类
+ Row polymorphism（行多态）  别被这些名词概念唬住，下面我们就通过代码实例来一一过一遍。
 Ad hoc polymorphism（特定多态） 特定多态是由 Christopher Strachey 在 1967 年提出来的，从它的取名我们可以大概猜到，它是针对于特定问题的多态方案，比如：
-函数重载 操作符重载 函数重载指的是多个函数拥有相同的名称，但却拥有不同的实现。
+ 函数重载 操作符重载  函数重载指的是多个函数拥有相同的名称，但却拥有不同的实现。
 比如下面的函数重载示例，展示了两个名为 print 的 函数，一个打印字符串，一个打印图像。
 public void print(String word) { ... } public void print(Image image) { ... } 操作符重载本质上是一个语法糖，实际的体验与函数重载相似，以 Java 中的 + 操作符为例：
-实际上 Java 的 + 不完全算是操作符重载，因为它针对于字符串的操作其实是将 + 转译成了 StringBuilder 来处理的，算是语法糖。
-但仍可以借助于它来理解操作符重载
-1 + 1 1 + 1.</description>
+ 实际上 Java 的 + 不完全算是操作符重载，因为它针对于字符串的操作其实是将 + 转译成了 StringBuilder 来处理的，算是语法糖。</description>
     </item>
     
     <item>
@@ -199,12 +197,11 @@ public void print(String word) { ... } public void print(Image image) { ... } �
       
       <guid>https://blog.cc1234.cc/posts/spring-ant-matcher-note/</guid>
       <description>在使用 Spring 的时候经常会写路径相关的配置，比如
-@RequestMapping 中配置请求路径 @ComponentScan 中配置包路径 为 Interceptor 配置规则 &amp;hellip;&amp;hellip; 而这些路径的配置规则中，我们经常会看见 、* 等类似于正则表达式的符号，这实际上就是 Spring 的路径匹配规则。
+ @RequestMapping 中配置请求路径 @ComponentScan 中配置包路径 为 Interceptor 配置规则 &amp;hellip;&amp;hellip;  而这些路径的配置规则中，我们经常会看见 、* 等类似于正则表达式的符号，这实际上就是 Spring 的路径匹配规则。
 Spring 默认有一个 AntPathMatcher 类用于处理这类路径的规则匹配， 它借鉴了 Ant 的实现（如果你感兴趣的话，可以在点击这里进行了解），这也是为什么称之为 Ant-Style 的原因。
-题外话：Ant 是一个自动化构建工具，最开始是为了解决 Tomcat 的构建问题而诞生的
-Ant 本身是定义了三种匹配规则，而 spring 在此基础之上额外扩展了一种，参考下面的表格
-? 匹配单个字符 * 匹配 0 个或多个字符 ** 匹配 0 个或多个目录 {spring: [a-z]+} 匹配正则表达式 [a-z]+, 将匹配后的路径作为 spring 的变量 下面的表格展示了一个具体的实例
-com/t?st.jsp 匹配 com/test.jsp，com/tast.jsp，com/txst.jsp com/*.jsp 匹配 com 目录下所有以 .jsp 结尾的文件 com/**/test.jsp 匹配 com 所有层级的子目录下的 test.jsp 文件 org/springframework/**/*.jsp 匹配所有 org/springframework 的子目录下的 jsp 文件 com/{filename:\w+}.</description>
+ 题外话：Ant 是一个自动化构建工具，最开始是为了解决 Tomcat 的构建问题而诞生的
+ Ant 本身是定义了三种匹配规则，而 spring 在此基础之上额外扩展了一种，参考下面的表格
+         ? 匹配单个字符   * 匹配 0 个或多个字符   ** 匹配 0 个或多个目录   {spring: [a-z]+} 匹配正则表达式 [a-z]+, 将匹配后的路径作为 spring 的变量    下面的表格展示了一个具体的实例</description>
     </item>
     
     <item>
@@ -232,21 +229,19 @@ com/t?st.jsp 匹配 com/test.jsp，com/tast.jsp，com/txst.jsp com/*.jsp 匹配 
       <guid>https://blog.cc1234.cc/posts/java-gui-experience/</guid>
       <description>起因 elastic-job-lite 是公司使用的一款定时任务调度框架，该框架将所有的任务调度信息都注册进了 zookeeper 中。
 为了方便定位相关的问题，我去网上搜了 zookeeper 相关的图形化客户端，结果没有一款符合自己的需求，于是就干脆自己写一个算了。
-该客户端是去年国庆假期写的，经历了从 Java8 到 Java11 的重构（主要是模块化），该文章主要是对整个过程的一个回顾
-从需求分析到实现 面向用户：zookeeper 用户
+ 该客户端是去年国庆假期写的，经历了从 Java8 到 Java11 的重构（主要是模块化），该文章主要是对整个过程的一个回顾
+ 从需求分析到实现 面向用户：zookeeper 用户
 软件名称：PrettyZoo
 功能：
-节点 CRUD 节点实时同步 交互与原型：
+ 节点 CRUD 节点实时同步  交互与原型：
 交互分两部，第一步启动页面要求用户输入 zookeeper 的服务地址，连接成功后会跳到节点操作页面
 ​	技术方案：
-语言采用 Java UI 框架采用 Swing 采用传统的分层架构 Zookeeper Client 采用 Apache Curator 最终实现：
+ 语言采用 Java UI 框架采用 Swing 采用传统的分层架构 Zookeeper Client 采用 Apache Curator  最终实现：
 不足：
-受限于交互流程，一次只能管理一个 zookeeper server 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面 颜值不足 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom 界面与架构的重构规划 重构主要是为了解决上一版的不足，而第一步就是分析产生这些问题的根本原因，再提出对应的解决方案
-一次只能管理一个 server
+ 受限于交互流程，一次只能管理一个 zookeeper server 由于是 Java8，运行需要安装额外的 JRE（或 JDK），影响了受众面 颜值不足 工程质量方面，架构分层不清晰，导致层与层之间相互渗透，随时膨胀为一个 Big Bom  界面与架构的重构规划 重构主要是为了解决上一版的不足，而第一步就是分析产生这些问题的根本原因，再提出对应的解决方案
+  一次只能管理一个 server
 这是因为交互和设计上导致的，要解决该问题需要重新思考交互和软件的布局。
-经过网上的调研，最终决定采用 “三栏布局”，即解决了以前交互模式的分割感，又满足了一次性管理多个 server 的需求。
-需要额外安装 JRE
-既然选择了 Java 作为开发语言，那么程序必然会依赖 JRE 来运行。此时再切换语言自然是不现实的，好在 Java9 的 模块化系统（Jigsaw）提供了另一个选择，细节就不在此深入讨论了。</description>
+经过网上的调研，最终决定采用 “三栏布局”，即解决了以前交互模式的分割感，又满足了一次性管理多个 server 的需求。</description>
     </item>
     
     <item>
@@ -260,13 +255,12 @@ Java 的模块化系统可以说是一波三折，在 2005 年（Java7） 就已
 直到 2014年，新的提案 JSR376 被提出，Java 的模块化系统才得以重新步入正轨，虽然它迟到了（原计划于 Java8 发布），但并没有缺席。
 下图展示了从 JSR376 被提出到实现的各个阶段：
 目标 在 JSR376 中，对模块化系统的目标是有非常明确的描述的：
-使用更可靠的配置来描述程序组件之间的依赖关系，并以此替代问题频出的 class-path 组件可以控制其 API 被其他组件的访问性，提供一个更强的封装能力 增加 JavaSE 平台的扩展性，开发人员可以只将他需要的功能模块组装到一个自定义的配置中去 增强平台的完整性，确保平台内部 API 不会被访问 性能提升 实际上最核心的目标是最前面的两点，替代 class-path 和 增强封装性。
-在 Project Jigsaw: Goals &amp;amp; Requirements DRAFT 3 里对于实现目标的描述可能更加通俗易懂一些。
-初次接触 Java9 的模块化系统时，会不自觉的和 Maven、Gradle 等构建工具进行对比，但是实际上两者关注的核心点是不一样的。
+ 使用更可靠的配置来描述程序组件之间的依赖关系，并以此替代问题频出的 class-path 组件可以控制其 API 被其他组件的访问性，提供一个更强的封装能力 增加 JavaSE 平台的扩展性，开发人员可以只将他需要的功能模块组装到一个自定义的配置中去 增强平台的完整性，确保平台内部 API 不会被访问 性能提升  实际上最核心的目标是最前面的两点，替代 class-path 和 增强封装性。
+ 在 Project Jigsaw: Goals &amp;amp; Requirements DRAFT 3 里对于实现目标的描述可能更加通俗易懂一些。
+ 初次接触 Java9 的模块化系统时，会不自觉的和 Maven、Gradle 等构建工具进行对比，但是实际上两者关注的核心点是不一样的。
 模块化系统更注重模块之间的封装性，而构建工具更注重的是依赖管理和项目构建。
 也就是说构建工具可以决定依赖某个第三方库，而模块系统则决定你能使用该第三方库的哪些包或类，两者并不是对立的。
-这也恰好解释了为什么 Java 的模块化系统没有版本管理
-语法 Java 的模块是在 package 之上提供的一层抽象，所以通常一个模块是由多个 package 聚合而成的。</description>
+这也恰好解释了为什么 Java 的模块化系统没有版本管理</description>
     </item>
     
     <item>
@@ -275,13 +269,13 @@ Java 的模块化系统可以说是一波三折，在 2005 年（Java7） 就已
       <pubDate>Thu, 22 Aug 2019 13:30:06 +0800</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/spring-circle-reference/</guid>
-      <description>前言 本文最耗时间的点就在于想一个好的标题， 既要灿烂夺目，又要光华内敛，事实证明这比砍需求还要难！
-由于对象之间的依赖关系经常是错综复杂，使用不当会引发很多意想不到的问题， 一个很典型的问题就是循环依赖 （也可以称之为循环引用）。
+      <description>前言  本文最耗时间的点就在于想一个好的标题， 既要灿烂夺目，又要光华内敛，事实证明这比砍需求还要难！
+ 由于对象之间的依赖关系经常是错综复杂，使用不当会引发很多意想不到的问题， 一个很典型的问题就是循环依赖 （也可以称之为循环引用）。
 Spring 为我们提供了依赖注入，并且在某些情景（单例 Bean 的注入）下支持循环依赖的注入
 本文的主要目的是分析 Spring 在 Bean 的创建中是如何处理循环依赖的。
 我会从循环依赖是什么，以及它的坏处，到最后通过Spring的源码来看它是如何处理这个问题的。
-循环依赖不仅仅是 Spring 的 Bean 之间会产生， 往大了看，系统模块之间会产生循环依赖， 系统与系统之间也会产生循环依赖，这是一个典型的坏味道，我们应该尽量避免。
-什么是循环依赖 循环依赖指的是多个对象之间的依赖关系形成一个闭环。
+ 循环依赖不仅仅是 Spring 的 Bean 之间会产生， 往大了看，系统模块之间会产生循环依赖， 系统与系统之间也会产生循环依赖，这是一个典型的坏味道，我们应该尽量避免。
+ 什么是循环依赖 循环依赖指的是多个对象之间的依赖关系形成一个闭环。
 下图展示了两个对象 A 和 B 形成的一个循环依赖
 下图展示了多个对象形成的一个循环依赖
 现实中由于依赖层次深、关系复杂等因素， 导致循环依赖可能并不是那么一目了然。
@@ -290,7 +284,7 @@ Spring 为我们提供了依赖注入，并且在某些情景（单例 Bean 的�
 换句话说就是牵一发而动全身，想象一下平静的湖面落入一颗石子，涟漪会瞬间向周围扩散。
 循环依赖形成了一个环状依赖关系， 这个环中的某一点产生不稳定变化，都会导致整个环产生不稳定变化
 实际的体验就是
-难以为代码编写测试，因为易变导致写的测试也不稳定 难以重构，因为互相依赖，你改动一个自然会影响其他依赖对象 难以维护，你根本不敢想象你的改动会造成什么样的后果 &amp;hellip;&amp;hellip; 二、循环依赖会导致内存溢出
+ 难以为代码编写测试，因为易变导致写的测试也不稳定 难以重构，因为互相依赖，你改动一个自然会影响其他依赖对象 难以维护，你根本不敢想象你的改动会造成什么样的后果 &amp;hellip;&amp;hellip;  二、循环依赖会导致内存溢出
 参考下面的代码
 public class AService { private BService bService = new BService(); } public class BService { private AService aService = new AService(); } 当你通过 new AService() 创建一个对象时你会获得一个栈溢出的错误。</description>
     </item>

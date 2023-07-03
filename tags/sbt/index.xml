@@ -18,14 +18,14 @@
 注意图中红框部分，耗时1266秒，近半个小时。在刷新期间资源占用也很高，导致电脑很卡 （风扇还呼呼呼的转，温度蹭蹭蹭的长）。
 最关键的是由于依赖的很多服务升级很快 （几乎每天都有升级），所以这个操作每天也会持续很多次，难以想象耗费在这方面的时间是何其之多。
 人生苦短，在刷新了几次之后，我再也受不了这漫长的等待时间，于是开始了这漫漫的优化之路。
-正所谓工欲善其事必先利其器
-Round 1: 十八般武艺齐上阵 不知道大家碰见这种问题会怎么做，我反正是二话不说打开 Google 直接搜： SBT 依赖下载慢。
+ 正所谓工欲善其事必先利其器
+ Round 1: 十八般武艺齐上阵 不知道大家碰见这种问题会怎么做，我反正是二话不说打开 Google 直接搜： SBT 依赖下载慢。
 还别说，有共鸣的人还不少， 总结了下几乎都是以下的解决方案
-添加代理 添加国内镜像源 我这肯定不是源的问题啊，我司用的私有仓库，既然私有jar都下载下来了，肯定是走的私有仓库啊。
+  添加代理 添加国内镜像源   我这肯定不是源的问题啊，我司用的私有仓库，既然私有jar都下载下来了，肯定是走的私有仓库啊。
 翻了几页，没有满意的答案，也试了几个方案，也没啥用。
 看来还是得自己从问题的根源开始找起啊&amp;hellip;&amp;hellip;
 为了保险起见， 我还是先排查一下是不是镜像问题， 项目的 build.sbt 配置文件中是有私有仓库的相关配置项的：
-lazy val commonSettings = Seq( //.... // ... 私有仓库 resolvers := {Resolver.url(&amp;#34;xr-ivy-releasez&amp;#34;, new URL(&amp;#34;http://nexus.xxxx.com/repository/ivy-releases/&amp;#34;))(Resolver.ivyStylePatterns) +: resolvers.value}, resolvers := { {&amp;#34;xr-maven-public&amp;#34; at &amp;#34;http://nexus.xxxx.com/repository/public/&amp;#34;} +: resolvers.value}, // .... ) 此时我忽然想到一种情况：难道是默认走的公共库，在公共库找不到依赖才会走私有库 ？</description>
+lazy val commonSettings = Seq( //....  // ... 私有仓库  resolvers := {Resolver.url(&amp;#34;xr-ivy-releasez&amp;#34;, new URL(&amp;#34;http://nexus.xxxx.com/repository/ivy-releases/&amp;#34;))(Resolver.ivyStylePatterns) +: resolvers.value}, resolvers := { {&amp;#34;xr-maven-public&amp;#34; at &amp;#34;http://nexus.</description>
     </item>
     
   </channel>
