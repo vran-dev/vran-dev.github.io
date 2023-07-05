@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.81.0" />
+		<meta name="generator" content="Hugo 0.106.0">
 		<title>【Java】如何用 JDBC 写一个数据库文档生成工具？ &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -80,71 +80,70 @@
 <li>Java</li>
 <li>Mysql 数据准备</li>
 </ol>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">DATABASE</span> <span style="color:#a90d91">IF</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">EXISTS</span> <span style="color:#000">demo</span>;
-
-<span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">TABLE</span> <span style="color:#000">demo</span>.<span style="color:#a90d91">user</span>
-(
-    <span style="color:#000">id</span>        <span style="color:#a90d91">INT</span> <span style="color:#a90d91">PRIMARY</span> <span style="color:#a90d91">KEY</span> <span style="color:#000">AUTO_INCREMENT</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
-    <span style="color:#000">username</span>  <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                   <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
-    <span style="color:#000">nickname</span>  <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                   <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span> <span style="color:#a90d91">DEFAULT</span> <span style="color:#c41a16">&#39;&#39;</span>,
-    <span style="color:#000">create_at</span> <span style="color:#a90d91">TIMESTAMP</span>                               <span style="color:#a90d91">DEFAULT</span> <span style="color:#a90d91">CURRENT_TIMESTAMP</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
-    <span style="color:#a90d91">CONSTRAINT</span> <span style="color:#000">uk_user_username</span> <span style="color:#a90d91">UNIQUE</span> (<span style="color:#000">username</span>)
-) <span style="color:#000">CHARSET</span> <span style="color:#000">utf8mb4</span>
-  <span style="color:#a90d91">COLLATE</span> <span style="color:#000">utf8mb4_unicode_ci</span> <span style="color:#a90d91">COMMENT</span> <span style="color:#c41a16">&#39;用户&#39;</span>;
-
-<span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">TABLE</span> <span style="color:#000">demo</span>.<span style="color:#000">post</span>
-(
-    <span style="color:#000">id</span>        <span style="color:#a90d91">INT</span> <span style="color:#a90d91">PRIMARY</span> <span style="color:#a90d91">KEY</span> <span style="color:#000">AUTO_INCREMENT</span>      <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
-    <span style="color:#000">user_id</span>   <span style="color:#a90d91">INT</span>                                 <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
-    <span style="color:#000">title</span>     <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                        <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
-    <span style="color:#000">content</span>   <span style="color:#a90d91">TEXT</span>                                <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
-    <span style="color:#000">create_at</span> <span style="color:#a90d91">TIMESTAMP</span> <span style="color:#a90d91">DEFAULT</span> <span style="color:#a90d91">CURRENT_TIMESTAMP</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>
-) <span style="color:#000">CHARSET</span> <span style="color:#000">utf8mb4</span>
-  <span style="color:#a90d91">COLLATE</span> <span style="color:#000">utf8mb4_unicode_ci</span> <span style="color:#a90d91">COMMENT</span> <span style="color:#c41a16">&#39;文章&#39;</span>;
-</code></pre></div><p><strong>实验目标：</strong></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">DATABASE</span> <span style="color:#a90d91">IF</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">EXISTS</span> <span style="color:#000">demo</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">TABLE</span> <span style="color:#000">demo</span>.<span style="color:#a90d91">user</span>
+</span></span><span style="display:flex;"><span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#000">id</span>        <span style="color:#a90d91">INT</span> <span style="color:#a90d91">PRIMARY</span> <span style="color:#a90d91">KEY</span> <span style="color:#000">AUTO_INCREMENT</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#000">username</span>  <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                   <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#000">nickname</span>  <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                   <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span> <span style="color:#a90d91">DEFAULT</span> <span style="color:#c41a16">&#39;&#39;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#000">create_at</span> <span style="color:#a90d91">TIMESTAMP</span>                               <span style="color:#a90d91">DEFAULT</span> <span style="color:#a90d91">CURRENT_TIMESTAMP</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">CONSTRAINT</span> <span style="color:#000">uk_user_username</span> <span style="color:#a90d91">UNIQUE</span> (<span style="color:#000">username</span>)
+</span></span><span style="display:flex;"><span>) <span style="color:#000">CHARSET</span> <span style="color:#000">utf8mb4</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a90d91">COLLATE</span> <span style="color:#000">utf8mb4_unicode_ci</span> <span style="color:#a90d91">COMMENT</span> <span style="color:#c41a16">&#39;用户&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">CREATE</span> <span style="color:#a90d91">TABLE</span> <span style="color:#000">demo</span>.<span style="color:#000">post</span>
+</span></span><span style="display:flex;"><span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#000">id</span>        <span style="color:#a90d91">INT</span> <span style="color:#a90d91">PRIMARY</span> <span style="color:#a90d91">KEY</span> <span style="color:#000">AUTO_INCREMENT</span>      <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#000">user_id</span>   <span style="color:#a90d91">INT</span>                                 <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#000">title</span>     <span style="color:#a90d91">VARCHAR</span>(<span style="color:#1c01ce">255</span>)                        <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#000">content</span>   <span style="color:#a90d91">TEXT</span>                                <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#000">create_at</span> <span style="color:#a90d91">TIMESTAMP</span> <span style="color:#a90d91">DEFAULT</span> <span style="color:#a90d91">CURRENT_TIMESTAMP</span> <span style="color:#a90d91">NOT</span> <span style="color:#a90d91">NULL</span>
+</span></span><span style="display:flex;"><span>) <span style="color:#000">CHARSET</span> <span style="color:#000">utf8mb4</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a90d91">COLLATE</span> <span style="color:#000">utf8mb4_unicode_ci</span> <span style="color:#a90d91">COMMENT</span> <span style="color:#c41a16">&#39;文章&#39;</span>;
+</span></span></code></pre></div><p><strong>实验目标：</strong></p>
 <ul>
 <li>获取 demo 库中的 user、post 表数据</li>
 </ul>
 <p><strong>实验流程：</strong></p>
 <p>首先我们需要通过  <code>java.sql.Connection</code> （以下简称 <code>Connection</code>）的 <code>getMetaData</code> 方法来获取上一节提到的 <code>DatabaseMetaData</code> 类。</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">Connection</span>  <span style="color:#a90d91">extends</span> <span style="color:#000">Wrapper</span><span style="color:#000">,</span> <span style="color:#000">AutoCloseable</span> <span style="color:#000">{</span>
-	<span style="color:#000">DatabaseMetaData</span> <span style="color:#000">getMetaData</span><span style="color:#000">()</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span><span style="color:#000">;</span>
-<span style="color:#000">}</span>
-
-</code></pre></div><p><code>Connection</code>  的获取需要依赖数据库驱动，以 Mysql 为例，就得通过通过构建工具引入 <code>mysql-connector-java</code> 这个库。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">Connection</span>  <span style="color:#a90d91">extends</span> <span style="color:#000">Wrapper</span><span style="color:#000">,</span> <span style="color:#000">AutoCloseable</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#000">DatabaseMetaData</span> <span style="color:#000">getMetaData</span><span style="color:#000">()</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p><code>Connection</code>  的获取需要依赖数据库驱动，以 Mysql 为例，就得通过通过构建工具引入 <code>mysql-connector-java</code> 这个库。</p>
 <p>下面的代码展示了在 Gradle 中引入的方式</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#000">dependencies</span> <span style="color:#000">{</span>
-	<span style="color:#000">implementation</span> <span style="color:#c41a16">&#34;mysql:mysql-connector-java:8.0.27&#34;</span>
-<span style="color:#000">}</span>
-</code></pre></div><p>依赖刷新完成以后就可以创建 <code>Connection</code> 并获取 <code>DatabaseMetaData</code> 对象了：</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Demo</span> <span style="color:#000">{</span>
-    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">main</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
-        <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">metaData</span> <span style="color:#000">=</span> <span style="color:#000">getMetaData</span><span style="color:#000">();</span> <span style="color:#177500">// 成功获取 metaData 对象
-</span><span style="color:#177500"></span>    <span style="color:#000">}</span>
-
-    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">getMetaData</span><span style="color:#000">()</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
-        <span style="color:#a90d91">try</span> <span style="color:#000">{</span>
-            <span style="color:#177500">// 加载驱动
-</span><span style="color:#177500"></span>            <span style="color:#000">Class</span><span style="color:#000">.</span><span style="color:#836c28">forName</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;com.mysql.cj.jdbc.Driver&#34;</span><span style="color:#000">);</span>
-        <span style="color:#000">}</span> <span style="color:#a90d91">catch</span> <span style="color:#000">(</span><span style="color:#000">ClassNotFoundException</span> <span style="color:#000">e</span><span style="color:#000">)</span> <span style="color:#000">{</span>
-            <span style="color:#a90d91">throw</span> <span style="color:#a90d91">new</span> <span style="color:#000">IllegalStateException</span><span style="color:#000">(</span><span style="color:#000">e</span><span style="color:#000">);</span>
-        <span style="color:#000">}</span>
-
-        <span style="color:#000">Properties</span> <span style="color:#000">info</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">Properties</span><span style="color:#000">();</span>
-        <span style="color:#177500">// 填入你的用户名、密码和连接地址
-</span><span style="color:#177500"></span>        <span style="color:#000">info</span><span style="color:#000">.</span><span style="color:#836c28">put</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;user&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;root&#34;</span><span style="color:#000">);</span>
-        <span style="color:#000">info</span><span style="color:#000">.</span><span style="color:#836c28">put</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;password&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;123456&#34;</span><span style="color:#000">);</span>
-        <span style="color:#000">String</span> <span style="color:#000">jdbcUrl</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;jdbc:mysql://127.0.0.1:3306/demo&#34;</span><span style="color:#000">;</span>
-        <span style="color:#000">Connection</span> <span style="color:#000">connection</span> <span style="color:#000">=</span> <span style="color:#000">DriverManager</span><span style="color:#000">.</span><span style="color:#836c28">getConnection</span><span style="color:#000">(</span><span style="color:#000">jdbcUrl</span><span style="color:#000">,</span> <span style="color:#000">info</span><span style="color:#000">);</span>
-        <span style="color:#a90d91">return</span> <span style="color:#000">connection</span><span style="color:#000">.</span><span style="color:#836c28">getMetaData</span><span style="color:#000">();</span>
-    <span style="color:#000">}</span>
-<span style="color:#000">}</span>
-</code></pre></div><p>前面我们已经简单展示过 <code>DatabaseMetaData</code> 的 API 了，其中 <code>getTables</code> 就是获取所有表的方法，完整查看一下该方法的定义</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">ResultSet</span> <span style="color:#000">getTables</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">catalog</span><span style="color:#000">,</span>
-                    <span style="color:#000">String</span> <span style="color:#000">schemaPattern</span><span style="color:#000">,</span>
-                    <span style="color:#000">String</span> <span style="color:#000">tableNamePattern</span><span style="color:#000">,</span>
-                    <span style="color:#000">String</span> <span style="color:#000">types</span><span style="color:#000">[])</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span><span style="color:#000">;</span>
-</code></pre></div><p>在源码中有完整的注释，限于篇幅我就不贴了，直接说明一下这些参数</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span><span style="color:#000">dependencies</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#000">implementation</span> <span style="color:#c41a16">&#34;mysql:mysql-connector-java:8.0.27&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>依赖刷新完成以后就可以创建 <code>Connection</code> 并获取 <code>DatabaseMetaData</code> 对象了：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Demo</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">main</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">metaData</span> <span style="color:#000">=</span> <span style="color:#000">getMetaData</span><span style="color:#000">();</span> <span style="color:#177500">// 成功获取 metaData 对象
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">getMetaData</span><span style="color:#000">()</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">try</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500">// 加载驱动
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>            <span style="color:#000">Class</span><span style="color:#000">.</span><span style="color:#836c28">forName</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;com.mysql.cj.jdbc.Driver&#34;</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">}</span> <span style="color:#a90d91">catch</span> <span style="color:#000">(</span><span style="color:#000">ClassNotFoundException</span> <span style="color:#000">e</span><span style="color:#000">)</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a90d91">throw</span> <span style="color:#a90d91">new</span> <span style="color:#000">IllegalStateException</span><span style="color:#000">(</span><span style="color:#000">e</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">Properties</span> <span style="color:#000">info</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">Properties</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500">// 填入你的用户名、密码和连接地址
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>        <span style="color:#000">info</span><span style="color:#000">.</span><span style="color:#836c28">put</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;user&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;root&#34;</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">info</span><span style="color:#000">.</span><span style="color:#836c28">put</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;password&#34;</span><span style="color:#000">,</span> <span style="color:#c41a16">&#34;123456&#34;</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">String</span> <span style="color:#000">jdbcUrl</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;jdbc:mysql://127.0.0.1:3306/demo&#34;</span><span style="color:#000">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">Connection</span> <span style="color:#000">connection</span> <span style="color:#000">=</span> <span style="color:#000">DriverManager</span><span style="color:#000">.</span><span style="color:#836c28">getConnection</span><span style="color:#000">(</span><span style="color:#000">jdbcUrl</span><span style="color:#000">,</span> <span style="color:#000">info</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">connection</span><span style="color:#000">.</span><span style="color:#836c28">getMetaData</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>前面我们已经简单展示过 <code>DatabaseMetaData</code> 的 API 了，其中 <code>getTables</code> 就是获取所有表的方法，完整查看一下该方法的定义</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#000">ResultSet</span> <span style="color:#000">getTables</span><span style="color:#000">(</span><span style="color:#000">String</span> <span style="color:#000">catalog</span><span style="color:#000">,</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">String</span> <span style="color:#000">schemaPattern</span><span style="color:#000">,</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">String</span> <span style="color:#000">tableNamePattern</span><span style="color:#000">,</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">String</span> <span style="color:#000">types</span><span style="color:#000">[])</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span><span style="color:#000">;</span>
+</span></span></code></pre></div><p>在源码中有完整的注释，限于篇幅我就不贴了，直接说明一下这些参数</p>
 <ul>
 <li>catalog：catalog 名称，可以为 null</li>
 <li>schemaPattern：schema 名称模糊查询，可以为 null</li>
@@ -188,26 +187,26 @@
 </tbody>
 </table>
 <p>方法的参数和返回值都确认以后我们就可以继续完善前面的 <code>main</code> 方法了：</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Demo</span> <span style="color:#000">{</span>
-    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">main</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
-        <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">metaData</span> <span style="color:#000">=</span> <span style="color:#000">getMetaData</span><span style="color:#000">();</span>
-        <span style="color:#177500">// 获取 demo 库下所有表
-</span><span style="color:#177500"></span>        <span style="color:#000">ResultSet</span> <span style="color:#000">result</span> <span style="color:#000">=</span> <span style="color:#000">metaData</span><span style="color:#000">.</span><span style="color:#836c28">getTables</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;demo&#34;</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">);</span>
-        <span style="color:#a90d91">while</span> <span style="color:#000">(</span><span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">next</span><span style="color:#000">())</span> <span style="color:#000">{</span>
-            <span style="color:#000">String</span> <span style="color:#000">msg</span> <span style="color:#000">=</span> <span style="color:#000">String</span><span style="color:#000">.</span><span style="color:#836c28">format</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;Table：%s, Type: %s, Comment: %s&#34;</span><span style="color:#000">,</span>
-                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;TABLE_NAME&#34;</span><span style="color:#000">),</span>
-                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;TABLE_TYPE&#34;</span><span style="color:#000">),</span>
-                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;REMARKS&#34;</span><span style="color:#000">));</span>
-            <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">msg</span><span style="color:#000">);</span>
-        <span style="color:#000">}</span>
-    <span style="color:#000">}</span>
-    
-    <span style="color:#177500">// 忽略 getMetaData() 方法
-</span><span style="color:#177500"></span><span style="color:#000">}</span>
-</code></pre></div><p>不出意外控制台就会打印以下信息</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">Table：post, Type: TABLE, Comment: 文章
-Table：user, Type: TABLE, Comment: 用户
-</code></pre></div><h2 id="第三步完善">第三步：完善</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Demo</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">public</span> <span style="color:#a90d91">static</span> <span style="color:#a90d91">void</span> <span style="color:#000">main</span><span style="color:#000">(</span><span style="color:#000">String</span><span style="color:#000">[]</span> <span style="color:#000">args</span><span style="color:#000">)</span> <span style="color:#a90d91">throws</span> <span style="color:#000">SQLException</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">DatabaseMetaData</span> <span style="color:#000">metaData</span> <span style="color:#000">=</span> <span style="color:#000">getMetaData</span><span style="color:#000">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500">// 获取 demo 库下所有表
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>        <span style="color:#000">ResultSet</span> <span style="color:#000">result</span> <span style="color:#000">=</span> <span style="color:#000">metaData</span><span style="color:#000">.</span><span style="color:#836c28">getTables</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;demo&#34;</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">,</span> <span style="color:#a90d91">null</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">while</span> <span style="color:#000">(</span><span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">next</span><span style="color:#000">())</span> <span style="color:#000">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">String</span> <span style="color:#000">msg</span> <span style="color:#000">=</span> <span style="color:#000">String</span><span style="color:#000">.</span><span style="color:#836c28">format</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;Table：%s, Type: %s, Comment: %s&#34;</span><span style="color:#000">,</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;TABLE_NAME&#34;</span><span style="color:#000">),</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;TABLE_TYPE&#34;</span><span style="color:#000">),</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">result</span><span style="color:#000">.</span><span style="color:#836c28">getString</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;REMARKS&#34;</span><span style="color:#000">));</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">System</span><span style="color:#000">.</span><span style="color:#836c28">out</span><span style="color:#000">.</span><span style="color:#836c28">println</span><span style="color:#000">(</span><span style="color:#000">msg</span><span style="color:#000">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">}</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#177500">// 忽略 getMetaData() 方法
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">}</span>
+</span></span></code></pre></div><p>不出意外控制台就会打印以下信息</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>Table：post, Type: TABLE, Comment: 文章
+</span></span><span style="display:flex;"><span>Table：user, Type: TABLE, Comment: 用户
+</span></span></code></pre></div><h2 id="第三步完善">第三步：完善</h2>
 <p>获取到表的信息以后，还需要根据表名去获取对应的列、索引、外键、主键等内容，得到这些数据以后就能生成一份完整的数据库文档了。</p>
 <p>这些内容的获取在 <code>DatabaeMetaData</code> 中都有对应的方法</p>
 <ul>
