@@ -6,21 +6,21 @@
     <description>Recent content in documentation on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 19 Apr 2022 09:11:30 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/documentation/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 19 Apr 2022 01:11:30 +0000</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/documentation/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>【Java】如何用 JDBC 写一个数据库文档生成工具？</title>
       <link>https://blog.cc1234.cc/posts/how-to-generate-doc-by-jdbc/</link>
-      <pubDate>Tue, 19 Apr 2022 09:11:30 +0800</pubDate>
+      <pubDate>Tue, 19 Apr 2022 01:11:30 +0000</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/how-to-generate-doc-by-jdbc/</guid>
       <description>前言 在工作中经常会遇到需要交付数据库文档的场景，而编写这样的文档又是一个很枯燥、重复的事情，完全可以通过自动化的方式来完成这样的工作。
 本文提供了一个在 JAVA 中如何基于 JDBC 来实现生成数据库文档的思路，希望对你有所帮助。
 第一步：可行性？ JDBC 是 Java Database Connectivity 的缩写，从名字就能看出来是 Java 定义的连接数据库的一个标准，这个标准的具体体现就是一系列接口
- java.sql.Connection java.sql.DatabaseMetaData java.sql.Driver java.sql.Statement javax.sql.DataSource &amp;hellip;  其中 java.sql.DatabaseMetaData （以下简称 DatabaseMetaData ）接口就是对数据库元信息的抽象，这里的元信息就包含了 schema、table、index、column 等我们熟知的概念。
+java.sql.Connection java.sql.DatabaseMetaData java.sql.Driver java.sql.Statement javax.sql.DataSource &amp;hellip; 其中 java.sql.DatabaseMetaData （以下简称 DatabaseMetaData ）接口就是对数据库元信息的抽象，这里的元信息就包含了 schema、table、index、column 等我们熟知的概念。
 通过 IDEA 我们可以很轻松的查看 DatabaseMetaData 接口定义的方法列表，比如
- getTables：获取表信息 getColumns：获取列信息 getIndexInfo：获取索引信息 getPrimaryKeys：获取主键信息 &amp;hellip;  由此可见， 基于 JDBC 来生成数据库文档的可行性是没问题的，那么接下来我们就进入实验阶段。
+getTables：获取表信息 getColumns：获取列信息 getIndexInfo：获取索引信息 getPrimaryKeys：获取主键信息 &amp;hellip; 由此可见， 基于 JDBC 来生成数据库文档的可行性是没问题的，那么接下来我们就进入实验阶段。
 第二步：Demo 实验环境：
- Mysql Java Mysql 数据准备  CREATE DATABASE IF NOT EXISTS demo; CREATE TABLE demo.user ( id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, username VARCHAR(255) NOT NULL, nickname VARCHAR(255) NOT NULL DEFAULT &amp;#39;&amp;#39;, create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, CONSTRAINT uk_user_username UNIQUE (username) ) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT &amp;#39;用户&amp;#39;; CREATE TABLE demo.</description>
+Mysql Java Mysql 数据准备 CREATE DATABASE IF NOT EXISTS demo; CREATE TABLE demo.user ( id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, username VARCHAR(255) NOT NULL, nickname VARCHAR(255) NOT NULL DEFAULT &amp;#39;&amp;#39;, create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, CONSTRAINT uk_user_username UNIQUE (username) ) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT &amp;#39;用户&amp;#39;; CREATE TABLE demo.</description>
     </item>
     
   </channel>

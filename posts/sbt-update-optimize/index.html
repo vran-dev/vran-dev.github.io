@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.81.0" />
+		<meta name="generator" content="Hugo 0.106.0">
 		<title>从30分钟到1分钟 - SBT的update耗时优化记录 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -72,17 +72,16 @@
 <p>翻了几页，没有满意的答案，也试了几个方案，也没啥用。</p>
 <p>看来还是得自己从问题的根源开始找起啊&hellip;&hellip;</p>
 <p>为了保险起见， 我还是先排查一下是不是镜像问题， 项目的 <code>build.sbt</code> 配置文件中是有私有仓库的相关配置项的：</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
-<span style="color:#000">lazy</span> <span style="color:#000">val</span> <span style="color:#000">commonSettings</span> <span style="color:#000">=</span> <span style="color:#000">Seq</span><span style="color:#000">(</span>
-	<span style="color:#177500">//....
-</span><span style="color:#177500"></span>
-  <span style="color:#177500">// ... 私有仓库
-</span><span style="color:#177500"></span>  <span style="color:#000">resolvers</span> <span style="color:#000">:=</span> <span style="color:#000">{</span><span style="color:#000">Resolver</span><span style="color:#000">.</span><span style="color:#836c28">url</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;xr-ivy-releasez&#34;</span><span style="color:#000">,</span> <span style="color:#a90d91">new</span> <span style="color:#000">URL</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;http://nexus.xxxx.com/repository/ivy-releases/&#34;</span><span style="color:#000">))(</span><span style="color:#000">Resolver</span><span style="color:#000">.</span><span style="color:#836c28">ivyStylePatterns</span><span style="color:#000">)</span> <span style="color:#000">+:</span> <span style="color:#000">resolvers</span><span style="color:#000">.</span><span style="color:#836c28">value</span><span style="color:#000">},</span>
-  <span style="color:#000">resolvers</span> <span style="color:#000">:=</span> <span style="color:#000">{</span> <span style="color:#000">{</span><span style="color:#c41a16">&#34;xr-maven-public&#34;</span> <span style="color:#000">at</span> <span style="color:#c41a16">&#34;http://nexus.xxxx.com/repository/public/&#34;</span><span style="color:#000">}</span> <span style="color:#000">+:</span> <span style="color:#000">resolvers</span><span style="color:#000">.</span><span style="color:#836c28">value</span><span style="color:#000">},</span>
-  <span style="color:#177500">// ....
-</span><span style="color:#177500"></span><span style="color:#000">)</span>
-
-</code></pre></div><p>此时我忽然想到一种情况：难道是默认走的公共库，在公共库找不到依赖才会走私有库 ？</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">lazy</span> <span style="color:#000">val</span> <span style="color:#000">commonSettings</span> <span style="color:#000">=</span> <span style="color:#000">Seq</span><span style="color:#000">(</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#177500">//....
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#177500">// ... 私有仓库
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>  <span style="color:#000">resolvers</span> <span style="color:#000">:=</span> <span style="color:#000">{</span><span style="color:#000">Resolver</span><span style="color:#000">.</span><span style="color:#836c28">url</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;xr-ivy-releasez&#34;</span><span style="color:#000">,</span> <span style="color:#a90d91">new</span> <span style="color:#000">URL</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;http://nexus.xxxx.com/repository/ivy-releases/&#34;</span><span style="color:#000">))(</span><span style="color:#000">Resolver</span><span style="color:#000">.</span><span style="color:#836c28">ivyStylePatterns</span><span style="color:#000">)</span> <span style="color:#000">+:</span> <span style="color:#000">resolvers</span><span style="color:#000">.</span><span style="color:#836c28">value</span><span style="color:#000">},</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">resolvers</span> <span style="color:#000">:=</span> <span style="color:#000">{</span> <span style="color:#000">{</span><span style="color:#c41a16">&#34;xr-maven-public&#34;</span> <span style="color:#000">at</span> <span style="color:#c41a16">&#34;http://nexus.xxxx.com/repository/public/&#34;</span><span style="color:#000">}</span> <span style="color:#000">+:</span> <span style="color:#000">resolvers</span><span style="color:#000">.</span><span style="color:#836c28">value</span><span style="color:#000">},</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#177500">// ....
+</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">)</span>
+</span></span></code></pre></div><p>此时我忽然想到一种情况：难道是默认走的公共库，在公共库找不到依赖才会走私有库 ？</p>
 <p>为了验证猜想，我使用 wireshark 抓包进行分析，过滤器指定协议 http (因为仓库是走的http)</p>
 <blockquote>
 <p>还可以指定 ip.src 和 ip.dst 从而使得数据包更加符合我们的要求</p>
@@ -209,9 +208,9 @@
 <p>要不，我把这个问题留给你们了？</p>
 <h2 id="写在最后">写在最后</h2>
 <p>最后从30分钟到1分钟实际上就是在 <code>build.sbt</code> 加了两行配置</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-scala" data-lang="scala"><span style="color:#000">offline</span> <span style="color:#a90d91">:</span><span style="color:#000">=</span> <span style="color:#a90d91">true</span><span style="color:#000">,</span>
-<span style="color:#000">updateOptions</span> <span style="color:#a90d91">:</span><span style="color:#000">=</span> <span style="color:#000">updateOptions</span><span style="color:#000">.</span><span style="color:#000">value</span><span style="color:#000">.</span><span style="color:#000">withCachedResolution</span><span style="color:#000">(</span><span style="color:#a90d91">true</span><span style="color:#000">).</span><span style="color:#000">withLatestSnapshots</span><span style="color:#000">(</span><span style="color:#a90d91">false</span><span style="color:#000">)</span>
-</code></pre></div><p>整个分析问题的思路也很简单，就是先找到问题根源，再去找解决方案。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-scala" data-lang="scala"><span style="display:flex;"><span><span style="color:#000">offline</span> <span style="color:#a90d91">:</span><span style="color:#000">=</span> <span style="color:#a90d91">true</span><span style="color:#000">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">updateOptions</span> <span style="color:#a90d91">:</span><span style="color:#000">=</span> <span style="color:#000">updateOptions</span><span style="color:#000">.</span><span style="color:#000">value</span><span style="color:#000">.</span><span style="color:#000">withCachedResolution</span><span style="color:#000">(</span><span style="color:#a90d91">true</span><span style="color:#000">).</span><span style="color:#000">withLatestSnapshots</span><span style="color:#000">(</span><span style="color:#a90d91">false</span><span style="color:#000">)</span>
+</span></span></code></pre></div><p>整个分析问题的思路也很简单，就是先找到问题根源，再去找解决方案。</p>
 <p>在寻找解决方案的时候一般都是搜索引擎，文档或者源码，正常情况下文档应该都能解决问题了，这期间我就绕了不少弯路，我甚至曾去看了 SBT 的  <strong>Resolver</strong> 的源码， 现在看来，绝对是跑偏了。</p>
 <p>整个解决过程并没有多么高深莫测甚至可以说是无聊至极，因为大部分时间都是看文档并验证其配置。</p>
 <p>不过还是那句话：<strong>工欲善其事必先利其器</strong></p>

@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.81.0" />
+		<meta name="generator" content="Hugo 0.106.0">
 		<title>推荐一款颜值与功能双在线的 Zookeeper 可视化工具 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -114,10 +114,10 @@
 <h3 id="4-letter-command">4 Letter command</h3>
 <p>如果你不了解 4 Letter command 的话，可以先参考一下<a href="https://zookeeper.apache.org/doc/r3.4.8/zookeeperAdmin.html#sc_zkCommands">官方文档</a>。</p>
 <p>如果要使用 4-Letter-Command 的话，需要在配置中加上</p>
-<pre><code class="language-properties" data-lang="properties">4lw.commands.whitelist=*
-</code></pre><p><code>*</code> 代表所有命令都支持，也可以替换为特定的命令，多个用逗号分隔</p>
-<pre><code class="language-properties" data-lang="properties">4lw.commands.whitelist=stat, ruok, conf, isro
-</code></pre><p>在 PrettyZoo 中使用 4-Letter-Command 只需要切换到对应的 Tab 页即可，操作与命令行窗口一致</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#836c28">4lw.commands.whitelist</span><span style="color:#000">=</span><span style="color:#c41a16">*</span>
+</span></span></code></pre></div><p><code>*</code> 代表所有命令都支持，也可以替换为特定的命令，多个用逗号分隔</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#836c28">4lw.commands.whitelist</span><span style="color:#000">=</span><span style="color:#c41a16">stat, ruok, conf, isro</span>
+</span></span></code></pre></div><p>在 PrettyZoo 中使用 4-Letter-Command 只需要切换到对应的 Tab 页即可，操作与命令行窗口一致</p>
 <p><img src="img/4-letter.gif" alt="4-letter"></p>
 <p>我官方支持的 command 及其对应的作用收集成了一个表格</p>
 <table>

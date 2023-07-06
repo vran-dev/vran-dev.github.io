@@ -6,22 +6,22 @@
     <description>Recent content in 系统设计 on 且徐行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 04 Mar 2023 19:28:40 +0800</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 04 Mar 2023 11:28:40 +0000</lastBuildDate><atom:link href="https://blog.cc1234.cc/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>HTTP status 与自定义 code 的最佳实践</title>
       <link>https://blog.cc1234.cc/posts/http-status-and-code/</link>
-      <pubDate>Sat, 04 Mar 2023 19:28:40 +0800</pubDate>
+      <pubDate>Sat, 04 Mar 2023 11:28:40 +0000</pubDate>
       
       <guid>https://blog.cc1234.cc/posts/http-status-and-code/</guid>
       <description>在 API 开发或对接中，经常会看到协议中有自定义 code 的设计
- 那为什么要这么设计呢？ 这种设计有没有什么实践？ 大厂都是怎么做的呢？  跟随本文，一起揭晓以上问题
+那为什么要这么设计呢？ 这种设计有没有什么实践？ 大厂都是怎么做的呢？ 跟随本文，一起揭晓以上问题
 为什么还要自定义 code？ HTTP 协议中定义了 5 类 status code
- Informational responses(100–199) Successful responses(200–299) Redirection messages(300–399) Client error responses(400–499) Server error responses(500–599)  这其中留给开发者可以用的 status code 少之又少，而实际的业务响应又会有非常多的状态，所以开发者需要一种方式来扩展 code。
+Informational responses(100–199) Successful responses(200–299) Redirection messages(300–399) Client error responses(400–499) Server error responses(500–599) 这其中留给开发者可以用的 status code 少之又少，而实际的业务响应又会有非常多的状态，所以开发者需要一种方式来扩展 code。
 这其中最直观的方式就是定义一个标准的响应结构，这个结构中有着一个自定义的 code 字段，它可以用来表示业务的响应状态，如下：
 { &amp;#34;code&amp;#34;:&amp;#34;A1000&amp;#34;, &amp;#34;message&amp;#34;:&amp;#34;会员已过期&amp;#34; } 所以，自定义 code 本质上是对 status code 的一个扩展，是为了满足实际业务中复杂的状态表达而设计的。
 自定义 code 该怎么用？ HTTP 的 status 不够用导致我们设计了自定义 code，但现在很多 API 的 code 都已经被滥用了。
 我推荐的做法是：按语义将 HTTP status 当作一级分类，自定义 code 当作二级分类
- 2xx 请求成功 4xx 客户端错误，不影响服务可用性 5xx 服务端错误，影响服务可用性  2xx 代表成功，实际业务场景下很少会碰到成功之下还要再区分不同的成功状态的，即使遇到了，设计一个更符合业务语义的字段通常也会更好。</description>
+2xx 请求成功 4xx 客户端错误，不影响服务可用性 5xx 服务端错误，影响服务可用性 2xx 代表成功，实际业务场景下很少会碰到成功之下还要再区分不同的成功状态的，即使遇到了，设计一个更符合业务语义的字段通常也会更好。</description>
     </item>
     
   </channel>
