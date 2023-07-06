@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.106.0">
+		<meta name="generator" content="Hugo 0.81.0" />
 		<title>写几个插件让 Mybatis generator 更好用！ &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -64,168 +64,168 @@
 <h3 id="当前问题">当前问题</h3>
 <p>很多时候生成的代码并不能完全满足业务需求，需要对其进行一定的扩展，扩展的最基本原则就是<strong>不修改由 Mybatis generator 生成的文件</strong>，因为这样才能在项目迭代中持续的使用 Mybatis generator，降低因为修改冲突而带来的维护成本。</p>
 <p>为了实现扩展，一般会选择继承由 generator 生成的 Java mapper 接口，然后再手写一个 XML，这个手写的 XML 可以通过 namespace + id 的形式引用生成的 XML 中的 <!-- raw HTML omitted -->、<!-- raw HTML omitted --> 等元素</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectByUsername&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;generated.UserGeneratedMapper.BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>        select *
-</span></span><span style="display:flex;"><span>        from user
-</span></span><span style="display:flex;"><span>        where username = #{username}
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;/select&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/mapper&gt;</span>
-</span></span></code></pre></div><p>但这种引用方式不是很便捷，如果能直接通过 id 引用而不需要加 namepace 前缀是最好的了。</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#177500">&lt;!-- 期望直接通过 ID 应用 --&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectByUsername&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>        select *
-</span></span><span style="display:flex;"><span>        from user
-</span></span><span style="display:flex;"><span>        where username = #{username}
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;/select&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/mapper&gt;</span>
-</span></span></code></pre></div><p>其实 generator 生成的 Java Mapper  的方法都差不多（只是参数、返回值类型不同），完全可以将这些方法通过泛型设计放到一个通用的 BaseMapper 接口中去，那么扩展的时候就不是继承各自的 XxxMapper，而都是同一个 BaseMapper 了。</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">BaseMapper</span><span style="color:#000">&lt;</span><span style="color:#000">User</span><span style="color:#000">,</span> <span style="color:#000">UserExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{}</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AddressMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">BaseMapper</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">,</span> <span style="color:#000">AddressExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{}</span>
-</span></span></code></pre></div><p>另一个问题就是 Mybatis generator 默认生成的 Example 查询方法缺少一个常用的 <code>selectOneByExample(Example)</code> 方法，虽然 <code>selectByExample</code> 也能取单个结果，但肯定没有直接调用 <code>selectOneByExample</code> 香。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectByUsername&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;generated.UserGeneratedMapper.BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
+        select *
+        from user
+        where username = #{username}
+    <span style="color:#000">&lt;/select&gt;</span>
+<span style="color:#000">&lt;/mapper&gt;</span>
+</code></pre></div><p>但这种引用方式不是很便捷，如果能直接通过 id 引用而不需要加 namepace 前缀是最好的了。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;mapper</span> <span style="color:#836c28">namespace=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.mapper.UserMapper&#34;</span><span style="color:#000">&gt;</span>
+		<span style="color:#177500">&lt;!-- 期望直接通过 ID 应用 --&gt;</span>
+    <span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectByUsername&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
+        select *
+        from user
+        where username = #{username}
+    <span style="color:#000">&lt;/select&gt;</span>
+<span style="color:#000">&lt;/mapper&gt;</span>
+</code></pre></div><p>其实 generator 生成的 Java Mapper  的方法都差不多（只是参数、返回值类型不同），完全可以将这些方法通过泛型设计放到一个通用的 BaseMapper 接口中去，那么扩展的时候就不是继承各自的 XxxMapper，而都是同一个 BaseMapper 了。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">UserMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">BaseMapper</span><span style="color:#000">&lt;</span><span style="color:#000">User</span><span style="color:#000">,</span> <span style="color:#000">UserExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{}</span>
+
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">AddressMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">BaseMapper</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">,</span> <span style="color:#000">AddressExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{}</span>
+</code></pre></div><p>另一个问题就是 Mybatis generator 默认生成的 Example 查询方法缺少一个常用的 <code>selectOneByExample(Example)</code> 方法，虽然 <code>selectByExample</code> 也能取单个结果，但肯定没有直接调用 <code>selectOneByExample</code> 香。</p>
 <h3 id="使用方式">使用方式</h3>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.MapperPlusPlugin&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#177500">&lt;!-- BaseMapper 配置目录--&gt;</span>    
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.target.project&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.javaProjectDir}&#34;</span><span style="color:#000">/&gt;</span> 
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.target.package&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.mapper.package}&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#177500">&lt;!-- BaseMapper 的名称 --&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.name&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;OneMapper&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#177500">&lt;!-- 每个 Table 对应的 mapper 配置目录 --&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;java-mapper.target.project&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;src/main/java&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;java-mapper.target.package&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.mapper.package}&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#177500">&lt;!-- 是否禁用 selectOneByExample，默认为 false --&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;select-one-by-example.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/plugin&gt;</span>
-</span></span></code></pre></div><h3 id="插件作用">插件作用</h3>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.MapperPlusPlugin&#34;</span><span style="color:#000">&gt;</span>
+		<span style="color:#177500">&lt;!-- BaseMapper 配置目录--&gt;</span>    
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.target.project&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.javaProjectDir}&#34;</span><span style="color:#000">/&gt;</span> 
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.target.package&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.mapper.package}&#34;</span><span style="color:#000">/&gt;</span>
+		<span style="color:#177500">&lt;!-- BaseMapper 的名称 --&gt;</span>
+    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;base-mapper.name&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;OneMapper&#34;</span><span style="color:#000">/&gt;</span>
+		<span style="color:#177500">&lt;!-- 每个 Table 对应的 mapper 配置目录 --&gt;</span>
+    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;java-mapper.target.project&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;src/main/java&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;java-mapper.target.package&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;${mybatis.generator.mapper.package}&#34;</span><span style="color:#000">/&gt;</span>
+		<span style="color:#177500">&lt;!-- 是否禁用 selectOneByExample，默认为 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;select-one-by-example.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+<span style="color:#000">&lt;/plugin&gt;</span>
+</code></pre></div><h3 id="插件作用">插件作用</h3>
 <ol>
 <li>会在指定目录生成一个通用的 BaseMapper</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">,</span> <span style="color:#000">E</span><span style="color:#000">&gt;</span>  <span style="color:#000">{</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">long</span> <span style="color:#000">countByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">int</span> <span style="color:#000">deleteByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">int</span> <span style="color:#000">deleteByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">int</span> <span style="color:#000">insert</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">int</span> <span style="color:#000">insertSelective</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">Optional</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">&gt;</span> <span style="color:#000">selectOneByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">T</span> <span style="color:#000">selectByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">int</span> <span style="color:#000">updateByExampleSelective</span><span style="color:#000">(</span><span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;row&#34;</span><span style="color:#000">)</span> <span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">,</span> <span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;example&#34;</span><span style="color:#000">)</span> <span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">int</span> <span style="color:#000">updateByExample</span><span style="color:#000">(</span><span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;row&#34;</span><span style="color:#000">)</span> <span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">,</span> <span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;example&#34;</span><span style="color:#000">)</span> <span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">int</span> <span style="color:#000">updateByPrimaryKeySelective</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
-</span></span></code></pre></div><ol start="2">
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">,</span> <span style="color:#000">E</span><span style="color:#000">&gt;</span>  <span style="color:#000">{</span>
+    <span style="color:#a90d91">long</span> <span style="color:#000">countByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">deleteByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">deleteByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">insert</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">insertSelective</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
+
+    <span style="color:#000">Optional</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">&gt;</span> <span style="color:#000">selectOneByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#000">T</span> <span style="color:#000">selectByPrimaryKey</span><span style="color:#000">(</span><span style="color:#000">Long</span> <span style="color:#000">id</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">updateByExampleSelective</span><span style="color:#000">(</span><span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;row&#34;</span><span style="color:#000">)</span> <span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">,</span> <span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;example&#34;</span><span style="color:#000">)</span> <span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">updateByExample</span><span style="color:#000">(</span><span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;row&#34;</span><span style="color:#000">)</span> <span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">,</span> <span style="color:#000">@Param</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;example&#34;</span><span style="color:#000">)</span> <span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+
+    <span style="color:#a90d91">int</span> <span style="color:#000">updateByPrimaryKeySelective</span><span style="color:#000">(</span><span style="color:#000">T</span> <span style="color:#000">row</span><span style="color:#000">);</span>
+<span style="color:#000">}</span>
+</code></pre></div><ol start="2">
 <li>重命名所有生成的 xxxMapper.xml 文件为 xxxGeneratedMapper.xml</li>
 <li>会为 Mapper 生成一个 selectOneByExample 方法</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">,</span> <span style="color:#000">E</span><span style="color:#000">&gt;</span>  <span style="color:#000">{</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#177500">/* ... */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">&gt;</span> <span style="color:#000">selectByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#177500">/* ... */</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
-</span></span></code></pre></div><p>每个表对应的 mapper.xml 也会生成对应的 SQL</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectOneByExample&#34;</span> <span style="color:#836c28">parameterType=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.model.UserExample&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#177500">&lt;!--
-</span></span></span><span style="display:flex;"><span><span style="color:#177500">    WARNING - @mbg.generated
-</span></span></span><span style="display:flex;"><span><span style="color:#177500">    This element is automatically generated by MyBatis Generator, do not modify.
-</span></span></span><span style="display:flex;"><span><span style="color:#177500">  --&gt;</span>
-</span></span><span style="display:flex;"><span>  select
-</span></span><span style="display:flex;"><span>  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;distinct&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>    distinct
-</span></span><span style="display:flex;"><span>  <span style="color:#000">&lt;/if&gt;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#000">&lt;include</span> <span style="color:#836c28">refid=</span><span style="color:#c41a16">&#34;Base_Column_List&#34;</span> <span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>  from user
-</span></span><span style="display:flex;"><span>  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;_parameter != null&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">&lt;include</span> <span style="color:#836c28">refid=</span><span style="color:#c41a16">&#34;Example_Where_Clause&#34;</span> <span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#000">&lt;/if&gt;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;orderByClause != null&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>    order by ${orderByClause}
-</span></span><span style="display:flex;"><span>  <span style="color:#000">&lt;/if&gt;</span>
-</span></span><span style="display:flex;"><span>   limit 1
-</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/select&gt;</span>
-</span></span></code></pre></div><ol start="4">
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">,</span> <span style="color:#000">E</span><span style="color:#000">&gt;</span>  <span style="color:#000">{</span>
+		<span style="color:#177500">/* ... */</span>
+    <span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">T</span><span style="color:#000">&gt;</span> <span style="color:#000">selectByExample</span><span style="color:#000">(</span><span style="color:#000">E</span> <span style="color:#000">example</span><span style="color:#000">);</span>
+		<span style="color:#177500">/* ... */</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>每个表对应的 mapper.xml 也会生成对应的 SQL</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;select</span> <span style="color:#836c28">id=</span><span style="color:#c41a16">&#34;selectOneByExample&#34;</span> <span style="color:#836c28">parameterType=</span><span style="color:#c41a16">&#34;cc.cc1234.dao.model.UserExample&#34;</span> <span style="color:#836c28">resultMap=</span><span style="color:#c41a16">&#34;BaseResultMap&#34;</span><span style="color:#000">&gt;</span>
+  <span style="color:#177500">&lt;!--
+</span><span style="color:#177500">    WARNING - @mbg.generated
+</span><span style="color:#177500">    This element is automatically generated by MyBatis Generator, do not modify.
+</span><span style="color:#177500">  --&gt;</span>
+  select
+  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;distinct&#34;</span><span style="color:#000">&gt;</span>
+    distinct
+  <span style="color:#000">&lt;/if&gt;</span>
+  <span style="color:#000">&lt;include</span> <span style="color:#836c28">refid=</span><span style="color:#c41a16">&#34;Base_Column_List&#34;</span> <span style="color:#000">/&gt;</span>
+  from user
+  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;_parameter != null&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#000">&lt;include</span> <span style="color:#836c28">refid=</span><span style="color:#c41a16">&#34;Example_Where_Clause&#34;</span> <span style="color:#000">/&gt;</span>
+  <span style="color:#000">&lt;/if&gt;</span>
+  <span style="color:#000">&lt;if</span> <span style="color:#836c28">test=</span><span style="color:#c41a16">&#34;orderByClause != null&#34;</span><span style="color:#000">&gt;</span>
+    order by ${orderByClause}
+  <span style="color:#000">&lt;/if&gt;</span>
+   limit 1
+<span style="color:#000">&lt;/select&gt;</span>
+</code></pre></div><ol start="4">
 <li>会在指定目录生成表对应的 Java Mapper，该 Mapper 会自动继承 BaseMapper 接口，生成的 XML 对应的 namespace 也指向了该 Java Mapper</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">cc.cc1234.dao.model.Address</span><span style="color:#000">;</span>
-</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">cc.cc1234.dao.model.AddressExample</span><span style="color:#000">;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">AddressMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">,</span> <span style="color:#000">AddressExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
-</span></span></code></pre></div><p>用户可以在该 Mapper 中添加方法，插件不会覆盖已存在的 Java Mapper，并且所有的 XML 的 namespace 都是指向的该 Java 接口（包括 generator 生成的 xml），这就代表在用户自定义的 XML 中可以直接通过 id 引用 geneartor 生成的 xml 中的内容，比如 <!-- raw HTML omitted -->， <!-- raw HTML omitted --> 等。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">import</span> <span style="color:#000">cc.cc1234.dao.model.Address</span><span style="color:#000">;</span>
+<span style="color:#a90d91">import</span> <span style="color:#000">cc.cc1234.dao.model.AddressExample</span><span style="color:#000">;</span>
+
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">interface</span> <span style="color:#3f6e75">AddressMapper</span> <span style="color:#a90d91">extends</span> <span style="color:#000">OneMapper</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">,</span> <span style="color:#000">AddressExample</span><span style="color:#000">&gt;</span> <span style="color:#000">{</span>
+
+<span style="color:#000">}</span>
+</code></pre></div><p>用户可以在该 Mapper 中添加方法，插件不会覆盖已存在的 Java Mapper，并且所有的 XML 的 namespace 都是指向的该 Java 接口（包括 generator 生成的 xml），这就代表在用户自定义的 XML 中可以直接通过 id 引用 geneartor 生成的 xml 中的内容，比如 <!-- raw HTML omitted -->， <!-- raw HTML omitted --> 等。</p>
 <h2 id="examplemodelplusplugin">ExampleModelPlusPlugin</h2>
 <h3 id="当前问题-1">当前问题</h3>
 <ol>
 <li>Example 需要通过 new 来构建，不够便捷</li>
 <li>无法链式的构造多个查询条件</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#000">AddressExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">AddressExample</span><span style="color:#000">();</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">andCityIsNotNull</span><span style="color:#000">();</span>
-</span></span><span style="display:flex;"><span><span style="color:#177500">// NOTE: or 条件不能链式的构造，需要使用 example 单独构造 criteria
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">or</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">andStreetIsNull</span><span style="color:#000">();</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">addressMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span></code></pre></div><ol start="3">
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">AddressExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">AddressExample</span><span style="color:#000">();</span>
+<span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andCityIsNotNull</span><span style="color:#000">();</span>
+<span style="color:#177500">// NOTE: or 条件不能链式的构造，需要使用 example 单独构造 criteria
+</span><span style="color:#177500"></span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">or</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andStreetIsNull</span><span style="color:#000">();</span>
+<span style="color:#000">addressMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
+</code></pre></div><ol start="3">
 <li>排序条件无法像查询条件一样通过方法名称构建</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#000">AddressExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">AddressExample</span><span style="color:#000">();</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">andCityIsNotNull</span><span style="color:#000">();</span>
-</span></span><span style="display:flex;"><span><span style="color:#177500">// NOTE: 排序条件需要写真实的列名称，无法像查询条件一样通过调用方法构造
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">setOrderByClause</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;create_at desc&#34;</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">&gt;</span> <span style="color:#000">addresses</span> <span style="color:#000">=</span> <span style="color:#000">addressMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span></code></pre></div><p>为了优化 Example 的体验，ExampleModelPlusPlugin 针对以上问题做了优化，不仅使得 Example 的查询构造可以链式到底，还提供了类型安全的查询条件构造方法。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000">AddressExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#a90d91">new</span> <span style="color:#000">AddressExample</span><span style="color:#000">();</span>
+<span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andCityIsNotNull</span><span style="color:#000">();</span>
+<span style="color:#177500">// NOTE: 排序条件需要写真实的列名称，无法像查询条件一样通过调用方法构造
+</span><span style="color:#177500"></span><span style="color:#000">example</span><span style="color:#000">.</span><span style="color:#836c28">setOrderByClause</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;create_at desc&#34;</span><span style="color:#000">);</span>
+<span style="color:#000">List</span><span style="color:#000">&lt;</span><span style="color:#000">Address</span><span style="color:#000">&gt;</span> <span style="color:#000">addresses</span> <span style="color:#000">=</span> <span style="color:#000">addressMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
+</code></pre></div><p>为了优化 Example 的体验，ExampleModelPlusPlugin 针对以上问题做了优化，不仅使得 Example 的查询构造可以链式到底，还提供了类型安全的查询条件构造方法。</p>
 <h3 id="使用方式-1">使用方式</h3>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.ExampleModelPlusPlugin&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#177500">&lt;!-- 禁用 order by 增强，默认 false --&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;example.order-by.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#177500">&lt;!-- 禁用生成 Example 的静态工厂方法，默认 false --&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;example.static-factory.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#177500">&lt;!-- 禁用生成 Criteria 的 example() 方法生成，默认 false --&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;criteria.example.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/plugin&gt;</span>
-</span></span></code></pre></div><h3 id="插件作用-1">插件作用</h3>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.ExampleModelPlusPlugin&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#177500">&lt;!-- 禁用 order by 增强，默认 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;example.order-by.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 禁用生成 Example 的静态工厂方法，默认 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;example.static-factory.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 禁用生成 Criteria 的 example() 方法生成，默认 false --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;criteria.example.disabled&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;false&#34;</span><span style="color:#000">/&gt;</span>
+<span style="color:#000">&lt;/plugin&gt;</span>
+</code></pre></div><h3 id="插件作用-1">插件作用</h3>
 <ol>
 <li>为 Example 生成一个便捷的静态工厂方法 <code>create()</code></li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#177500">// 使用示例
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">XxxExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">XxxExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">();</span>
-</span></span></code></pre></div><ol start="2">
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 使用示例
+</span><span style="color:#177500"></span><span style="color:#000">XxxExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">XxxExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">();</span>
+</code></pre></div><ol start="2">
 <li>为 Criteria 创建一个 <code>example()</code> 方法，可以直接返回当前 Example 类型</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#177500">// 使用示例
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">XxxExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">XxxExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">andUsernameLike</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;root%&#34;</span><span style="color:#000">)</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">andCreateAtLessThan</span><span style="color:#000">(</span><span style="color:#000">LocalDateTime</span><span style="color:#000">.</span><span style="color:#836c28">now</span><span style="color:#000">())</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">();</span> <span style="color:#177500">// 返回当前 Example 实例
-</span></span></span></code></pre></div><ol start="3">
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 使用示例
+</span><span style="color:#177500"></span><span style="color:#000">XxxExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">XxxExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">()</span>
+            <span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+            <span style="color:#000">.</span><span style="color:#836c28">andUsernameLike</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;root%&#34;</span><span style="color:#000">)</span>
+            <span style="color:#000">.</span><span style="color:#836c28">andCreateAtLessThan</span><span style="color:#000">(</span><span style="color:#000">LocalDateTime</span><span style="color:#000">.</span><span style="color:#836c28">now</span><span style="color:#000">())</span>
+            <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">();</span> <span style="color:#177500">// 返回当前 Example 实例
+</span></code></pre></div><ol start="3">
 <li>为 Example 创建一个 <code>orderBy()</code> 方法，该方法返回新增的 OrderByCriteria 类型，使得字段排序也可以如同查询条件一样通过方法构建</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#177500">// 使用示例
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">UserExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">UserExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">andUsernameLike</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;root%&#34;</span><span style="color:#000">)</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">andCreateAtLessThan</span><span style="color:#000">(</span><span style="color:#000">LocalDateTime</span><span style="color:#000">.</span><span style="color:#836c28">now</span><span style="color:#000">())</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">orderBy</span><span style="color:#000">()</span> <span style="color:#177500">// 获取一个 OrderByCriteria 类
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>        <span style="color:#000">.</span><span style="color:#836c28">idDesc</span><span style="color:#000">()</span> <span style="color:#177500">// 该类为所有字段都生成了排序方法
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>        <span style="color:#000">.</span><span style="color:#836c28">createAtDesc</span><span style="color:#000">()</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">();</span> <span style="color:#177500">// 获取当前 Example 的实例
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span>
-</span></span><span style="display:flex;"><span><span style="color:#177500">// select * from user where username like &#39;root%&#39; and create_at &lt;= now() order by id desc, create_at desc
-</span></span></span><span style="display:flex;"><span><span style="color:#177500"></span><span style="color:#000">userMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
-</span></span></code></pre></div><h2 id="nullsafeplugin">NullsafePlugin</h2>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#177500">// 使用示例
+</span><span style="color:#177500"></span><span style="color:#000">UserExample</span> <span style="color:#000">example</span> <span style="color:#000">=</span> <span style="color:#000">UserExample</span><span style="color:#000">.</span><span style="color:#836c28">create</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">createCriteria</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andUsernameLike</span><span style="color:#000">(</span><span style="color:#c41a16">&#34;root%&#34;</span><span style="color:#000">)</span>
+        <span style="color:#000">.</span><span style="color:#836c28">andCreateAtLessThan</span><span style="color:#000">(</span><span style="color:#000">LocalDateTime</span><span style="color:#000">.</span><span style="color:#836c28">now</span><span style="color:#000">())</span>
+        <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">orderBy</span><span style="color:#000">()</span> <span style="color:#177500">// 获取一个 OrderByCriteria 类
+</span><span style="color:#177500"></span>        <span style="color:#000">.</span><span style="color:#836c28">idDesc</span><span style="color:#000">()</span> <span style="color:#177500">// 该类为所有字段都生成了排序方法
+</span><span style="color:#177500"></span>        <span style="color:#000">.</span><span style="color:#836c28">createAtDesc</span><span style="color:#000">()</span>
+        <span style="color:#000">.</span><span style="color:#836c28">example</span><span style="color:#000">();</span> <span style="color:#177500">// 获取当前 Example 的实例
+</span><span style="color:#177500"></span>
+<span style="color:#177500">// select * from user where username like &#39;root%&#39; and create_at &lt;= now() order by id desc, create_at desc
+</span><span style="color:#177500"></span><span style="color:#000">userMapper</span><span style="color:#000">.</span><span style="color:#836c28">selectByExample</span><span style="color:#000">(</span><span style="color:#000">example</span><span style="color:#000">);</span>
+</code></pre></div><h2 id="nullsafeplugin">NullsafePlugin</h2>
 <h3 id="当前问题-2">当前问题</h3>
 <p>默认情况下 mybatis generator 生成的 model 会丢失一个很重要的信息： <strong>model 中某个属性对应的列字段是否为空。</strong></p>
 <p>为了避免 NullPointerException，开发只好</p>
@@ -236,41 +236,41 @@
 <p>第一种造成了过度的防御式编程，第二种有上下文的切换烦恼。</p>
 <p>那能不能直接从生成的 Java model 中就能得知某字段可能为空呢？这里我用 NullsafePlugin 给出了确定的答案：可以。</p>
 <h3 id="使用方式-2">使用方式</h3>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.NullSafePlugin&#34;</span><span style="color:#000">&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#177500">&lt;!-- 会忽略对指定列的处理 --&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;ignore.columns&#34;</span>
-</span></span><span style="display:flex;"><span>              <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;*.create_time,*.update_time,*.create_at,*.active_from,*.active_to,*.operation_time,point_rule.start_time,point_rule.end_time,*.event_properties,*.reward&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#177500">&lt;!-- 是否生成返回值为 Optional 的 get 方法 --&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;optional.getter&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#177500">&lt;!-- 是否添加 spring 的 @Nullable 注解 --&gt;</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;spring.nullable&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">&lt;/plugin&gt;</span>
-</span></span></code></pre></div><h3 id="插件作用-2">插件作用</h3>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#000">&lt;plugin</span> <span style="color:#836c28">type=</span><span style="color:#c41a16">&#34;cc.cc1234.mybatis.generator.NullSafePlugin&#34;</span><span style="color:#000">&gt;</span>
+    <span style="color:#177500">&lt;!-- 会忽略对指定列的处理 --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;ignore.columns&#34;</span>
+              <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;*.create_time,*.update_time,*.create_at,*.active_from,*.active_to,*.operation_time,point_rule.start_time,point_rule.end_time,*.event_properties,*.reward&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 是否生成返回值为 Optional 的 get 方法 --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;optional.getter&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
+    <span style="color:#177500">&lt;!-- 是否添加 spring 的 @Nullable 注解 --&gt;</span>
+		<span style="color:#000">&lt;property</span> <span style="color:#836c28">name=</span><span style="color:#c41a16">&#34;spring.nullable&#34;</span> <span style="color:#836c28">value=</span><span style="color:#c41a16">&#34;true&#34;</span><span style="color:#000">/&gt;</span>
+<span style="color:#000">&lt;/plugin&gt;</span>
+</code></pre></div><h3 id="插件作用-2">插件作用</h3>
 <p>如果表中的某一列可为空</p>
 <ol>
 <li>那么生成的 Java model 中对应字段属性会被加上 <code>@Nullable</code> 注解</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.lang</span><span style="color:#000">;</span><span style="color:#000">Nullable</span><span style="color:#000">;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Model</span> <span style="color:#000">{</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#000">@Nullable</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a90d91">private</span> <span style="color:#000">String</span> <span style="color:#000">xxx</span><span style="color:#000">;</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
-</span></span></code></pre></div><p><code>Nullable</code> 注解可以让开发集成工具（IDE）或静态检查工具（比如 findbugs、sonarQuebe）帮你检查出可能造成 NPE （NullPointerException）的代码，未来插件会支持更多符合 JSR-305 标准的注解。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">import</span> <span style="color:#000">org.springframework.lang</span><span style="color:#000">;</span><span style="color:#000">Nullable</span><span style="color:#000">;</span>
+
+<span style="color:#a90d91">public</span> <span style="color:#a90d91">class</span> <span style="color:#3f6e75">Model</span> <span style="color:#000">{</span>
+	<span style="color:#000">@Nullable</span>
+	<span style="color:#a90d91">private</span> <span style="color:#000">String</span> <span style="color:#000">xxx</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
+</code></pre></div><p><code>Nullable</code> 注解可以让开发集成工具（IDE）或静态检查工具（比如 findbugs、sonarQuebe）帮你检查出可能造成 NPE （NullPointerException）的代码，未来插件会支持更多符合 JSR-305 标准的注解。</p>
 <ol start="2">
 <li>该字段会额外生成一个 getXxxOptional 的方法</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#000">Type</span> <span style="color:#000">getXxx</span><span style="color:#000">()</span> <span style="color:#000">{</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a90d91">return</span> <span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">xxx</span><span style="color:#000">;</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#177500">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#177500">* 返回类型为 Optional&lt;T&gt;
-</span></span></span><span style="display:flex;"><span><span style="color:#177500">*/</span>
-</span></span><span style="display:flex;"><span><span style="color:#a90d91">public</span> <span style="color:#000">Optional</span><span style="color:#000">&lt;</span><span style="color:#000">Type</span><span style="color:#000">&gt;</span> <span style="color:#000">getXxxOptional</span><span style="color:#000">()</span> <span style="color:#000">{</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a90d91">return</span> <span style="color:#000">Optional</span><span style="color:#000">.</span><span style="color:#836c28">ofNullable</span><span style="color:#000">(</span><span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">xxx</span><span style="color:#000">);</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">}</span>
-</span></span></code></pre></div><p>为什么不直接将 getXxx 方法的返回值替代为 Optional 呢？因为 mybatis 会根据 get 方法的返回值去匹配对应的 TypeHandler，如果没有一个通用的 OptionalTypeHandler 的话就出现映射异常。</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a90d91">public</span> <span style="color:#000">Type</span> <span style="color:#000">getXxx</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+	<span style="color:#a90d91">return</span> <span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">xxx</span><span style="color:#000">;</span>
+<span style="color:#000">}</span>
+
+<span style="color:#177500">/**
+</span><span style="color:#177500">* 返回类型为 Optional&lt;T&gt;
+</span><span style="color:#177500">*/</span>
+<span style="color:#a90d91">public</span> <span style="color:#000">Optional</span><span style="color:#000">&lt;</span><span style="color:#000">Type</span><span style="color:#000">&gt;</span> <span style="color:#000">getXxxOptional</span><span style="color:#000">()</span> <span style="color:#000">{</span>
+	<span style="color:#a90d91">return</span> <span style="color:#000">Optional</span><span style="color:#000">.</span><span style="color:#836c28">ofNullable</span><span style="color:#000">(</span><span style="color:#a90d91">this</span><span style="color:#000">.</span><span style="color:#836c28">xxx</span><span style="color:#000">);</span>
+<span style="color:#000">}</span>
+</code></pre></div><p>为什么不直接将 getXxx 方法的返回值替代为 Optional 呢？因为 mybatis 会根据 get 方法的返回值去匹配对应的 TypeHandler，如果没有一个通用的 OptionalTypeHandler 的话就出现映射异常。</p>
 
             </section>
 

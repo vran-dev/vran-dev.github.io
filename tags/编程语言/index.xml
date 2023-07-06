@@ -17,7 +17,7 @@
 常见的数据类型有基本数据类型（Primitive data types）和组合数据类型（Composite Types）。
 基本数据类型一般都是由编程语言内置的，比如 Integer、Float、Boolean、Char 等，而组合数据类型是从基本类型派生出来的，一个组合类型可以由基本类型组成，也可以由「其他组合类型 + 基本类型」组成。
 比如在 Java 中通过 class 关键字就可以创建一个组合类型
-public class User { private String name; // 姓名 private Integer age; // 年龄 private List&amp;lt;User&amp;gt; familyMembers; // 家庭成员 } Scala 中的 case class 也是组合类型
+public class User { private String name; // 姓名  private Integer age; // 年龄  private List&amp;lt;User&amp;gt; familyMembers; // 家庭成员 } Scala 中的 case class 也是组合类型
 case class User(name: String, age: Integer, familyMembers: List[User]) 组合类型又可以分为很多种，而本文要聊的 Algebraic data type （以下简称 ADT 或 ADTs）就是其中之一
 注：Algebraic data type，一般译作代数数据类型
 Algebraic data type Algebraic data type 在函数式编程语言中是一个很常见的概念，要理解 ADT ，得先明白 Algebra（代数）的含义。</description>
@@ -30,8 +30,8 @@ Algebraic data type Algebraic data type 在函数式编程语言中是一个很�
       
       <guid>https://blog.cc1234.cc/posts/typeclasses-deriving/</guid>
       <description>前言 本文主要是讨论在 Scala 中自动为 case class 派生 Type class 实例，如果你不知道什么是 Type class 的话，建议先阅读我的上一篇文章 《真的学不动了： 除了 class , 也该了解 Type classes 了》。
-本文使用的 Scala 版本为 2.13.2，Shapless 版本为 2.3.3
-提出问题 假设我现在有一个用于生成随机测试数据的 Type class，并且已经实现了 Int， Boolean 等基本类型的 Random 实例
+ 本文使用的 Scala 版本为 2.13.2，Shapless 版本为 2.3.3
+ 提出问题 假设我现在有一个用于生成随机测试数据的 Type class，并且已经实现了 Int， Boolean 等基本类型的 Random 实例
 trait Random[T] { def random(): T } object Random { def apply[T]()(implicit random: Random[T]) = random.random() implicit val intRandom = new Random[Int] { override def random(): Int = Math.abs(scala.util.Random.nextInt(10000000)) } implicit val stringRandom = new Random[String] { override def random(): String = UUID.</description>
     </item>
     
@@ -43,9 +43,9 @@ trait Random[T] { def random(): T } object Random { def apply[T]()(implicit rand
       <guid>https://blog.cc1234.cc/posts/typeclasses-2/</guid>
       <description>引言 Type classes 源自 Haskell，在 Scala 中并没有直接的语法和概念，但却可以借助于强大的隐式系统间接实现，一般称之为 Type classes Pattern。
 Type classes pattern 可谓是 Scala 中的屠龙技之一，然而这一招式随着 Scala3 的发布也产生了巨大的变化&amp;hellip;&amp;hellip;
-关于 Type classes 更多内容，可以参考 《真的学不动了: 除了 class , 也该了解 Type classes 了》。
-回顾 Scala2 与 Type classes Scala2 中 Type classes Pattern 有个固定的套路
-基于 trait 和泛型定义 Type class 实现 Type class 实例 定义包含隐式参数的函数 下面用 Scala2 中的 Type classes Pattern 来改造一下经典的 Comparator 接口，相比于上一篇文章，这里的实现会多一些细节。
+ 关于 Type classes 更多内容，可以参考 《真的学不动了: 除了 class , 也该了解 Type classes 了》。
+ 回顾 Scala2 与 Type classes Scala2 中 Type classes Pattern 有个固定的套路
+ 基于 trait 和泛型定义 Type class 实现 Type class 实例 定义包含隐式参数的函数  下面用 Scala2 中的 Type classes Pattern 来改造一下经典的 Comparator 接口，相比于上一篇文章，这里的实现会多一些细节。
 trait Comparator[T] { def compare(a: T, b: T): Int } object ComparatorInstances { implicit val intComparator = new Comparator[Int] { override def compare(a: Int, b: Int) = a.</description>
     </item>
     
@@ -57,10 +57,10 @@ trait Comparator[T] { def compare(a: T, b: T): Int } object ComparatorInstances 
       <guid>https://blog.cc1234.cc/posts/typeclasses-1/</guid>
       <description>前言 作为一个 Java 开发者， class 的概念肯定是耳熟能详了，可是在山的另一边还有拥有别样风情的 type classes，但不翻过 Java 这座山，它就始终隔着一层纱。
 一个经典的问题 在编程中，经常需要判断两个值是否相等，这就是判等问题， 然而在很长的一段时间内这个问题都没有一个标准的解决方案。
-我这里统一使用 “值” 来代替对象、基本类型等等概念，以便于简化沟通
-在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
+ 我这里统一使用 “值” 来代替对象、基本类型等等概念，以便于简化沟通
+ 在 Java 中，我们可以用 == ，也可以用 equals 来判断值是否相等
 public void test() { boolean res = &amp;#34;hello&amp;#34; == &amp;#34;world&amp;#34;; boolean res2 = &amp;#34;hello&amp;#34;.equals(&amp;#34;hello&amp;#34;); boolean res3 = 3 == 3; boolean res4 = 5 == 9; } 熟悉 Java 的同学都知道对于非基础类型， equals 方法的默认实现其实就是调用 == 操作符，而 == 操作比较的是对象的引用地址
-public class Object { // ...... public boolean equals(Object obj) { return (this == obj); } // .</description>
+public class Object { // ......  public boolean equals(Object obj) { return (this == obj); } // .</description>
     </item>
     
   </channel>

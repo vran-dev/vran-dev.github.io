@@ -11,7 +11,7 @@
 
 		<meta name="author" content="vran">
 		
-		<meta name="generator" content="Hugo 0.106.0">
+		<meta name="generator" content="Hugo 0.81.0" />
 		<title>再也不用手写模型文档了，Databasir beta 初体验 &middot; 且徐行</title>
 		<link rel="shortcut icon" href="https://blog.cc1234.cc/images/favicon.ico">
         <link rel="stylesheet" href="https://blog.cc1234.cc/css/style.css">
@@ -92,7 +92,7 @@
 </ul>
 <p>系统环境就绪以后就可以前往项目 <a href="https://github.com/vran-dev/databasir/releases">Release</a> 页面（https://github.com/vran-dev/databasir/releases）下载最新版的 Databasir.jar。</p>
 <p>下载完成以后，在 Databasir.jar 所在目录创建  config 文件夹，并在 config 下创建 application.properties，添加 MYSQL 的相关配置</p>
-<pre tabindex="0"><code># 端口号，默认8080
+<pre><code># 端口号，默认8080
 server.port=8080
 # 数据库用户名
 databasir.datasource.username=root
@@ -101,8 +101,8 @@ databasir.datasource.password=123456
 # 数据库地址
 databasir.datasource.url=127.0.0.1:3306
 </code></pre><p>最后在 Databasir.jar 所在目录执行以下命令启动即可</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>java -jar databasir.jar
-</span></span></code></pre></div><p>启动以后在浏览器输入  <a href="http://localhost:8080/">http://localhost:8080/</a>  既可以进入登陆页面</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -jar databasir.jar
+</code></pre></div><p>启动以后在浏览器输入  <a href="http://localhost:8080/">http://localhost:8080/</a>  既可以进入登陆页面</p>
 <p><img src="img/1-login.png" alt="Untitled"></p>
 <p>系统首次启动时会自动创建管理员账户</p>
 <ul>
